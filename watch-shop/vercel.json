@@ -6,7 +6,8 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist",
-        "buildCommand": "npm run build"
+        "buildCommand": "npm run build",
+        "outputDirectory": "dist"
       }
     },
     {
@@ -28,8 +29,13 @@
       "dest": "/favicon.ico"
     },
     {
+      "src": "^/upload-test.html",
+      "dest": "/upload-test.html"
+    },
+    {
       "src": "^/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "framework": "vite"
 }
