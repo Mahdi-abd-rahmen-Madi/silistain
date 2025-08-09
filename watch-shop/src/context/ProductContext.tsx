@@ -63,7 +63,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:3001/api/upload', {
+      // Use relative path for Vercel deployment
+      const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
