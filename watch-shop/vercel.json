@@ -28,14 +28,8 @@
       "dest": "/favicon.ico"
     },
     {
-      "src": "^/.*",
+      "src": "^/(.*)",
       "dest": "/index.html"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ],
   "framework": "vite"
