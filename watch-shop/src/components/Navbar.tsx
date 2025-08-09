@@ -51,7 +51,7 @@ const Navbar = () => {
           <div className="flex items-center
           ">
             <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold text-accent">ChronoCraft</span>
+              <span className="text-2xl font-bold text-accent">Silistain</span>
             </Link>
           </div>
 

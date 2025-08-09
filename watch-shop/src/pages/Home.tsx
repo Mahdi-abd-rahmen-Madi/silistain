@@ -4,35 +4,20 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Clock, Shield, Truck, Zap, CheckCircle, Star } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
-import watches from '../data/watches';
+import watchesData from '../data/watches';
+import { Watch } from '../types';
 import ProductCard from '../components/ProductCard';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../hooks/use-toast';
 
-interface Watch {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  image: string;
-  isFeatured?: boolean;
-  releaseDate: string;
-  sold: number;
-  rating?: number;
-  reviewCount?: number;
-  description?: string;
-  features?: string[];
-  availableSizes?: string[];
-  colors?: Array<{ name: string; class: string; selectedClass: string }>;
-}
-
 // Prepare watch collections
-const featuredWatches = watches.filter((watch: Watch) => watch.isFeatured);
+const watches = watchesData as Watch[];
+const featuredWatches = watches.filter((watch) => watch.isFeatured);
 const newArrivals = [...watches]
-  .sort((a: Watch, b: Watch) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime())
+  .sort((a, b) => (b.releaseDate ? new Date(b.releaseDate).getTime() : 0) - (a.releaseDate ? new Date(a.releaseDate).getTime() : 0))
   .slice(0, 4);
 const bestSellers = [...watches]
-  .sort((a: Watch, b: Watch) => b.sold - a.sold)
+  .sort((a, b) => (b.sold || 0) - (a.sold || 0))
   .slice(0, 4);
 
 const Home = () => {

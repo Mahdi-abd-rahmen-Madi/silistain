@@ -3,27 +3,18 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { X, Heart, ShoppingCart, Star } from 'lucide-react';
 import { Button } from './ui/Button';
 import { toast } from '../hooks/use-toast';
-
-interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  image: string;
-  images?: string[];
-  description?: string;
-  features?: string[];
-  rating?: number;
-  reviewCount?: number;
-  isNew?: boolean;
-  isBestSeller?: boolean;
-  quantity?: number;
-  availableSizes?: string[];
-  colors?: Array<{ name: string; class: string; selectedClass: string }>;
-}
+import { Product } from '../types/product';
 
 interface QuickViewProps {
-  product: Product;
+  product: Product & {
+    brand?: string;
+    rating?: number;
+    reviewCount?: number;
+    isNew?: boolean;
+    isBestSeller?: boolean;
+    availableSizes?: string[];
+    colors?: Array<{ name: string; class: string; selectedClass: string }>;
+  };
   onAddToCart: (product: Product & { quantity: number }) => void;
 }
 
@@ -58,7 +49,11 @@ export function QuickView({ product, onAddToCart }: QuickViewProps) {
     });
   };
 
-  const productImages = product.images?.length ? product.images : [product.image];
+  // Get the first image URL for the main display
+  const mainImageUrl = product.images?.[0]?.url || product.imageUrl || '/placeholder-watch.jpg';
+  
+  // Use description as features if available, otherwise default empty array
+  const features = product.description ? [product.description] : [];
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -74,43 +69,35 @@ export function QuickView({ product, onAddToCart }: QuickViewProps) {
           onEscapeKeyDown={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => e.preventDefault()}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Product Images */}
-            <div className="space-y-4">
-              <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+            <div className="relative p-6">
+              <div className="aspect-square overflow-hidden rounded-lg bg-gray-50">
                 <img
-                  src={productImages[selectedImage]}
+                  src={mainImageUrl}
                   alt={product.name}
-                  className="h-full w-full object-contain object-center p-4"
+                  className="h-full w-full object-cover object-center"
                 />
-                {product.isNew && (
-                  <span className="absolute top-3 right-3 bg-accent text-white text-xs font-medium px-2.5 py-0.5 rounded-full">
-                    New
-                  </span>
-                )}
-                {product.isBestSeller && (
-                  <span className="absolute top-3 left-3 bg-yellow-400 text-gray-900 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                    Best Seller
-                  </span>
-                )}
               </div>
-              <div className="grid grid-cols-4 gap-2">
-                {productImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(idx)}
-                    className={`aspect-square overflow-hidden rounded-md border-2 ${
-                      selectedImage === idx ? 'border-accent' : 'border-transparent'
-                    } transition-colors`}
-                  >
-                    <img
-                      src={img}
-                      alt={`${product.name} view ${idx + 1}`}
-                      className="h-full w-full object-cover object-center"
-                    />
-                  </button>
-                ))}
-              </div>
+              {product.images && product.images.length > 1 && (
+                <div className="mt-4 flex space-x-2 overflow-x-auto pb-2">
+                  {product.images.map((img, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-md ${
+                        selectedImage === index ? 'ring-2 ring-accent' : ''
+                      }`}
+                      onClick={() => setSelectedImage(index)}
+                    >
+                      <img
+                        src={img.url}
+                        alt={`${product.name} - ${index + 1}`}
+                        className="h-full w-full object-cover object-center"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Product Details */}
@@ -197,11 +184,11 @@ export function QuickView({ product, onAddToCart }: QuickViewProps) {
                   </div>
                 )}
 
-                {product.features && product.features.length > 0 && (
+                {features.length > 0 && (
                   <div>
                     <h4 className="text-sm font-medium">Features</h4>
                     <ul className="mt-2 space-y-1 text-sm">
-                      {product.features.map((feature, index) => (
+                      {features.map((feature: string, index: number) => (
                         <li key={index} className="flex items-center">
                           <svg
                             className="h-4 w-4 text-accent mr-2"
@@ -263,7 +250,6 @@ export function QuickView({ product, onAddToCart }: QuickViewProps) {
                 </div>
               </div>
             </div>
-          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

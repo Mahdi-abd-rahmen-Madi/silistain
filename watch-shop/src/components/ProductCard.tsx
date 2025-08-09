@@ -5,23 +5,19 @@ import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { QuickView } from './QuickView';
 import { useToast } from '../hooks/use-toast';
 
-interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  image: string;
-  rating?: number;
-  reviewCount?: number;
-  discount?: number;
-  isNew?: boolean;
-  isBestSeller?: boolean;
-  quantity?: number;
-}
+import { Product } from '../types/product';
 
 interface ProductCardProps {
-  product: Product;
-  onAddToCart: (product: Product) => void;
+  product: Product & {
+    brand?: string;
+    rating?: number;
+    reviewCount?: number;
+    discount?: number;
+    isNew?: boolean;
+    isBestSeller?: boolean;
+    quantity?: number;
+  };
+  onAddToCart: (product: Product & { quantity: number }) => void;
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
@@ -63,7 +59,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       {/* Product Image with Overlay Actions */}
       <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-50">
         <img
-          src={product.image}
+          src={product.images?.[0]?.url || product.imageUrl || '/placeholder-watch.jpg'}
           alt={product.name}
           className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
         />
@@ -107,7 +103,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <div className={`absolute inset-0 flex items-center justify-center space-x-2 bg-black/0 transition-all duration-300 ${
           isHovered ? 'bg-black/30 opacity-100' : 'opacity-0'
         }`}>
-          <QuickView product={product} />
+          <QuickView product={product} onAddToCart={onAddToCart} />
           <Button 
             variant="default" 
             size="sm" 
@@ -155,7 +151,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 <Star
                   key={star}
                   className={`h-4 w-4 ${
-                    star <= Math.round(product.rating)
+                    star <= Math.round(product.rating || 0)
                       ? 'fill-yellow-400 text-yellow-400'
                       : 'text-gray-300'
                   }`}

@@ -16,6 +16,10 @@ interface CartContextType {
   isOpen: boolean;
   isLoading: boolean;
   cartCount: number;
+  subtotal: number;
+  tax: number;
+  total: number;
+  shipping: number;
   addToCart: (watch: Omit<CartItem, 'quantity'>, quantity?: number) => void;
   removeFromCart: (watchId: number) => void;
   updateQuantity: (watchId: number, newQuantity: number) => void;
@@ -26,6 +30,7 @@ interface CartContextType {
   calculateSubtotal: () => number;
   calculateTax: () => number;
   calculateTotal: () => number;
+  calculateShipping: () => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -36,10 +41,39 @@ interface CartProviderProps {
   children: ReactNode;
 }
 
+// Constants for calculations
+const TAX_RATE = 0.1; // 10% tax
+const FREE_SHIPPING_THRESHOLD = 100; // Free shipping for orders over $100
+const SHIPPING_COST = 10; // Flat rate shipping cost
+
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Cart calculations
+  const calculateSubtotal = useCallback((): number => {
+    return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  }, [cartItems]);
+  
+  const calculateTax = useCallback((): number => {
+    return calculateSubtotal() * TAX_RATE;
+  }, [calculateSubtotal]);
+  
+  const calculateShipping = useCallback((): number => {
+    return calculateSubtotal() >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  }, [calculateSubtotal]);
+  
+  const calculateTotal = useCallback((): number => {
+    return calculateSubtotal() + calculateTax() + calculateShipping();
+  }, [calculateSubtotal, calculateTax, calculateShipping]);
+  
+  // Derived state
+  const subtotal = calculateSubtotal();
+  const tax = calculateTax();
+  const shipping = calculateShipping();
+  const total = calculateTotal();
+  const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
 
   // Load cart from localStorage on initial render
   useEffect(() => {
@@ -119,42 +153,32 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     setIsOpen(false);
   }, []);
 
-  const calculateSubtotal = useCallback(() => {
-    return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
-  }, [cartItems]);
 
-  const calculateTax = useCallback(() => {
-    return calculateSubtotal() * 0.1; // 10% tax
-  }, [calculateSubtotal]);
-
-  const calculateTotal = useCallback(() => {
-    return calculateSubtotal() + calculateTax() + 29.99; // $29.99 shipping
-  }, [calculateSubtotal, calculateTax]);
-
-  const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
-
-  const value: CartContextType = {
-    cartItems,
-    isOpen,
-    isLoading,
-    cartCount,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    toggleCart,
-    openCart,
-    closeCart,
-    calculateSubtotal,
-    calculateTax,
-    calculateTotal,
-  };
 
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        isOpen,
+        isLoading,
+        cartCount,
+        subtotal,
+        tax,
+        total,
+        shipping,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        toggleCart,
+        openCart,
+        closeCart,
+        calculateSubtotal,
+        calculateTax,
+        calculateTotal,
+        calculateShipping,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
