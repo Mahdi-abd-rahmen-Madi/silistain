@@ -9,7 +9,7 @@
       }
     },
     {
-      "src": "api/**/*.ts",
+      "src": "src/pages/api/**/*.ts",
       "use": "@vercel/node"
     }
   ],
@@ -19,8 +19,22 @@
       "dest": "/api/$1"
     },
     {
-      "src": "/(.*)",
+      "src": "^/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "^/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "^/.*",
       "dest": "/index.html"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

@@ -4,6 +4,21 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  // Enable class-based dark mode
+  darkMode: 'class',
+  // Remove unused styles in production
+  safelist: ['dark'], // Always include dark mode classes
+  // Optimize for production
+  corePlugins: {
+    preflight: true,
+  },
+  // Disable any unused core plugins
+  corePlugins: {
+    float: false,
+    clear: false,
+    skew: false,
+    // Keep other core plugins enabled
+  },
   theme: {
     extend: {
       colors: {
