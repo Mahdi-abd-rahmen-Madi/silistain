@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from './AuthContext';
+import { supabase } from '../utils/supabaseClient';
 import { Product, ProductImage } from '../types/product';
 
 interface ProductContextType {
@@ -28,11 +28,21 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     
     try {
-      console.log('Supabase client:', supabase ? 'Initialized' : 'Not initialized');
+      if (!supabase) {
+        throw new Error('Supabase client is not available');
+      }
+      
+      console.log('Supabase client: Initialized');
       
       // Check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('Current user:', user?.email || 'Not authenticated');
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw authError;
+      }
+      
+      console.log('Current user:', authData.user?.email || 'Not authenticated');
       
       const { data, error, status, statusText } = await supabase
         .from('products')
@@ -97,6 +107,10 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const uploadImage = async (file: File): Promise<string> => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not available');
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `products/${fileName}`;
@@ -120,7 +134,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const deleteImage = async (imageUrl: string) => {
     try {
-      if (!imageUrl) return;
+      if (!imageUrl || !supabase) return;
       
       // Extract the file path from the URL
       const filePath = imageUrl.split('/').pop();
@@ -139,14 +153,19 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>, imageFile: File): Promise<void> => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not available');
+      }
+      
       setLoading(true);
       
       // Upload image to Supabase Storage
       const imageUrl = await uploadImage(imageFile);
       
       // Get current user ID
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
+      if (userError) throw userError;
       if (!user) {
         throw new Error('User not authenticated');
       }
@@ -182,6 +201,10 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const updateProduct = async (id: string, updates: Partial<Product>, imageFile?: File) => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not available');
+      }
+      
       setLoading(true);
       
       // If there's a new image, upload it
@@ -233,6 +256,10 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   
   const deleteProduct = async (id: string, imageUrl?: string) => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not available');
+      }
+      
       setLoading(true);
       
       // Delete the image from storage if it exists

@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast';
 
 // Types
 export interface CartItem {
-  id: number;
+  id: string;
   name?: string;
   price: number;
   quantity: number;
@@ -21,8 +21,8 @@ interface CartContextType {
   total: number;
   shipping: number;
   addToCart: (watch: Omit<CartItem, 'quantity'>, quantity?: number) => void;
-  removeFromCart: (watchId: number) => void;
-  updateQuantity: (watchId: number, newQuantity: number) => void;
+  removeFromCart: (watchId: string) => void;
+  updateQuantity: (watchId: string, newQuantity: number) => void;
   clearCart: () => void;
   toggleCart: () => void;
   openCart: () => void;
@@ -119,12 +119,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     toast.success(`${quantity} ${watch.name} added to cart`);
   }, []);
 
-  const removeFromCart = useCallback((watchId: number) => {
+  const removeFromCart = useCallback((watchId: string) => {
     setCartItems((prevItems) => prevItems.filter((item) => item.id !== watchId));
     toast.success('Item removed from cart');
   }, []);
 
-  const updateQuantity = useCallback((watchId: number, newQuantity: number) => {
+  const updateQuantity = useCallback((watchId: string, newQuantity: number) => {
     if (newQuantity < 1) {
       removeFromCart(watchId);
       return;

@@ -9,7 +9,7 @@ export interface WatchSpecifications {
 }
 
 export interface Watch {
-  id: number;
+  id: string;
   name: string;
   brand: string;
   price: number;

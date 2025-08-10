@@ -8,16 +8,8 @@ import { useToast } from '../hooks/use-toast';
 import { Product } from '../types/product';
 
 interface ProductCardProps {
-  product: Product & {
-    brand?: string;
-    rating?: number;
-    reviewCount?: number;
-    discount?: number;
-    isNew?: boolean;
-    isBestSeller?: boolean;
-    quantity?: number;
-  };
-  onAddToCart: (product: Product & { quantity: number }) => void;
+  product: Product;
+  onAddToCart: (product: Product) => void;
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {

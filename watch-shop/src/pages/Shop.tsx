@@ -3,22 +3,79 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FunnelIcon, XMarkIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../context/CartContext';
-import watchesData from "../data/watches";
 import { Watch, Filters, SortOption } from '../types';
-import { assertIsWatchesArray } from '../utils/typeGuards';
+import { supabase } from '../utils/supabaseClient';
 
 const Shop = () => {
-  // Ensure watches data is properly typed
+  // State for watches and loading state
   const [watches, setWatches] = useState<Watch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Initialize watches data
+  // Fetch products from Supabase on component mount
   useEffect(() => {
-    try {
-      assertIsWatchesArray(watchesData);
-      setWatches(watchesData);
-    } catch (error) {
-      console.error('Error initializing watches data:', error);
-    }
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        if (!supabase) {
+          throw new Error('Supabase client is not available');
+        }
+        
+        const { data, error: fetchError } = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        if (fetchError) {
+          throw fetchError;
+        }
+        
+        if (data) {
+          // Transform the data to match the Watch type
+          const formattedData = data.map(product => ({
+            id: product.id,
+            name: product.name || 'Unnamed Product',
+            brand: product.brand || 'Unknown Brand',
+            price: Number(product.price) || 0,
+            image: product.image || product.images?.[0] || '',
+            images: product.images || [],
+            category: product.category || 'Uncategorized',
+            description: product.description || '',
+            specifications: {
+              movement: product.movement || 'Automatic',
+              caseMaterial: product.case_material || 'Stainless Steel',
+              caseDiameter: product.case_diameter || '40mm',
+              waterResistance: product.water_resistance || '50m',
+              powerReserve: product.power_reserve || '40 hours',
+              functions: product.functions || 'Hours, Minutes, Seconds, Date',
+              ...(product.specifications || {})
+            },
+            features: Array.isArray(product.features) 
+              ? product.features 
+              : (product.features ? [product.features] : ['Water Resistant', 'Scratch Resistant Glass']),
+            inStock: Number(product.stock_quantity) || 0,
+            isFeatured: Boolean(product.is_featured),
+            onSale: Boolean(product.on_sale),
+            originalPrice: Number(product.original_price) || Number(product.price) || 0,
+            rating: Number(product.average_rating) || 0,
+            reviewCount: Number(product.review_count) || 0,
+            // Add any additional fields from the database
+            ...(product.additional_info || {})
+          } as Watch));
+          
+          setWatches(formattedData);
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
   }, []);
   
   // Extract unique categories and brands
@@ -33,7 +90,7 @@ const Shop = () => {
   
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
-  const [addingItem, setAddingItem] = useState<number | null>(null);
+  const [addingItem, setAddingItem] = useState<string | null>(null);
   const { addToCart } = useCart();
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -64,15 +121,7 @@ const Shop = () => {
     setSortBy('featured');
   };
 
-  // Validate watches data on component mount
-  useEffect(() => {
-    try {
-      assertIsWatchesArray(watchesData);
-      setWatches(watchesData);
-    } catch (error) {
-      console.error('Invalid watches data:', error);
-    }
-  }, []);
+
 
   const filteredWatches = useMemo(() => {
     return watches
@@ -455,7 +504,26 @@ const Shop = () => {
 
           {/* Product grid */}
           <div className="lg:col-span-3">
-            {filteredWatches.length === 0 ? (
+            {loading ? (
+              <div className="flex h-64 items-center justify-center">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-t-4 border-t-accent border-gray-200"></div>
+                <span className="ml-3 text-gray-600">Loading products...</span>
+              </div>
+            ) : error ? (
+              <div className="flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed border-red-300 bg-red-50 p-8 text-center">
+                <div className="rounded-full bg-red-100 p-3">
+                  <XMarkIcon className="h-8 w-8 text-red-600" />
+                </div>
+                <h3 className="mt-4 text-lg font-medium text-red-800">Error loading products</h3>
+                <p className="mt-1 text-sm text-red-700">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-4 rounded-md bg-red-100 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : filteredWatches.length === 0 ? (
               <div className="flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
                 <svg
                   className="mx-auto h-12 w-12 text-gray-400"

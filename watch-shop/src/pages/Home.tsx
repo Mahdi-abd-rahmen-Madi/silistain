@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Clock, Shield, Truck, Zap, CheckCircle, Star } from 'lucide-react';
@@ -6,19 +6,49 @@ import * as Tabs from '@radix-ui/react-tabs';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 import watchesData from '../data/watches';
 import { Watch } from '../types';
+import { Product } from '../types/product';
 import ProductCard from '../components/ProductCard';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../hooks/use-toast';
 
+// Function to convert Watch to Product
+const watchToProduct = (watch: Watch): Product => ({
+  ...watch,
+  images: watch.images.map(url => ({
+    url,
+    isPrimary: url === watch.image,
+    order: 0
+  })),
+  stock: watch.inStock,
+  specifications: {
+    ...watch.specifications,
+    // Ensure all required specification fields are present
+    movement: watch.specifications.movement || '',
+    caseMaterial: watch.specifications.caseMaterial || '',
+    caseDiameter: watch.specifications.caseDiameter || '',
+    waterResistance: watch.specifications.waterResistance || '',
+    powerReserve: watch.specifications.powerReserve || '',
+    functions: watch.specifications.functions || ''
+  },
+  // Add any missing required fields
+  featured: watch.isFeatured,
+  quantity: 1,
+  discount: 0,
+  isNew: watch.releaseDate ? new Date(watch.releaseDate).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000 : false,
+  isBestSeller: (watch.sold || 0) > 50
+});
+
 // Prepare watch collections
 const watches = watchesData as Watch[];
-const featuredWatches = watches.filter((watch) => watch.isFeatured);
+const featuredWatches = watches.filter((watch) => watch.isFeatured).map(watchToProduct);
 const newArrivals = [...watches]
   .sort((a, b) => (b.releaseDate ? new Date(b.releaseDate).getTime() : 0) - (a.releaseDate ? new Date(a.releaseDate).getTime() : 0))
-  .slice(0, 4);
+  .slice(0, 4)
+  .map(watchToProduct);
 const bestSellers = [...watches]
   .sort((a, b) => (b.sold || 0) - (a.sold || 0))
-  .slice(0, 4);
+  .slice(0, 4)
+  .map(watchToProduct);
 
 const Home = () => {
   const { toast } = useToast();
@@ -227,10 +257,10 @@ const Home = () => {
               <ScrollArea.Viewport className="w-full pb-6">
                 <Tabs.Content value="featured" className="outline-none">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {featuredWatches.map((watch: Watch) => (
+                    {featuredWatches.map((product) => (
                       <ProductCard 
-                        key={watch.id} 
-                        product={watch} 
+                        key={product.id} 
+                        product={product} 
                         onAddToCart={() => {}}
                       />
                     ))}
@@ -239,10 +269,10 @@ const Home = () => {
                 
                 <Tabs.Content value="new" className="outline-none">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {newArrivals.map((watch: Watch) => (
+                    {newArrivals.map((product) => (
                       <ProductCard 
-                        key={watch.id} 
-                        product={watch} 
+                        key={product.id} 
+                        product={product} 
                         onAddToCart={() => {}}
                       />
                     ))}
@@ -251,10 +281,10 @@ const Home = () => {
                 
                 <Tabs.Content value="bestsellers" className="outline-none">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {bestSellers.map((watch: Watch) => (
+                    {bestSellers.map((product) => (
                       <ProductCard 
-                        key={watch.id} 
-                        product={watch} 
+                        key={product.id} 
+                        product={product} 
                         onAddToCart={() => {}}
                       />
                     ))}
