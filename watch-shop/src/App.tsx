@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -9,15 +9,17 @@ import Shop from './pages/Shop';
 import WatchDetails from './pages/WatchDetails';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
-import TestFirebase from './pages/TestFirebase';
 import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminSignup from './pages/AdminSignup';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ProductForm from './components/admin/ProductForm';
+import Unauthorized from './pages/Unauthorized';
 import NotFound from './pages/NotFound';
 import Footer from './components/Footer';
 import { ToastProvider } from './components/ui/Toast';
 import { Toaster } from './components/ui/Toaster';
 import { ReactElement } from 'react';
-import ProtectedRoute from './components/ProtectedRoute';
+import { AdminProtectedRoute } from './components/ProtectedRoute';
 
 function AppContent() {
   const location = useLocation();
@@ -34,14 +36,28 @@ function AppContent() {
             <Route path="/watch/:id" element={<WatchDetails />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
-            <Route path="/test-firebase" element={<TestFirebase />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/admin/signup" element={<AdminSignup />} />
+            <Route path="/admin" element={
+              <AdminProtectedRoute>
+                <AdminDashboard />
+              </AdminProtectedRoute>
+            } />
             <Route 
-              path="/admin/*" 
+              path="/admin/products/new" 
               element={
-                <ProtectedRoute>
-                  <AdminDashboard />
-                </ProtectedRoute>
+                <AdminProtectedRoute>
+                  <ProductForm />
+                </AdminProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/products/edit/:id" 
+              element={
+                <AdminProtectedRoute>
+                  <ProductForm isEditing />
+                </AdminProtectedRoute>
               } 
             />
             <Route path="*" element={<NotFound />} />

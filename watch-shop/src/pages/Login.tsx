@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -10,7 +10,7 @@ export default function Login() {
   const { login, currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || '/admin';
+  const from = (location.state as any)?.from?.pathname || '/admin';
 
   // Redirect if already logged in
   useEffect(() => {
@@ -31,21 +31,30 @@ export default function Login() {
       setError('');
       setLoading(true);
       
-      console.log('Attempting login...');
-      await login(email, password);
+      const { user, error: loginError } = await login(email, password);
       
-      // The auth state change will trigger the redirect in the effect above
+      if (loginError) throw loginError;
+      
+      // Check if the logged-in user is an admin
+      if (user && !user.isAdmin) {
+        setError('Access denied. Admin privileges required.');
+        return;
+      }
+      
       console.log('Login successful, redirecting to:', from);
+      navigate(from, { replace: true });
       
     } catch (err) {
       const error = err as Error;
       console.error('Login error:', error);
       
       // Show user-friendly error messages
-      if (error.message.includes('auth/invalid-credential')) {
+      if (error.message.includes('Invalid login credentials')) {
         setError('Invalid email or password');
-      } else if (error.message.includes('auth/too-many-requests')) {
+      } else if (error.message.includes('too many requests')) {
         setError('Too many failed attempts. Please try again later.');
+      } else if (error.message.includes('Email not confirmed')) {
+        setError('Please verify your email before logging in.');
       } else {
         setError('Failed to log in. Please try again.');
       }

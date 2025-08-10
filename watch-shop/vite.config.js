@@ -14,7 +14,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
-          firebase: ['firebase/app', 'firebase/firestore', 'firebase/storage'],
           vendor: ['@heroicons/react', 'react-hot-toast'],
         },
       },

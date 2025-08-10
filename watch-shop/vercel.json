@@ -5,9 +5,7 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist",
-        "buildCommand": "npm run build",
-        "outputDirectory": "dist"
+        "distDir": "dist"
       }
     },
     {
@@ -16,26 +14,10 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/upload",
-      "dest": "/api/upload"
-    },
-    {
-      "src": "^/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "^/favicon.ico",
-      "dest": "/favicon.ico"
-    },
-    {
-      "src": "^/upload-test.html",
-      "dest": "/upload-test.html"
-    },
-    {
-      "src": "^/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "framework": "vite"
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "^/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "^/favicon.ico$", "dest": "/favicon.ico" },
+    { "src": "^/upload-test.html$", "dest": "/upload-test.html" },
+    { "src": "^(?!/api).*", "dest": "/index.html" }
+  ]
 }

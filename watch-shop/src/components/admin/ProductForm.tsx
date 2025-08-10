@@ -31,7 +31,7 @@ export default function ProductForm({ isEditing = false, initialData, productId 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
-  const { addProduct, updateProduct } = useProducts();
+  const { addProduct, updateProduct, getProductById } = useProducts();
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -95,17 +95,53 @@ export default function ProductForm({ isEditing = false, initialData, productId 
 
   // Load product data if in edit mode
   useEffect(() => {
-    if (isEditing && initialData) {
-      const formattedData = {
-        ...initialData,
-        // Convert single imageUrl to images array for backward compatibility
-        images: initialData.imageUrl 
-          ? [{ url: initialData.imageUrl, isPrimary: true, order: 0 }]
-          : initialData.images || []
-      };
-      setFormData(formattedData);
-    }
-  }, [isEditing, initialData]);
+    const loadProduct = async () => {
+      if (isEditing && id) {
+        try {
+          const product = getProductById(id);
+          
+          if (!product) {
+            throw new Error('Product not found');
+          }
+          
+          const formattedData = {
+            ...product,
+            // Convert single imageUrl to images array for backward compatibility
+            images: product.imageUrl 
+              ? [{ 
+                  url: product.imageUrl, 
+                  isPrimary: true, 
+                  order: 0,
+                  preview: product.imageUrl // Add preview for existing images
+                }]
+              : (product.images || []).map((img: any) => ({
+                  ...img,
+                  preview: img.url // Add preview for existing images
+                }))
+          };
+          
+          setFormData(formattedData);
+        } catch (err) {
+          console.error('Error loading product:', err);
+          setError('Failed to load product data');
+        }
+      } else if (initialData) {
+        setFormData({
+          ...initialData,
+          images: initialData.imageUrl 
+            ? [{ 
+                url: initialData.imageUrl, 
+                isPrimary: true, 
+                order: 0,
+                preview: initialData.imageUrl
+              }]
+            : initialData.images || []
+        });
+      }
+    };
+    
+    loadProduct();
+  }, [isEditing, id, initialData, getProductById]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;

@@ -1,22 +1,40 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  UserCredential,
-  setPersistence,
-  browserLocalPersistence,
-  browserSessionPersistence
-} from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+  },
+});
+
+// Define user type
+type User = {
+  id: string;
+  email: string | null;
+  isAdmin: boolean;
+};
+
+type AuthResponse = {
+  user: User | null;
+  error: any;
+};
 
 interface AuthContextType {
   currentUser: User | null;
-  login: (email: string, password: string) => Promise<UserCredential>;
-  signup: (email: string, password: string) => Promise<UserCredential>;
-  logout: () => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthResponse>;
+  signup: (email: string, password: string) => Promise<AuthResponse>;
+  logout: () => Promise<{ error: any }>;
   loading: boolean;
 }
 
@@ -34,73 +52,107 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Set auth persistence when component mounts
+  // Check active sessions and sets the user
   useEffect(() => {
-    const setAuthPersistence = async () => {
-      try {
-        await setPersistence(auth, browserLocalPersistence);
-      } catch (error) {
-        console.error('Error setting auth persistence:', error);
+    // Check active sessions and set the user
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          const userEmail = session.user.email || null;
+          const isAdmin = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+          
+          setCurrentUser({
+            id: session.user.id,
+            email: userEmail,
+            isAdmin
+          });
+        } else {
+          setCurrentUser(null);
+        }
+        setLoading(false);
       }
-    };
-    setAuthPersistence();
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const signup = async (email: string, password: string) => {
+  async function signup(email: string, password: string) {
     try {
-      setLoading(true);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      return userCredential;
-    } finally {
-      setLoading(false);
-    }
-  };
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`,
+          data: {
+            is_admin: email === import.meta.env.VITE_ADMIN_EMAIL
+          }
+        }
+      });
 
-  const login = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      return userCredential;
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (error) throw error;
 
-  const logout = async () => {
+      const user = data.user ? {
+        id: data.user.id,
+        email: data.user.email || null,
+        isAdmin: email === import.meta.env.VITE_ADMIN_EMAIL
+      } : null;
+
+      if (user) {
+        setCurrentUser(user);
+      }
+
+      return { user, error: null };
+    } catch (error) {
+      console.error('Error signing up:', error);
+      return { user: null, error };
+    }
+  }
+
+  async function login(email: string, password: string) {
     try {
-      setLoading(true);
-      await signOut(auth);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      const user = data.user ? {
+        id: data.user.id,
+        email: data.user.email || null,
+        isAdmin: data.user.email === import.meta.env.VITE_ADMIN_EMAIL
+      } : null;
+
+      if (user) {
+        setCurrentUser(user);
+      }
+
+      return { user, error: null };
+    } catch (error) {
+      console.error('Error logging in:', error);
+      return { user: null, error };
+    }
+  }
+
+  async function logout() {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       setCurrentUser(null);
-    } finally {
-      setLoading(false);
+      return { error: null };
+    } catch (error) {
+      console.error('Error logging out:', error);
+      return { error };
     }
-  };
-
-  // Listen for auth state changes
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  }
 
   const value = {
     currentUser,
     login,
     signup,
     logout,
-    loading
+    loading,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading ? children : (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-        </div>
-      )}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
