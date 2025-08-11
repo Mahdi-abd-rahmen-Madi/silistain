@@ -8,13 +8,19 @@ export interface WatchSpecifications {
   [key: string]: string | number | boolean; // For any additional properties
 }
 
+export interface ProductImage {
+  url: string;
+  alt?: string;
+  isPrimary?: boolean;
+}
+
 export interface Watch {
   id: string;
   name: string;
   brand: string;
   price: number;
   image: string;
-  images: string[];
+  images: ProductImage[];
   category: string;
   description: string;
   specifications: WatchSpecifications;

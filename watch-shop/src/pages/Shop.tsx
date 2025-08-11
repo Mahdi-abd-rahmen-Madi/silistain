@@ -1,92 +1,169 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FunnelIcon, XMarkIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { FunnelIcon, XMarkIcon, ShoppingCartIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../context/CartContext';
-import { Watch, Filters, SortOption } from '../types';
-import { supabase } from '../utils/supabaseClient';
+import { useProducts } from '../context/ProductContext';
+import { Watch, Filters, SortOption, ProductImage } from '../types';
 
 const Shop = () => {
-  // State for watches and loading state
-  const [watches, setWatches] = useState<Watch[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use products from ProductContext
+  const { products, loading, error } = useProducts();
+  const [initialLoad, setInitialLoad] = useState(true);
   
-  // Fetch products from Supabase on component mount
+  // Set initial load to false when products are loaded
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        if (!supabase) {
-          throw new Error('Supabase client is not available');
-        }
-        
-        const { data, error: fetchError } = await supabase
-          .from('products')
-          .select('*')
-          .order('created_at', { ascending: false });
-          
-        if (fetchError) {
-          throw fetchError;
-        }
-        
-        if (data) {
-          // Transform the data to match the Watch type
-          const formattedData = data.map(product => ({
-            id: product.id,
-            name: product.name || 'Unnamed Product',
-            brand: product.brand || 'Unknown Brand',
-            price: Number(product.price) || 0,
-            image: product.image || product.images?.[0] || '',
-            images: product.images || [],
-            category: product.category || 'Uncategorized',
-            description: product.description || '',
-            specifications: {
-              movement: product.movement || 'Automatic',
-              caseMaterial: product.case_material || 'Stainless Steel',
-              caseDiameter: product.case_diameter || '40mm',
-              waterResistance: product.water_resistance || '50m',
-              powerReserve: product.power_reserve || '40 hours',
-              functions: product.functions || 'Hours, Minutes, Seconds, Date',
-              ...(product.specifications || {})
-            },
-            features: Array.isArray(product.features) 
-              ? product.features 
-              : (product.features ? [product.features] : ['Water Resistant', 'Scratch Resistant Glass']),
-            inStock: Number(product.stock_quantity) || 0,
-            isFeatured: Boolean(product.is_featured),
-            onSale: Boolean(product.on_sale),
-            originalPrice: Number(product.original_price) || Number(product.price) || 0,
-            rating: Number(product.average_rating) || 0,
-            reviewCount: Number(product.review_count) || 0,
-            // Add any additional fields from the database
-            ...(product.additional_info || {})
-          } as Watch));
-          
-          setWatches(formattedData);
-        }
-      } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Failed to load products. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!loading && products.length > 0) {
+      console.log('Products loaded, initial load complete. Count:', products.length);
+      setInitialLoad(false);
+    } else if (!loading && !initialLoad) {
+      console.log('No products loaded, but loading is complete');
+      setInitialLoad(false);
+    }
+  }, [loading, products, initialLoad]);
+  
+  // Map products to Watch type for compatibility with the existing code
+  const watches = useMemo(() => {
+    if (!products || products.length === 0) {
+      console.log('No products to map');
+      return [];
+    }
     
-    fetchProducts();
-  }, []);
+    console.log('Mapping products to watches:', products);
+    const mapped = products.map(product => {
+      // Ensure we have at least one image URL
+      const primaryImage = product.images?.find(img => img.isPrimary) || 
+                          product.images?.[0] || 
+                          { url: product.imageUrl || '' };
+      
+      // Create the watch object with proper typing
+      const watch: Watch = {
+        id: product.id,
+        name: product.name || 'Unnamed Product',
+        brand: product.brand || 'Unknown Brand',
+        price: Number(product.price) || 0,
+        image: primaryImage.url || '',
+        images: (product.images || []).map(img => ({
+          url: img.url || '',
+          alt: (img as any).alt || product.name || 'Watch image', // Temporary any cast to avoid TS errors
+          isPrimary: (img as any).isPrimary || false
+        })) as ProductImage[],
+        category: product.category || 'Uncategorized',
+        description: product.description || '',
+        specifications: {
+          movement: product.specifications?.movement || 'Automatic',
+          caseMaterial: product.specifications?.caseMaterial || 'Stainless Steel',
+          caseDiameter: product.specifications?.caseDiameter || '40mm',
+          waterResistance: product.specifications?.waterResistance || '50m',
+          powerReserve: product.specifications?.powerReserve || '40 hours',
+          functions: product.specifications?.functions || 'Hours, Minutes, Seconds, Date'
+        },
+        features: ['Water Resistant', 'Scratch Resistant Glass'],
+        inStock: Number(product.stock) || 0,
+        isFeatured: Boolean(product.featured || product.isFeatured),
+        onSale: false,
+        originalPrice: Number(product.price) || 0,
+        rating: 0,
+        reviewCount: 0
+      };
+      
+      // Ensure we have a valid image URL
+      if (!watch.image && watch.images.length > 0) {
+        watch.image = watch.images[0].url;
+      }
+      
+      console.log(`Mapped product ${watch.name}:`, {
+        id: watch.id,
+        name: watch.name,
+        brand: watch.brand,
+        price: watch.price,
+        category: watch.category,
+        isFeatured: watch.isFeatured,
+        image: watch.image,
+        imageCount: watch.images.length
+      });
+      
+      return watch;
+    }).filter(watch => {
+      // Filter out watches without images
+      const hasImage = !!watch.image;
+      if (!hasImage) {
+        console.warn(`Product ${watch.name} has no image and will be filtered out`);
+      }
+      return hasImage;
+    });
+    
+    console.log(`Finished mapping ${mapped.length} valid watches`);
+    return mapped;
+  }, [products]);
+  
+  // Log watches array changes
+  useEffect(() => {
+    if (watches.length > 0) {
+      console.log('Watches array updated:', {
+        length: watches.length,
+        watches: watches.map(w => ({
+          name: w.name,
+          category: w.category,
+          brand: w.brand,
+          price: w.price,
+          isFeatured: w.isFeatured,
+          hasImage: !!w.image,
+          imageCount: w.images?.length || 0
+        }))
+      });
+      
+      // Log details for the first few watches
+      const watchesToLog = Math.min(3, watches.length);
+      for (let i = 0; i < watchesToLog; i++) {
+        const w = watches[i];
+        console.log(`Watch ${i + 1}/${watches.length}:`, {
+          name: w.name,
+          brand: w.brand,
+          price: w.price,
+          category: w.category,
+          isFeatured: w.isFeatured,
+          image: w.image ? '✅' : '❌',
+          imageCount: w.images?.length || 0
+        });
+      }
+      
+      // Force a filter update when watches are loaded
+      setFilters(prevFilters => ({
+        ...prevFilters,
+        // This will trigger a re-render with the new watches
+        priceRange: [prevFilters.priceRange[0], prevFilters.priceRange[1]]
+      }));
+      
+    } else if (products.length > 0) {
+      console.warn('No watches after mapping, but products exist:', {
+        productCount: products.length,
+        firstProduct: products[0] ? {
+          id: products[0].id,
+          name: products[0].name,
+          hasImages: products[0].images?.length || 0,
+          imageUrl: products[0].imageUrl ? '✅' : '❌'
+        } : 'No products'
+      });
+    }
+  }, [watches, products]);
   
   // Extract unique categories and brands
   const categories = useMemo(() => [...new Set(watches.map(watch => watch.category))], [watches]);
   const brands = useMemo(() => [...new Set(watches.map(watch => watch.brand))], [watches]);
-  const [filters, setFilters] = useState<Filters>({
+  
+  // Initialize filters with a function to prevent re-creation on every render
+  const [filters, setFilters] = useState<Filters>(() => ({
     category: 'all',
     brand: 'all',
     priceRange: [0, 50000],
     searchQuery: ''
-  });
+  }));
+  
+  // Log when filters change
+  useEffect(() => {
+    console.log('Filters updated:', filters);
+  }, [filters]);
   
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
@@ -124,19 +201,121 @@ const Shop = () => {
 
 
   const filteredWatches = useMemo(() => {
-    return watches
-      .filter((watch) => {
-        const matchesCategory = filters.category === 'all' || watch.category === filters.category;
-        const matchesBrand = filters.brand === 'all' || watch.brand === filters.brand;
-        const matchesPrice = watch.price >= filters.priceRange[0] && watch.price <= filters.priceRange[1];
-        const searchLower = filters.searchQuery.toLowerCase();
-        const matchesSearch = 
-          watch.name.toLowerCase().includes(searchLower) ||
-          watch.brand.toLowerCase().includes(searchLower) ||
-          (watch.description && watch.description.toLowerCase().includes(searchLower));
+    console.log('Filtering watches with filters:', filters);
+    console.log('Total watches to filter:', watches.length);
+    
+    // If no watches, return empty array immediately
+    if (watches.length === 0) {
+      console.log('No watches available to filter');
+      return [];
+    }
+    
+    // Log all watches before filtering for debugging
+    console.log('All watches before filtering:', watches.map(w => ({
+      name: w.name,
+      category: w.category,
+      brand: w.brand,
+      price: w.price,
+      isFeatured: w.isFeatured
+    })));
+    
+    const filtered = watches.filter((watch) => {
+      try {
+        // Log each watch being filtered
+        const watchInfo = {
+          name: watch.name,
+          category: watch.category,
+          brand: watch.brand,
+          price: watch.price,
+          isFeatured: watch.isFeatured
+        };
         
-        return matchesCategory && matchesBrand && matchesPrice && matchesSearch;
-      })
+        console.log('Checking watch:', watchInfo);
+        
+        // Category filter - match if 'all' or category matches (case insensitive)
+        const categoryMatch = filters.category === 'all' || 
+                            (watch.category && 
+                             watch.category.toLowerCase() === filters.category?.toLowerCase());
+        
+        // Brand filter - match if 'all' or brand matches (case insensitive)
+        const brandMatch = filters.brand === 'all' || 
+                          (watch.brand && 
+                           watch.brand.toLowerCase() === filters.brand?.toLowerCase());
+        
+        // Price filter - ensure price is within range
+        const price = Number(watch.price) || 0;
+        const minPrice = Number(filters.priceRange[0]) || 0;
+        const maxPrice = Number(filters.priceRange[1]) || Number.MAX_SAFE_INTEGER;
+        const priceInRange = price >= minPrice && price <= maxPrice;
+        
+        // Search filter - only apply if there's a search query
+        const searchQuery = (filters.searchQuery || '').trim().toLowerCase();
+        const searchMatch = searchQuery === '' || 
+                          (watch.name && watch.name.toLowerCase().includes(searchQuery)) ||
+                          (watch.brand && watch.brand.toLowerCase().includes(searchQuery)) ||
+                          (watch.description && watch.description.toLowerCase().includes(searchQuery));
+        
+        // Check if watch matches all active filters
+        const shouldInclude = categoryMatch && brandMatch && priceInRange && searchMatch;
+        
+        // Log detailed info for debugging
+        if (!shouldInclude) {
+          console.log('Excluding watch:', watch.name, {
+            categoryMatch,
+            brandMatch,
+            priceInRange,
+            searchMatch,
+            watchInfo,
+            price,
+            minPrice,
+            maxPrice,
+            activeFilters: {
+              category: filters.category,
+              brand: filters.brand,
+              priceRange: filters.priceRange,
+              searchQuery: filters.searchQuery
+            }
+          });
+        } else {
+          console.log('Including watch:', watch.name, {
+            categoryMatch,
+            brandMatch,
+            priceInRange,
+            searchMatch
+          });
+        }
+        
+        return shouldInclude;
+      } catch (error) {
+        console.error('Error filtering watch:', error, watch);
+        return false; // Exclude if there's an error
+      }
+    });
+    
+    console.log(`Filtered ${filtered.length} out of ${watches.length} watches`);
+    
+    // If no matches but we have watches, log more details
+    if (filtered.length === 0 && watches.length > 0) {
+      console.warn('No watches matched all filters. Check filter criteria.');
+      console.log('Available categories:', [...new Set(watches.map(w => w.category))]);
+      console.log('Available brands:', [...new Set(watches.map(w => w.brand))]);
+      
+      const prices = watches.map(w => Number(w.price) || 0).filter(p => !isNaN(p));
+      console.log('Price range of all watches:', [
+        Math.min(...prices),
+        Math.max(...prices)
+      ]);
+      
+      // Log first few watches that were excluded
+      console.log('Sample of excluded watches:', watches.slice(0, 3).map(w => ({
+        name: w.name,
+        category: w.category,
+        brand: w.brand,
+        price: w.price
+      })));
+    }
+    
+    return filtered
       .sort((a, b) => {
         switch (sortBy) {
           case 'price-asc':
@@ -159,7 +338,16 @@ const Shop = () => {
 
   const handleAddToCart = (watch: Omit<Watch, 'quantity'>) => {
     setAddingItem(watch.id);
-    addToCart(watch);
+    const cartItem = {
+      id: watch.id,
+      name: watch.name,
+      price: watch.price,
+      brand: watch.brand,
+      image: watch.images[0],
+      quantity: 1
+    };
+    
+    addToCart(cartItem);
     
     // Reset the adding state after animation would complete
     setTimeout(() => {
@@ -168,7 +356,7 @@ const Shop = () => {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen pt-24">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div className="mb-4 md:mb-0">
@@ -504,10 +692,17 @@ const Shop = () => {
 
           {/* Product grid */}
           <div className="lg:col-span-3">
-            {loading ? (
+            {initialLoad ? (
+              <div className="flex h-64 flex-col items-center justify-center space-y-4">
+                <ArrowPathIcon className="h-12 w-12 animate-spin text-accent" />
+                <p className="text-lg font-medium text-gray-700">
+                  Loading products...
+                </p>
+              </div>
+            ) : loading ? (
               <div className="flex h-64 items-center justify-center">
                 <div className="h-12 w-12 animate-spin rounded-full border-4 border-t-4 border-t-accent border-gray-200"></div>
-                <span className="ml-3 text-gray-600">Loading products...</span>
+                <span className="ml-3 text-gray-600">Refreshing products...</span>
               </div>
             ) : error ? (
               <div className="flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed border-red-300 bg-red-50 p-8 text-center">
@@ -568,7 +763,7 @@ const Shop = () => {
                       <Link to={`/watch/${watch.id}`} className="block">
                         <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-t-xl bg-gray-200 dark:bg-gray-700">
                           <img
-                            src={watch.images[0]}
+                            src={watch.image}
                             alt={watch.name}
                             className="h-full w-full object-cover object-center transition-opacity duration-300 group-hover:opacity-90"
                           />
@@ -579,23 +774,31 @@ const Shop = () => {
                       <button
                         onClick={(e) => {
                           e.preventDefault();
+                          e.stopPropagation();
                           handleAddToCart(watch);
                         }}
-                        disabled={watch.inStock === 0}
-                        className={`absolute top-3 right-3 rounded-full p-2 shadow-md transition-all duration-300 ${
+                        disabled={watch.inStock === 0 || addingItem === watch.id}
+                        className={`absolute top-3 right-3 inline-flex items-center justify-center rounded-full p-2 shadow-md transition-all duration-300 ${
                           watch.inStock === 0
                             ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-white hover:bg-indigo-50 hover:shadow-lg transform hover:-translate-y-0.5'
+                            : addingItem === watch.id
+                            ? 'bg-indigo-100 cursor-wait'
+                            : 'bg-white hover:bg-indigo-50 hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
                         }`}
-                        aria-label="Add to cart"
+                        aria-label={watch.inStock === 0 ? 'Out of stock' : 'Add to cart'}
+                        title={watch.inStock === 0 ? 'Out of stock' : 'Add to cart'}
                       >
                         {addingItem === watch.id ? (
-                          <svg className="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <svg className="h-5 w-5 animate-spin text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
+                        ) : watch.inStock === 0 ? (
+                          <svg className="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
                         ) : (
-                          <ShoppingCartIcon className="h-5 w-5" />
+                          <ShoppingCartIcon className="h-5 w-5 text-gray-700" />
                         )}
                       </button>
                       

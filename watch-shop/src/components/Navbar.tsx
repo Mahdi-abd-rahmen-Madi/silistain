@@ -3,16 +3,17 @@ import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useCart } from '../context/CartContext';
+import { Cart } from './Cart';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { cartItems } = useCart();
+  const { cartItems, isOpen: isCartOpen, toggleCart, closeCart } = useCart();
   const location = useLocation();
 
   // Close mobile menu when route changes
   useEffect(() => {
-    setIsOpen(false);
+    setIsMenuOpen(false);
   }, [location.pathname]);
 
   // Add scroll effect
@@ -40,11 +41,13 @@ const Navbar = () => {
   ];
 
   return (
-    <header 
-      className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white shadow-md' : 'bg-white/90 backdrop-blur-sm'
-      }`}
-    >
+    <>
+      <Cart />
+      <header 
+        className={`fixed w-full z-50 transition-all duration-300 ${
+          scrolled ? 'bg-white shadow-md' : 'bg-white/90 backdrop-blur-sm'
+        }`}
+      >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Top">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -74,14 +77,18 @@ const Navbar = () => {
 
           {/* Right side - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/cart" className="relative p-2 text-gray-700 hover:text-accent transition-colors">
+            <button 
+              onClick={toggleCart} 
+              className="relative p-2 text-gray-700 hover:text-accent transition-colors"
+              aria-label="Shopping cart"
+            >
               <ShoppingCart className="h-6 w-6" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {cartItemCount > 9 ? '9+' : cartItemCount}
                 </span>
               )}
-            </Link>
+            </button>
             <Button variant="outline" size="sm" asChild>
               <Link to="/login">Sign In</Link>
             </Button>
@@ -89,21 +96,25 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <Link to="/cart" className="relative p-2 text-gray-700 hover:text-accent transition-colors mr-2">
+            <button 
+              onClick={toggleCart} 
+              className="relative p-2 text-gray-700 hover:text-accent transition-colors mr-2"
+              aria-label="Shopping cart"
+            >
               <ShoppingCart className="h-6 w-6" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {cartItemCount > 9 ? '9+' : cartItemCount}
                 </span>
               )}
-            </Link>
+            </button>
             <button
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-accent focus:outline-none"
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
-              {isOpen ? (
+              {isMenuOpen ? (
                 <X className="block h-6 w-6" aria-hidden="true" />
               ) : (
                 <Menu className="block h-6 w-6" aria-hidden="true" />
@@ -116,7 +127,7 @@ const Navbar = () => {
       {/* Mobile menu */}
       <div
         className={`md:hidden transition-all duration-300 ease-in-out ${
-          isOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+          isMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
         }`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg">
@@ -141,6 +152,7 @@ const Navbar = () => {
         </div>
       </div>
     </header>
+    </>
   );
 };
 

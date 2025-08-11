@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../utils/supabaseClient';
 import { Product, ProductImage } from '../types/product';
@@ -7,7 +7,7 @@ interface ProductContextType {
   products: Product[];
   loading: boolean;
   error: string | null;
-  refreshProducts: () => Promise<void>;
+  refreshProducts: () => Promise<Product[]>;
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>, imageFile: File) => Promise<void>;
   updateProduct: (id: string, updates: Partial<Product>, imageFile?: File) => Promise<void>;
   deleteProduct: (id: string, imageUrl?: string) => Promise<void>;
@@ -21,11 +21,13 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load products from Supabase
-  const loadProducts = async () => {
+  // Memoize the loadProducts function with useCallback to prevent unnecessary recreations
+  const loadProducts = useCallback(async () => {
     console.log('Loading products...');
     setLoading(true);
     setError(null);
+    
+    let isMounted = true;
     
     try {
       if (!supabase) {
@@ -65,18 +67,16 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         throw new Error(`Request failed with status ${status}: ${statusText}`);
       }
       
-      console.log('Products loaded:', data);
-      
       // If no data, set empty array and return
       if (!data) {
-        setProducts([]);
-        return;
+        if (isMounted) setProducts([]);
+        return [];
       }
       
       // Map the database fields to our Product type
-      const formattedProducts = data.map(item => ({
+      return data.map(item => ({
         id: item.id,
-        name: item.name,
+        name: item.name || 'Unnamed Product',
         description: item.description || '',
         price: item.price,
         imageUrl: item.image_url,
@@ -84,26 +84,75 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         category: item.category || 'other',
         stock: item.stock_quantity || 0,
         featured: item.is_featured || false,
+        specifications: item.specifications || {},
         createdAt: item.created_at ? new Date(item.created_at) : new Date(),
         updatedAt: item.updated_at ? new Date(item.updated_at) : new Date()
       }));
-      
-      setProducts(formattedProducts);
     } catch (err) {
       console.error('Error loading products:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load products');
-      // Re-throw to allow components to handle the error if needed
+      if (isMounted) {
+        setError(err instanceof Error ? err.message : 'Failed to load products');
+      }
       throw err;
     } finally {
-      console.log('Finished loading products');
+      if (isMounted) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  // Create a stable refreshProducts function that won't change between renders
+  const refreshProducts = useCallback(async (): Promise<Product[]> => {
+    try {
+      setLoading(true);
+      const products = await loadProducts();
+      if (products) {
+        console.log('Setting products in state (refreshProducts):', products.length);
+        setProducts(products);
+        return products;
+      }
+      setProducts([]);
+      return [];
+    } catch (error) {
+      console.error('Error in refreshProducts:', error);
+      setError(error instanceof Error ? error.message : 'Failed to refresh products');
+      throw error;
+    } finally {
       setLoading(false);
     }
-  };
+  }, [loadProducts]);
 
   // Load products on mount
   useEffect(() => {
-    loadProducts();
-  }, []);
+    let isMounted = true;
+    
+    const fetchProducts = async () => {
+      try {
+        const products = await loadProducts();
+        if (isMounted && products) {
+          console.log('Setting products in state (initial load):', products.length);
+          setProducts(products);
+        }
+      } catch (error) {
+        console.error('Error in initial product load:', error);
+        if (isMounted) {
+          setError('Failed to load products. Please try again later.');
+        }
+      }
+    };
+
+    // Only load products if we don't have any yet
+    if (products.length === 0) {
+      console.log('No products in state, fetching...');
+      fetchProducts();
+    } else {
+      console.log('Products already loaded, skipping initial fetch');
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [loadProducts, products.length]);
 
   const uploadImage = async (file: File): Promise<string> => {
     try {
@@ -286,13 +335,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     }
   };
   
-  const getProductById = (id: string) => {
+  const getProductById = useCallback((id: string) => {
     return products.find(product => product.id === id);
-  };
-  
-  const refreshProducts = async () => {
-    await loadProducts();
-  };
+  }, [products]);
 
   return (
     <ProductContext.Provider 

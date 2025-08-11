@@ -1,22 +1,12 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../utils/supabaseClient';
 
-// Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+if (!supabase) {
+  throw new Error('Supabase client is not initialized');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce',
-  },
-});
+// We know supabase is not null here due to the check above
+const safeSupabase = supabase!;
 
 // Define user type
 type User = {
@@ -51,11 +41,12 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
 
   // Check active sessions and sets the user
   useEffect(() => {
     // Check active sessions and set the user
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = safeSupabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
           const userEmail = session.user.email || null;
@@ -73,12 +64,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Cleanup subscription on unmount
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, []);
 
-  async function signup(email: string, password: string) {
+  const signup = async (email: string, password: string): Promise<AuthResponse> => {
+    setLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await safeSupabase.auth.signUp({
         email,
         password,
         options: {
@@ -108,9 +106,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function login(email: string, password: string) {
+  const login = async (email: string, password: string): Promise<AuthResponse> => {
+    setLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await safeSupabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -134,9 +134,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function logout() {
+  const logout = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await safeSupabase.auth.signOut();
       if (error) throw error;
       setCurrentUser(null);
       return { error: null };
