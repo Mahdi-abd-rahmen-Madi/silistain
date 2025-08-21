@@ -6,6 +6,15 @@ export default defineConfig({
   base: '/',
   publicDir: 'public',
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000', // Points to your Vercel dev server
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

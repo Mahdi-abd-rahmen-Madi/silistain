@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FunnelIcon, XMarkIcon, ShoppingCartIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
 import { Watch, Filters, SortOption, ProductImage } from '../types';
+import { ProductCard } from '../components/ProductCard';
+import { toast } from 'react-hot-toast';
 
 const Shop = () => {
   // Use products from ProductContext
@@ -336,23 +337,28 @@ const Shop = () => {
       });
   }, [filters, sortBy]);
 
-  const handleAddToCart = (watch: Omit<Watch, 'quantity'>) => {
-    setAddingItem(watch.id);
+  // Handle add to cart through the consistent ProductCard component
+  const handleAddToCart = (product: any) => {
+    // Ensure we have a proper image URL
+    const imageUrl = (product.images && product.images[0]) ? 
+      (typeof product.images[0] === 'string' ? product.images[0] : product.images[0].url) : 
+      product.image || '';
+    
     const cartItem = {
-      id: watch.id,
-      name: watch.name,
-      price: watch.price,
-      brand: watch.brand,
-      image: watch.images[0],
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      brand: product.brand,
+      image: imageUrl,
       quantity: 1
     };
     
     addToCart(cartItem);
     
-    // Reset the adding state after animation would complete
-    setTimeout(() => {
-      setAddingItem(null);
-    }, 1000);
+    // Show success message
+    toast.success(`${product.name} added to cart`);
+    
+    return false;
   };
 
   return (
@@ -750,122 +756,46 @@ const Shop = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-                {filteredWatches.map((watch) => (
-                  <motion.div
-                    key={watch.id}
-                    className="group relative overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-300 hover:shadow-md dark:bg-gray-800"
-                    whileHover={{ y: -5 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="relative">
-                      <Link to={`/watch/${watch.id}`} className="block">
-                        <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-t-xl bg-gray-200 dark:bg-gray-700">
-                          <img
-                            src={watch.image}
-                            alt={watch.name}
-                            className="h-full w-full object-cover object-center transition-opacity duration-300 group-hover:opacity-90"
-                          />
-                        </div>
-                      </Link>
-                      
-                      {/* Add to Cart Button */}
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleAddToCart(watch);
-                        }}
-                        disabled={watch.inStock === 0 || addingItem === watch.id}
-                        className={`absolute top-3 right-3 inline-flex items-center justify-center rounded-full p-2 shadow-md transition-all duration-300 ${
-                          watch.inStock === 0
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : addingItem === watch.id
-                            ? 'bg-indigo-100 cursor-wait'
-                            : 'bg-white hover:bg-indigo-50 hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                        }`}
-                        aria-label={watch.inStock === 0 ? 'Out of stock' : 'Add to cart'}
-                        title={watch.inStock === 0 ? 'Out of stock' : 'Add to cart'}
-                      >
-                        {addingItem === watch.id ? (
-                          <svg className="h-5 w-5 animate-spin text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        ) : watch.inStock === 0 ? (
-                          <svg className="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                          </svg>
-                        ) : (
-                          <ShoppingCartIcon className="h-5 w-5 text-gray-700" />
-                        )}
-                      </button>
-                      
-                      {/* Stock status */}
-                      {watch.inStock > 0 && watch.inStock <= 5 && (
-                        <span className="text-sm text-yellow-600 dark:text-yellow-400">
-                          Only {watch.inStock} left
-                        </span>
-                      )}
-                      {watch.inStock === 0 && (
-                        <span className="text-sm text-red-600 dark:text-red-400">Out of stock</span>
-                      )}
-
-                      {/* Sale badge */}
-                      {watch.onSale && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                          Sale
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                            <Link to={`/watch/${watch.id}`}>
-                              <span aria-hidden="true" className="absolute inset-0" />
-                              {watch.name}
-                            </Link>
-                          </h3>
-                          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{watch.brand}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            ${watch.price.toLocaleString()}
-                          </p>
-                          {watch.originalPrice && watch.originalPrice > watch.price && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 line-through">
-                              ${watch.originalPrice.toLocaleString()}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4 flex items-center">
-                        <div className="flex items-center">
-                          {[0, 1, 2, 3, 4].map((rating) => (
-                            <svg
-                              key={rating}
-                              className={`h-5 w-5 ${
-                                (watch.rating !== undefined && watch.rating > rating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
-                              }`}
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                          ))}
-                        </div>
-                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                          {watch.reviewCount !== undefined && `(${watch.reviewCount} reviews)`}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                {filteredWatches.map((watch) => {
+                  // Find the original product to get the isBestSeller and isNew flags
+                  const originalProduct = products.find(p => p.id === watch.id);
+                  
+                  // Convert Watch type to Product type for ProductCard
+                  const product = {
+                    ...watch,
+                    imageUrl: watch.image,
+                    images: watch.images || [],
+                    isNew: originalProduct?.isNew || watch.isNew || false,
+                    isBestSeller: originalProduct?.isBestSeller || watch.isBestSeller || false,
+                    discount: watch.discount || 0,
+                    rating: watch.rating || 0,
+                    reviewCount: watch.reviewCount || 0,
+                    stock: watch.inStock || 0,
+                    // Ensure all required Product fields are included
+                    brand: watch.brand || '',
+                    description: watch.description || '',
+                    category: watch.category || 'watches',
+                    featured: watch.featured || false,
+                    specifications: watch.specifications || {},
+                    createdAt: watch.createdAt || new Date(),
+                    updatedAt: watch.updatedAt || new Date()
+                  };
+                  
+                  return (
+                    <motion.div
+                      key={watch.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="relative"
+                    >
+                      <ProductCard 
+                        product={product} 
+                        onAddToCart={handleAddToCart}
+                      />
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </div>

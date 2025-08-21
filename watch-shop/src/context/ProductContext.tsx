@@ -74,7 +74,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Map the database fields to our Product type
-      return data.map(item => ({
+      const mappedProducts = data.map(item => ({
         id: item.id,
         name: item.name || 'Unnamed Product',
         description: item.description || '',
@@ -84,10 +84,36 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         category: item.category || 'other',
         stock: item.stock_quantity || 0,
         featured: item.is_featured || false,
+        isBestSeller: false,  // Will be set below
+        isNew: false,         // Will be set below
         specifications: item.specifications || {},
         createdAt: item.created_at ? new Date(item.created_at) : new Date(),
         updatedAt: item.updated_at ? new Date(item.updated_at) : new Date()
       }));
+
+      // Sort by stock in descending order and mark the top item as Best Seller
+      const sortedByStock = [...mappedProducts].sort((a, b) => b.stock - a.stock);
+      if (sortedByStock.length > 0) {
+        const bestSeller = sortedByStock[0];
+        const bestSellerIndex = mappedProducts.findIndex(p => p.id === bestSeller.id);
+        if (bestSellerIndex !== -1) {
+          mappedProducts[bestSellerIndex].isBestSeller = true;
+        }
+      }
+
+      // Sort by creation date and mark the latest item as New
+      const sortedByDate = [...mappedProducts].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      if (sortedByDate.length > 0) {
+        const newestItem = sortedByDate[0];
+        const newestItemIndex = mappedProducts.findIndex(p => p.id === newestItem.id);
+        if (newestItemIndex !== -1) {
+          mappedProducts[newestItemIndex].isNew = true;
+        }
+      }
+
+      return mappedProducts;
     } catch (err) {
       console.error('Error loading products:', err);
       if (isMounted) {

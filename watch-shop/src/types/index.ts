@@ -59,7 +59,8 @@ export interface CheckoutFormData {
   phone: string;
   address: string;
   city: string;
-  country: string;
+  governorate: string;
+  delegation: string;
   zipCode: string;
   cardNumber: string;
   cardName: string;

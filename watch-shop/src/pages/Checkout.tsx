@@ -1,10 +1,20 @@
-import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { useState, useEffect, ChangeEvent, FormEvent, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { submitOrderToSheets, formatOrderData } from '../utils/api';
 import { ArrowLeftIcon, CheckCircleIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { CheckoutFormData, OrderDetails } from '../types';
 import { CartItem } from '../context/CartContext';
+import { fetchMunicipalities } from '../services/locationService';
+import type { Municipality } from '../types/order';
+
+interface Delegation {
+  name: string;
+  delegation: string;
+  governorate: string;
+}
+
+type LocalMunicipality = Omit<Municipality, 'id' | 'created_at'>;
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -20,7 +30,8 @@ const Checkout = () => {
     phone: '',
     address: '',
     city: '',
-    country: '',
+    governorate: '',
+    delegation: '',
     zipCode: '',
     cardNumber: '',
     cardName: '',
@@ -29,6 +40,88 @@ const Checkout = () => {
     saveInfo: false,
     shippingSameAsBilling: true,
   });
+  
+  const [municipalities, setMunicipalities] = useState<LocalMunicipality[]>([]);
+  const [delegations, setDelegations] = useState<Delegation[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  
+  // Fetch all municipalities on component mount
+  const loadMunicipalities = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await fetchMunicipalities();
+      setMunicipalities(data);
+    } catch (err) {
+      console.error('Error fetching municipalities:', err);
+      setError('Failed to load location data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMunicipalities();
+  }, [loadMunicipalities]);
+  
+  // Get unique governorates from municipalities
+  const governorates = useMemo(() => {
+    console.log('Municipalities data:', municipalities);
+    const govs = Array.from(new Set(municipalities.map(m => m.governorate))).sort();
+    console.log('Available governorates:', govs);
+    return govs;
+  }, [municipalities]);
+
+  // Handle governorate selection
+  const handleGovernorateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      governorate: e.target.value,
+      delegation: '',
+      city: '',
+      zipCode: ''
+    }));
+  };
+
+  // Update delegations when governorate changes
+  useEffect(() => {
+    if (formData.governorate) {
+      const filtered = municipalities.filter(m => m.governorate === formData.governorate);
+      console.log('Filtered municipalities for', formData.governorate, ':', filtered);
+      
+      const governorateDelegations = Array.from(
+        new Map(
+          filtered.map(m => [m.delegation, {
+            name: m.name,
+            delegation: m.delegation,
+            governorate: m.governorate
+          }])
+        ).values()
+      );
+      
+      console.log('Delegations for', formData.governorate, ':', governorateDelegations);
+      setDelegations(governorateDelegations);
+      
+      // Reset delegation and city when governorate changes
+      setFormData(prev => ({
+        ...prev,
+        delegation: '',
+        city: ''
+      }));
+    } else {
+      setDelegations([]);
+    }
+  }, [formData.governorate, municipalities]);
+  
+  // Handle delegation selection
+  const handleDelegationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedDelegation = delegations.find(d => d.delegation === e.target.value);
+    setFormData(prev => ({
+      ...prev,
+      delegation: selectedDelegation?.delegation || '',
+      city: selectedDelegation?.name || '',
+      zipCode: '' // Postal code not available in our current data structure
+    }));
+  };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>): void => {
     const { name, type } = e.target;
@@ -70,7 +163,7 @@ const Checkout = () => {
         email: formData.email,
         total: total,
         items: cartItems.map(item => ({
-          id: item.id,
+          id: Number(item.id),  // Convert string ID to number to match type
           name: item.name || `Item ${item.id}`,
           quantity: item.quantity,
           price: item.price,
@@ -292,60 +385,62 @@ const Checkout = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-2">
-                      <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        City <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        required
-                        value={formData.city}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        ZIP / Postal Code <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="zipCode"
-                        name="zipCode"
-                        required
-                        value={formData.zipCode}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                      />
-                    </div>
+                  <div className="mb-4">
+                    <label htmlFor="governorate" className="block text-sm font-medium text-gray-700">
+                      Governorate <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="governorate"
+                      name="governorate"
+                      value={formData.governorate}
+                      onChange={handleGovernorateChange}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                    >
+                      <option value="">Select Governorate</option>
+                      {governorates.map((gov) => (
+                        <option key={gov} value={gov}>
+                          {gov}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="delegation" className="block text-sm font-medium text-gray-700">
+                      Delegation <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="delegation"
+                      name="delegation"
+                      value={formData.delegation}
+                      onChange={handleDelegationChange}
+                      required
+                      disabled={!formData.governorate || delegations.length === 0}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Select Delegation</option>
+                      {delegations.map((del) => (
+                        <option key={del.delegation} value={del.delegation}>
+                          {del.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
-                    <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Country <span className="text-red-500">*</span>
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      City <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      id="country"
-                      name="country"
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
                       required
-                      value={formData.country}
+                      value={formData.city}
                       onChange={handleChange}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                    >
-                      <option value="">Select a country</option>
-                      <option value="US">United States</option>
-                      <option value="CA">Canada</option>
-                      <option value="UK">United Kingdom</option>
-                      <option value="AU">Australia</option>
-                      <option value="DE">Germany</option>
-                      <option value="FR">France</option>
-                      <option value="JP">Japan</option>
-                      <option value="CH">Switzerland</option>
-                      <option value="AE">United Arab Emirates</option>
-                    </select>
+                    />
                   </div>
 
                   <div className="flex items-center">

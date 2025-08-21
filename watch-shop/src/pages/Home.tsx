@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Clock, Shield, Truck, Zap, CheckCircle, Star } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
+import { useCart } from '../context/CartContext';
 import watchesData from '../data/watches';
 import { Watch } from '../types';
 import { Product } from '../types/product';
@@ -11,32 +12,54 @@ import ProductCard from '../components/ProductCard';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../hooks/use-toast';
 
+type ProductImage = {
+  url: string;
+  isPrimary?: boolean;
+  order?: number;
+};
+
 // Function to convert Watch to Product
-const watchToProduct = (watch: Watch): Product => ({
-  ...watch,
-  images: watch.images.map(url => ({
-    url,
-    isPrimary: url === watch.image,
-    order: 0
-  })),
-  stock: watch.inStock,
-  specifications: {
-    ...watch.specifications,
-    // Ensure all required specification fields are present
-    movement: watch.specifications.movement || '',
-    caseMaterial: watch.specifications.caseMaterial || '',
-    caseDiameter: watch.specifications.caseDiameter || '',
-    waterResistance: watch.specifications.waterResistance || '',
-    powerReserve: watch.specifications.powerReserve || '',
-    functions: watch.specifications.functions || ''
-  },
-  // Add any missing required fields
-  featured: watch.isFeatured,
-  quantity: 1,
-  discount: 0,
-  isNew: watch.releaseDate ? new Date(watch.releaseDate).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000 : false,
-  isBestSeller: (watch.sold || 0) > 50
-});
+const watchToProduct = (watch: Watch): Product => {
+  // Ensure watch.images is an array of strings
+  const imageUrls = Array.isArray(watch.images) ? watch.images : [watch.image].filter(Boolean);
+  
+  return {
+    ...watch,
+    images: imageUrls.map((url: string | ProductImage) => {
+      // If it's already a ProductImage, return it as is
+      if (typeof url !== 'string') {
+        return {
+          ...url,
+          isPrimary: url.isPrimary ?? url.url === watch.image,
+          order: url.order ?? 0
+        };
+      }
+      // If it's a string, create a ProductImage object
+      return {
+        url,
+        isPrimary: url === watch.image,
+        order: 0
+      };
+    }),
+    stock: watch.inStock,
+    specifications: {
+      ...watch.specifications,
+      // Ensure all required specification fields are present
+      movement: watch.specifications.movement || '',
+      caseMaterial: watch.specifications.caseMaterial || '',
+      caseDiameter: watch.specifications.caseDiameter || '',
+      waterResistance: watch.specifications.waterResistance || '',
+      powerReserve: watch.specifications.powerReserve || '',
+      functions: watch.specifications.functions || ''
+    },
+    // Add any missing required fields
+    featured: watch.isFeatured,
+    quantity: 1,
+    discount: 0,
+    isNew: watch.releaseDate ? new Date(watch.releaseDate).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000 : false,
+    isBestSeller: (watch.sold || 0) > 50
+  }
+};
 
 // Prepare watch collections
 const watches = watchesData as Watch[];
@@ -51,6 +74,7 @@ const bestSellers = [...watches]
   .map(watchToProduct);
 
 const Home = () => {
+  const { addToCart } = useCart();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('featured');
   
@@ -261,7 +285,21 @@ const Home = () => {
                       <ProductCard 
                         key={product.id} 
                         product={product} 
-                        onAddToCart={() => {}}
+                        onAddToCart={(product) => {
+  // Get the first image URL or fall back to imageUrl
+  const imageUrl = product.images?.[0]?.url || product.imageUrl || '';
+  
+  const cartItem = {
+    id: product.id.toString(),
+    name: product.name,
+    price: parseFloat(product.price.toString()),
+    quantity: 1,
+    brand: product.brand,
+    image: typeof imageUrl === 'string' ? imageUrl : ''
+  };
+  
+  addToCart(cartItem);
+}}
                       />
                     ))}
                   </div>
@@ -273,7 +311,21 @@ const Home = () => {
                       <ProductCard 
                         key={product.id} 
                         product={product} 
-                        onAddToCart={() => {}}
+                        onAddToCart={(product) => {
+  // Get the first image URL or fall back to imageUrl
+  const imageUrl = product.images?.[0]?.url || product.imageUrl || '';
+  
+  const cartItem = {
+    id: product.id.toString(),
+    name: product.name,
+    price: parseFloat(product.price.toString()),
+    quantity: 1,
+    brand: product.brand,
+    image: typeof imageUrl === 'string' ? imageUrl : ''
+  };
+  
+  addToCart(cartItem);
+}}
                       />
                     ))}
                   </div>
@@ -285,7 +337,21 @@ const Home = () => {
                       <ProductCard 
                         key={product.id} 
                         product={product} 
-                        onAddToCart={() => {}}
+                        onAddToCart={(product) => {
+  // Get the first image URL or fall back to imageUrl
+  const imageUrl = product.images?.[0]?.url || product.imageUrl || '';
+  
+  const cartItem = {
+    id: product.id.toString(),
+    name: product.name,
+    price: parseFloat(product.price.toString()),
+    quantity: 1,
+    brand: product.brand,
+    image: typeof imageUrl === 'string' ? imageUrl : ''
+  };
+  
+  addToCart(cartItem);
+}}
                       />
                     ))}
                   </div>
