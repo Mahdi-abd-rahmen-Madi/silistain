@@ -1,45 +1,59 @@
 import { Municipality } from '../types/order';
-import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const API_BASE_URL = '/api/tn-municipalities';
 
 export const fetchMunicipalities = async (filters?: { name?: string; delegation?: string }): Promise<Municipality[]> => {
   try {
-    console.log('Fetching municipalities from Supabase function...');
-    const { data, error } = await supabase.functions.invoke('municipalities');
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (filters?.name) params.append('name', filters.name);
+    if (filters?.delegation) params.append('delegation', filters.delegation);
     
-    if (error) {
-      console.error('Supabase function error:', error);
-      throw new Error(`Failed to fetch municipalities: ${error.message}`);
+    console.log('Fetching municipalities from:', `${API_BASE_URL}/municipalities?${params.toString()}`);
+    const response = await fetch(`${API_BASE_URL}/municipalities?${params.toString()}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const responseText = await response.text();
+    console.log('Raw response:', responseText.substring(0, 200)); // Log first 200 chars of response
+    
+    if (!response.ok) {
+      console.error('Error response status:', response.status, response.statusText);
+      throw new Error(`Failed to fetch municipalities: ${response.status} ${response.statusText}`);
     }
     
-    console.log('Raw data from function:', data);
-    
-    if (!data) {
-      console.warn('No data returned from municipalities function');
-      return [];
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse JSON response:', e);
+      console.error('Response content type:', response.headers.get('content-type'));
+      throw new Error('Invalid JSON response from server');
     }
     
-    // Apply filters client-side if needed
-    let result = Array.isArray(data) ? data : [];
+    // Transform the API response to match our Municipality type
+    const municipalities: Municipality[] = [];
     
-    if (filters?.name) {
-      result = result.filter((m: Municipality) => 
-        m.name?.toLowerCase().includes(filters.name!.toLowerCase())
-      );
-    }
+    data.forEach((gov: any) => {
+      gov.Delegations.forEach((delegation: any) => {
+        municipalities.push({
+          id: delegation.PostalCode,
+          name: delegation.NameAr, // Using Arabic name as the default
+          nameEn: delegation.Name,
+          delegation: delegation.Value,
+          governorate: gov.Name,
+          postalCode: delegation.PostalCode,
+          latitude: delegation.Latitude,
+          longitude: delegation.Longitude,
+          created_at: new Date().toISOString()
+        });
+      });
+    });
     
-    if (filters?.delegation) {
-      result = result.filter((m: Municipality) => 
-        m.delegation?.toLowerCase().includes(filters.delegation!.toLowerCase())
-      );
-    }
-    
-    console.log('Filtered municipalities:', result);
-    return result;
+    return municipalities;
   } catch (error) {
     console.error('Error in fetchMunicipalities:', error);
     throw error;
@@ -52,29 +66,78 @@ export const fetchMunicipalities = async (filters?: { name?: string; delegation?
  */
 export const getGovernorates = async (): Promise<string[]> => {
   try {
-    const municipalities = await fetchMunicipalities();
-    const governorates = new Set(municipalities.map((m: any) => m.governorate));
-    return Array.from(governorates).sort() as string[];
+    const response = await fetch(`${API_BASE_URL}/municipalities`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch governorates: ${response.statusText}`);
+    }
+    const data = await response.json();
+    const governorates = data.map((g: any) => g.Name);
+    return governorates.sort();
   } catch (error) {
     console.error('Error getting governorates:', error);
     throw error;
   }
 };
 
+/**
+ * Fetches delegations for a specific governorate
+ * @param governorate The name of the governorate
+ * @returns {Promise<string[]>} Sorted array of delegation names
+ */
 export const getDelegations = async (governorate: string): Promise<string[]> => {
   try {
-    const municipalities = await fetchMunicipalities({ name: governorate });
-    const delegations = new Set(municipalities.map(m => m.delegation));
-    return Array.from(delegations).sort();
+    const response = await fetch(`${API_BASE_URL}/municipalities?name=${encodeURIComponent(governorate)}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch delegations: ${response.statusText}`);
+    }
+    const data = await response.json();
+    
+    // Find the governorate and get its delegations
+    const gov = data.find((g: any) => g.Name === governorate);
+    if (!gov) return [];
+    
+    return gov.Delegations.map((d: any) => d.Name).sort();
   } catch (error) {
     console.error('Error getting delegations:', error);
     throw error;
   }
 };
 
+/**
+ * Fetches cities for a specific delegation
+ * @param delegation The name of the delegation
+ * @returns {Promise<Municipality[]>} Array of city data
+ */
 export const getCities = async (delegation: string): Promise<Municipality[]> => {
   try {
-    return await fetchMunicipalities({ delegation });
+    const response = await fetch(`${API_BASE_URL}/municipalities`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch cities: ${response.statusText}`);
+    }
+    const data = await response.json();
+    
+    // Find all cities in the specified delegation
+    const cities: Municipality[] = [];
+    
+    data.forEach((gov: any) => {
+      gov.Delegations
+        .filter((d: any) => d.Name === delegation)
+        .forEach((d: any) => {
+          cities.push({
+            id: d.PostalCode,
+            name: d.NameAr,
+            nameEn: d.Name,
+            delegation: d.Value,
+            governorate: gov.Name,
+            postalCode: d.PostalCode,
+            latitude: d.Latitude,
+            longitude: d.Longitude,
+            created_at: new Date().toISOString()
+          });
+        });
+    });
+    
+    return cities;
   } catch (error) {
     console.error('Error getting cities:', error);
     throw error;

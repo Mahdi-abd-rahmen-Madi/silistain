@@ -1,15 +1,27 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Menu, X, Heart, User, LogOut } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { Cart } from './Cart';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/Avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/DropdownMenu';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { cartItems, isOpen: isCartOpen, toggleCart, closeCart } = useCart();
+  const { currentUser, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -59,39 +71,118 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-8">
+          <div className="flex items-center space-x-4">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-sm font-medium transition-colors ${
-                  location.pathname === item.href
-                    ? 'text-accent'
-                    : 'text-gray-700 hover:text-accent'
-                }`}
+                className="text-gray-700 hover:text-accent transition-colors"
               >
                 {item.name}
               </Link>
             ))}
+            {currentUser && (
+              <Link
+                to="/favorites"
+                className="text-gray-700 hover:text-accent transition-colors flex items-center"
+              >
+                <Heart className="h-4 w-4 mr-1" /> Favorites
+              </Link>
+            )}
           </div>
 
           {/* Right side - Desktop */}
-          <div className="hidden md:flex items-center space-x-4">
-            <button 
-              onClick={toggleCart} 
-              className="relative p-2 text-gray-700 hover:text-accent transition-colors"
-              aria-label="Shopping cart"
+          <div className="flex items-center space-x-4">
+            {currentUser?.isAdmin && (
+              <button
+                onClick={() => navigate('/admin/dashboard')}
+                className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
+                aria-label="Admin Dashboard"
+                title="Admin Dashboard"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            )}
+            {currentUser && (
+              <button
+                onClick={() => navigate('/favorites')}
+                className="p-2 text-gray-700 hover:text-red-500 transition-colors"
+                aria-label="Favorites"
+              >
+                <Heart className="h-6 w-6" />
+              </button>
+            )}
+            <button
+              onClick={toggleCart}
+              className="relative p-2 text-gray-700 hover:text-gray-900"
+              aria-label="Cart"
             >
               <ShoppingCart className="h-6 w-6" />
               {cartItemCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartItemCount > 9 ? '9+' : cartItemCount}
+                  {cartItemCount}
                 </span>
               )}
             </button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
+            {currentUser ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      {currentUser.user_metadata?.avatar_url ? (
+                        <AvatarImage src={currentUser.user_metadata.avatar_url} alt={currentUser.email || 'User'} />
+                      ) : (
+                        <AvatarFallback>
+                          {currentUser.email ? currentUser.email[0].toUpperCase() : 'U'}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0]}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {currentUser.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="w-full cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  {currentUser.isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/dashboard" className="w-full cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/login">Sign In</Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -144,11 +235,35 @@ const Navbar = () => {
               {item.name}
             </Link>
           ))}
-          <div className="pt-2 border-t border-gray-100">
-            <Button variant="outline" className="w-full justify-center" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
-          </div>
+          {currentUser ? (
+            <div className="pt-2 border-t border-gray-100 space-y-2">
+              <div className="px-3 py-2 text-sm text-gray-700">
+                <p className="font-medium">{currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0]}</p>
+                <p className="text-xs text-gray-500">{currentUser.email}</p>
+              </div>
+              <Button variant="outline" className="w-full justify-center" asChild>
+                <Link to="/profile">View Profile</Link>
+              </Button>
+              {currentUser.isAdmin && (
+                <Button variant="ghost" className="w-full justify-center" asChild>
+                  <Link to="/admin/dashboard">Admin Dashboard</Link>
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                className="w-full justify-center text-red-500 hover:text-red-600"
+                onClick={() => logout()}
+              >
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <div className="pt-2 border-t border-gray-100">
+              <Button variant="outline" className="w-full justify-center" asChild>
+                <Link to="/login">Sign In</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </header>

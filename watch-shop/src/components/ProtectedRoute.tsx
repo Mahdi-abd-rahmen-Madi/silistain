@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 // ProtectedRoute: For any authenticated user
-export default function ProtectedRoute({ children }: { children: React.JSX.Element }) {
+export function ProtectedRoute({ children }: { children: React.JSX.Element }) {
   const { currentUser, loading } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
   const location = useLocation();

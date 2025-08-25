@@ -1,8 +1,13 @@
 export interface Municipality {
   id: string;
   name: string;
+  nameEn?: string;
   delegation: string;
   governorate: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+  created_at?: string;
 }
 
 export interface OrderItem {

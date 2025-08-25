@@ -2,11 +2,27 @@ import { useState, useEffect, ChangeEvent, FormEvent, useCallback, useMemo } fro
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { submitOrderToSheets, formatOrderData } from '../utils/api';
-import { ArrowLeftIcon, CheckCircleIcon, XCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { CheckoutFormData, OrderDetails } from '../types';
+import { OrderSummary } from '../components/OrderSummary';
 import { CartItem } from '../context/CartContext';
-import { fetchMunicipalities } from '../services/locationService';
+import { fetchMunicipalities, getGovernorates, getDelegations, getCities } from '../services/locationService';
 import type { Municipality } from '../types/order';
+
+// Form field types
+interface FormFields {
+  firstName: string;
+  lastName: string;
+  email?: string; // Made optional
+  phone: string;
+  address: string;
+  city: string;
+  governorate: string;
+  delegation: string;
+  zipCode: string;
+  saveInfo: boolean;
+  [key: string]: string | boolean | undefined; // Added undefined to support optional fields
+};
 
 interface Delegation {
   name: string;
@@ -19,11 +35,17 @@ type LocalMunicipality = Omit<Municipality, 'id' | 'created_at'>;
 const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, clearCart } = useCart();
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
-  const [formData, setFormData] = useState<CheckoutFormData>({
+  const [municipalities, setMunicipalities] = useState<LocalMunicipality[]>([]);
+  const [delegations, setDelegations] = useState<Delegation[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState<FormFields>({
     firstName: '',
     lastName: '',
     email: '',
@@ -33,18 +55,9 @@ const Checkout = () => {
     governorate: '',
     delegation: '',
     zipCode: '',
-    cardNumber: '',
-    cardName: '',
-    expiryDate: '',
-    cvv: '',
     saveInfo: false,
-    shippingSameAsBilling: true,
   });
-  
-  const [municipalities, setMunicipalities] = useState<LocalMunicipality[]>([]);
-  const [delegations, setDelegations] = useState<Delegation[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  
+
   // Fetch all municipalities on component mount
   const loadMunicipalities = useCallback(async () => {
     try {
@@ -62,139 +75,136 @@ const Checkout = () => {
   useEffect(() => {
     loadMunicipalities();
   }, [loadMunicipalities]);
-  
+
   // Get unique governorates from municipalities
   const governorates = useMemo(() => {
-    console.log('Municipalities data:', municipalities);
-    const govs = Array.from(new Set(municipalities.map(m => m.governorate))).sort();
-    console.log('Available governorates:', govs);
-    return govs;
+    return Array.from(new Set(municipalities.map(m => m.governorate))).sort();
   }, [municipalities]);
 
-  // Handle governorate selection
-  const handleGovernorateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      governorate: e.target.value,
-      delegation: '',
-      city: '',
-      zipCode: ''
-    }));
+  // Handle governorate change
+  const handleGovernorateChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    handleGovernorateSelect(value);
   };
 
-  // Update delegations when governorate changes
-  useEffect(() => {
-    if (formData.governorate) {
-      const filtered = municipalities.filter(m => m.governorate === formData.governorate);
-      console.log('Filtered municipalities for', formData.governorate, ':', filtered);
-      
-      const governorateDelegations = Array.from(
-        new Map(
-          filtered.map(m => [m.delegation, {
-            name: m.name,
-            delegation: m.delegation,
-            governorate: m.governorate
-          }])
-        ).values()
-      );
-      
-      console.log('Delegations for', formData.governorate, ':', governorateDelegations);
-      setDelegations(governorateDelegations);
-      
-      // Reset delegation and city when governorate changes
-      setFormData(prev => ({
-        ...prev,
-        delegation: '',
-        city: ''
-      }));
+  const handleGovernorateSelect = (governorate: string) => {
+    setFormData(prev => ({
+      ...prev,
+      governorate,
+      delegation: '',
+      city: ''
+    }));
+    
+    // Manually trigger the delegation loading
+    if (governorate) {
+      getDelegations(governorate)
+        .then((delegations: string[]) => {
+          setDelegations(delegations.map((d: string) => ({
+            name: d,
+            delegation: d,
+            governorate
+          })));
+        })
+        .catch((err: Error) => {
+          console.error('Error loading delegations:', err);
+          setError('Failed to load delegations. Please try again.');
+        });
     } else {
       setDelegations([]);
     }
-  }, [formData.governorate, municipalities]);
-  
-  // Handle delegation selection
-  const handleDelegationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedDelegation = delegations.find(d => d.delegation === e.target.value);
-    setFormData(prev => ({
-      ...prev,
-      delegation: selectedDelegation?.delegation || '',
-      city: selectedDelegation?.name || '',
-      zipCode: '' // Postal code not available in our current data structure
-    }));
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>): void => {
+  // Handle delegation change
+  const handleDelegationChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    const selectedDelegation = delegations.find((d: Delegation) => d.delegation === value);
+
+    setFormData(prev => ({
+      ...prev,
+      delegation: value,
+      city: selectedDelegation?.name || ''
+    }));
+
+    // Load cities for the selected delegation
+    if (value) {
+      getCities(value)
+        .then((cities: Municipality[]) => {
+          setCities(cities.map(c => c.name));
+        })
+        .catch((err: Error) => {
+          console.error('Error loading cities:', err);
+          setError('Failed to load cities. Please try again.');
+        });
+    } else {
+      setCities([]);
+    }
+  };
+
+  // Handle form field changes
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, type } = e.target;
-    const value = type === 'checkbox' 
-      ? (e.target as HTMLInputElement).checked 
-      : e.target.value;
-      
+    const value = type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
-  // Clear cart and reset form when component unmounts
-  useEffect(() => {
-    return () => {
-      if (isSuccess) {
-        clearCart();
-      }
-    };
-  }, [isSuccess, clearCart]);
-
+  // Form submission handler
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
     setIsSubmitting(true);
+    setError(null);
 
     try {
-      // Calculate total from cart items (10% tax + $29.99 shipping)
-      const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const tax = subtotal * 0.1;
-      const shipping = 29.99;
-      const total = subtotal + tax + shipping;
+      // Calculate total
+      const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.1 + 29.99;
       
-      // Create order details with all required properties
-      const orderDetails: OrderDetails = {
-        orderId: `ORD-${Date.now()}`,
-        customerName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        total: total,
-        items: cartItems.map(item => ({
-          id: Number(item.id),  // Convert string ID to number to match type
-          name: item.name || `Item ${item.id}`,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-      };
-      
-      // Create a version of cart items with required brand for the API
-      const cartItemsWithBrand = cartItems.map(item => ({
+      // Ensure cart items have required brand property
+      const itemsWithBrand = cartItems.map(item => ({
         ...item,
-        brand: item.brand || 'Unknown Brand',
-        name: item.name || `Item ${item.id}`
+        brand: item.brand || 'Unknown Brand' // Provide a default brand if missing
       }));
       
-      // Format and submit the order data
-      const orderData = formatOrderData(formData, cartItemsWithBrand);
-      const response = await submitOrderToSheets(orderData);
+      // Format the order data with all required fields
+      const orderFormData: CheckoutFormData = {
+        ...formData,
+        cardNumber: '', // Not used for cash on delivery
+        cardName: '',   // Not used for cash on delivery
+        expiryDate: '',  // Not used for cash on delivery
+        cvv: '',        // Not used for cash on delivery
+        shippingSameAsBilling: true, // Default to true for simplicity
+        total: total.toString(),
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email as string
+      };
       
-      // Update order ID with the one from the API if available
-      if (response?.orderId) {
-        orderDetails.orderId = response.orderId;
-      }
+      const orderData = formatOrderData(orderFormData, itemsWithBrand);
+
+      // Submit the order
+      const result = await submitOrderToSheets(orderData);
       
+      // Handle success - create proper OrderDetails object
+      const orderDetails: OrderDetails = {
+        orderId: result?.orderId || `order_${Date.now()}`,
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email as string,
+        total: total,
+        items: cartItems.map(item => ({
+          id: Number(item.id) || 0,
+          name: item.name || 'Product',
+          quantity: item.quantity,
+          price: item.price
+        }))
+      };
       setOrderDetails(orderDetails);
       setIsSuccess(true);
-      
-      // Clear the cart
       clearCart();
       
     } catch (err) {
       console.error('Error submitting order:', err);
-      setError('There was an error processing your order. Please try again.');
+      setError('Failed to place order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -205,9 +215,7 @@ const Checkout = () => {
       <div className="pt-24 pb-16 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden p-8 text-center">
-            <div className="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-100 dark:bg-green-900/30 mb-6">
-              <CheckCircleIcon className="h-12 w-12 text-green-600 dark:text-green-400" />
-            </div>
+            <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-6" />
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Order Confirmed!</h1>
             <p className="text-gray-600 dark:text-gray-300 mb-8">
               Thank you for your purchase. Your order has been received and is being processed.
@@ -218,7 +226,7 @@ const Checkout = () => {
                 </>
               )}
             </p>
-            
+
             {orderDetails && (
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 mb-8">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Order Details</h3>
@@ -237,10 +245,10 @@ const Checkout = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Payment Method</p>
-                    <p className="font-medium">Credit Card</p>
+                    <p className="font-medium">Cash on Delivery</p>
                   </div>
                 </div>
-                
+
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
                   <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">What's next?</h4>
                   <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300 text-left">
@@ -250,20 +258,15 @@ const Checkout = () => {
                       </span>
                       We're processing your order and will send you a shipping confirmation email when your items are on their way.
                     </p>
-                    <p className="flex items-start">
-                      <span className="flex-shrink-0 h-5 w-5 text-green-500 mr-2">
-                        <CheckCircleIcon className="h-5 w-5" />
-                      </span>
-                      You can track your order status by clicking the button below.
-                    </p>
                   </div>
                 </div>
               </div>
             )}
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={() => navigate('/shop')}
-                className="px-6 py-3 bg-accent hover:bg-accent-dark text-white font-medium rounded-lg transition-colors flex-1 sm:flex-none"
+                onClick={() => navigate('/')}
+                className="px-6 py-3 bg-accent text-white font-medium rounded-lg hover:bg-accent/90 transition-colors flex-1 sm:flex-none"
               >
                 Continue Shopping
               </button>
@@ -274,7 +277,7 @@ const Checkout = () => {
                 Track Order
               </button>
             </div>
-            
+
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Need help? <a href="/contact" className="text-accent hover:underline">Contact our support team</a>
@@ -287,8 +290,8 @@ const Checkout = () => {
   }
 
   return (
-    <div className="pt-24 pb-16 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center text-gray-600 dark:text-gray-300 hover:text-accent mb-6 transition-colors"
@@ -298,417 +301,224 @@ const Checkout = () => {
         </button>
 
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Checkout</h1>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Checkout Form */}
-          <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Billing Details */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Billing Details</h2>
-                </div>
-                <div className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        First Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="firstName"
-                        name="firstName"
-                        required
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Last Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="lastName"
-                        name="lastName"
-                        required
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                      />
-                    </div>
-                  </div>
 
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Email Address <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Phone Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      required
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Street Address <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="address"
-                      name="address"
-                      required
-                      value={formData.address}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label htmlFor="governorate" className="block text-sm font-medium text-gray-700">
-                      Governorate <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="governorate"
-                      name="governorate"
-                      value={formData.governorate}
-                      onChange={handleGovernorateChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-                    >
-                      <option value="">Select Governorate</option>
-                      {governorates.map((gov) => (
-                        <option key={gov} value={gov}>
-                          {gov}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="mb-4">
-                    <label htmlFor="delegation" className="block text-sm font-medium text-gray-700">
-                      Delegation <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="delegation"
-                      name="delegation"
-                      value={formData.delegation}
-                      onChange={handleDelegationChange}
-                      required
-                      disabled={!formData.governorate || delegations.length === 0}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    >
-                      <option value="">Select Delegation</option>
-                      {delegations.map((del) => (
-                        <option key={del.delegation} value={del.delegation}>
-                          {del.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      City <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      required
-                      value={formData.city}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="saveInfo"
-                      name="saveInfo"
-                      checked={formData.saveInfo}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-accent focus:ring-accent border-gray-300 dark:border-gray-600 rounded"
-                    />
-                    <label htmlFor="saveInfo" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                      Save this information for next time
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Method */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Payment Method</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    All transactions are secure and encrypted.
-                  </p>
-                </div>
-                <div className="p-6 space-y-6">
-                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                    <div className="flex items-center mb-4">
-                      <input
-                        id="credit-card"
-                        name="payment-method"
-                        type="radio"
-                        className="h-4 w-4 text-accent focus:ring-accent border-gray-300 dark:border-gray-600"
-                        defaultChecked
-                      />
-                      <label htmlFor="credit-card" className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Credit / Debit Card
-                      </label>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Card Number <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="cardNumber"
-                          name="cardNumber"
-                          required
-                          value={formData.cardNumber}
-                          onChange={handleChange}
-                          placeholder="1234 5678 9012 3456"
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="cardName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Name on Card <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="cardName"
-                          name="cardName"
-                          required
-                          value={formData.cardName}
-                          onChange={handleChange}
-                          placeholder="John Smith"
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Expiry Date <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="expiryDate"
-                            name="expiryDate"
-                            required
-                            value={formData.expiryDate}
-                            onChange={handleChange}
-                            placeholder="MM/YY"
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            CVV <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="cvv"
-                            name="cvv"
-                            required
-                            value={formData.cvv}
-                            onChange={handleChange}
-                            placeholder="123"
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Order Summary */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">Order Summary</h2>
-                </div>
-                <div className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                      <span className="font-medium">$16,000.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Shipping</span>
-                      <span className="font-medium">$29.99</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Tax</span>
-                      <span className="font-medium">$1,600.00</span>
-                    </div>
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                      <div className="flex justify-between">
-                        <span className="text-lg font-bold">Total</span>
-                        <span className="text-lg font-bold">$17,629.99</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {error && (
-              <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm">
-                <div className="flex items-center">
-                  <XCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
-                  <span>{error}</span>
-                </div>
-              </div>
-            )}
-            
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`w-full mt-6 py-3 px-6 rounded-lg font-medium text-white ${
-                isSubmitting 
-                  ? 'bg-accent/80 cursor-not-allowed' 
-                  : 'bg-accent hover:bg-accent-dark'
-              } transition-colors flex items-center justify-center`}
-            >
-              {isSubmitting ? (
-                <>
-                  <ArrowPathIcon className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" />
-                  Processing...
-                </>
-              ) : (
-                'Place Order'
-              )}
-            </button>
-
-                  <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                    By placing your order, you agree to our{' '}
-                    <a href="/terms" className="text-accent hover:underline">Terms of Service</a> and{' '}
-                    <a href="/privacy" className="text-accent hover:underline">Privacy Policy</a>.
-                  </p>
-                </div>
-              </div>
-            </form>
-          </div>
-
-          {/* Order Summary Sidebar */}
-          <div className="lg:col-span-1">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Billing Details */}
+          <div className="lg:col-span-2 space-y-8">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Your Order</h2>
+                <h2 className="text-xl font-medium text-gray-900 dark:text-white">Billing Details</h2>
               </div>
-              <div className="p-6">
-                <div className="space-y-6">
-                  {/* Order Items */}
-                  <div className="space-y-4">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-20 w-20 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                        <img
-                          src="/images/watches/rolex-submariner.jpg"
-                          alt="Rolex Submariner"
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">Rolex Submariner</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">1 × $9,100.00</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-20 w-20 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                        <img
-                          src="/images/watches/cartier-santos.jpg"
-                          alt="Cartier Santos"
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">Cartier Santos</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">1 × $6,900.00</p>
-                      </div>
-                    </div>
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      First Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      required
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                    />
                   </div>
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Last Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      required
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                    />
+                  </div>
+                </div>
 
-                  {/* Order Totals */}
-                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                    <div className="flex justify-between py-2 text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                      <span className="font-medium">$16,000.00</span>
-                    </div>
-                    <div className="flex justify-between py-2 text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Shipping</span>
-                      <span className="font-medium">$29.99</span>
-                    </div>
-                    <div className="flex justify-between py-2 text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Tax</span>
-                      <span className="font-medium">$1,600.00</span>
-                    </div>
-                    <div className="flex justify-between py-3 text-base font-bold border-t border-gray-200 dark:border-gray-700 mt-2">
-                      <span>Total</span>
-                      <span>$17,629.99</span>
-                    </div>
-                  </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Email Address <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email || ''}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                    placeholder="example@domain.com"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">We'll only use this to send you order updates</p>
+                </div>
+
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    required
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Street Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    required
+                    value={formData.address}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="governorate" className="block text-sm font-medium text-gray-700">
+                    Governorate <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="governorate"
+                    name="governorate"
+                    value={formData.governorate}
+                    onChange={handleGovernorateChange}
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                  >
+                    <option value="">Select Governorate</option>
+                    {governorates.map((gov) => (
+                      <option key={gov} value={gov}>
+                        {gov}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="delegation" className="block text-sm font-medium text-gray-700">
+                    Delegation <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="delegation"
+                    name="delegation"
+                    value={formData.delegation}
+                    onChange={handleDelegationChange}
+                    required
+                    disabled={!formData.governorate || delegations.length === 0}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select Delegation</option>
+                    {delegations.map((del, index) => (
+                      <option key={`${del.delegation}-${index}`} value={del.delegation}>
+                        {del.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    City <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="city"
+                    name="city"
+                    required
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                  />
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="saveInfo"
+                    name="saveInfo"
+                    checked={formData.saveInfo}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-accent focus:ring-accent border-gray-300 dark:border-gray-600 rounded"
+                  />
+                  <label htmlFor="saveInfo" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                    Save this information for next time
+                  </label>
                 </div>
               </div>
             </div>
 
-            {/* Payment Security */}
-            <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+            {/* Payment Method */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-medium text-gray-900 dark:text-white">Payment Method</h2>
+              </div>
               <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Secure Payment</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Your payment information is processed securely. We do not store credit card details.
-                </p>
-                <div className="flex space-x-4">
-                  <div className="h-8">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/visa/visa-original.svg" alt="Visa" className="h-full" />
+                <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 p-4 rounded-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium">Cash on Delivery</h3>
+                      <div className="mt-2 text-sm">
+                        <p>You'll pay in cash when your order is delivered.</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="h-8">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mastercard/mastercard-original.svg" alt="Mastercard" className="h-full" />
-                  </div>
-                  <div className="h-8">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple Pay" className="h-full" />
-                  </div>
-                  <div className="h-8">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google Pay" className="h-full" />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">Secure SSL Encryption</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <OrderSummary
+              cartItems={cartItems}
+              isSubmitting={isSubmitting}
+              error={error}
+              onSubmit={handleSubmit as any}
+            />
+          </div>
+
+          {/* Confirmation Button */}
+          <div className="lg:col-span-3 mt-6">
+            <button
+              type="submit"
+              disabled={isSubmitting || !(
+                formData.firstName &&
+                formData.lastName &&
+                formData.phone &&
+                formData.address &&
+                formData.governorate &&
+                formData.delegation &&
+                formData.city
+              )}
+              className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-colors ${
+                (!formData.firstName || !formData.lastName || !formData.phone || !formData.address || !formData.governorate || !formData.delegation || !formData.city || isSubmitting)
+                  ? 'bg-gray-300 cursor-not-allowed dark:bg-gray-700'
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
+            >
+              {isSubmitting ? 'Processing...' : 'Confirm Order'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

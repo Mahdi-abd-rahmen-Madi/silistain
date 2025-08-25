@@ -1,9 +1,7 @@
 import { toast } from 'react-hot-toast';
 import { CheckoutFormData } from '../types';
 import { CartItem } from '../context/CartContext';
-
-// Base URL for the Sheet.best API
-const SHEET_BEST_API = 'https://sheet.best/api/sheets';
+import { createOrder } from '../services/orderService';
 
 // Extended interface for items with brand (used in this file only)
 interface CartItemWithBrand extends CartItem {
@@ -38,52 +36,81 @@ interface FormattedOrderData {
   'Timestamp': string;
 }
 
+interface OrderItem {
+  productId: string;
+  name: string;
+  brand: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
 /**
- * Submits order data to Google Sheets via Sheet.best
+ * Submits order data to Supabase
  * @param {Object} orderData - The order data to submit
  * @returns {Promise<Object>} - The response from the API
  */
 export const submitOrderToSheets = async (orderData: FormattedOrderData): Promise<ApiResponse> => {
   try {
-    // In a real app, you would use your Sheet.best API key here
-    // const SHEET_ID = import.meta.env.VITE_SHEET_BEST_ID;
-    // const response = await fetch(`${SHEET_BEST_API}/${SHEET_ID}`, {
+    // Calculate totals
+    const subtotal = parseFloat(orderData.Subtotal.replace('$', ''));
+    const shipping = parseFloat(orderData.Shipping.replace('$', ''));
+    const total = parseFloat(orderData.Total.replace('$', ''));
     
-    // For demo purposes, we'll simulate a successful API call
-    console.log('Submitting order to Google Sheets:', orderData);
+    // Parse items from the formatted string (this is a simple example, adjust as needed)
+    const items = orderData.Items.split('\n').map(item => {
+      const match = item.match(/(\d+)x\s+(.+?)\s+\(?(.+?)\)?\s+-\s+\$(\d+\.\d+)/);
+      if (!match) return null;
+      
+      return {
+        productId: '', // You'll need to map this from your products
+        name: match[2].trim(),
+        brand: match[3]?.trim() || 'Unknown Brand',
+        price: parseFloat(match[4]),
+        quantity: parseInt(match[1]),
+        image: '' // Add image URL if available
+      };
+    }).filter(Boolean) as OrderItem[];
+
+    // Create order data for Supabase
+    const orderDataForSupabase = {
+      userId: null, // Null for guest users
+      items,
+      shippingAddress: {
+        firstName: orderData['Customer Name'].split(' ')[0],
+        lastName: orderData['Customer Name'].split(' ').slice(1).join(' '),
+        email: orderData.Email,
+        phone: orderData.Phone,
+        address: orderData['Shipping Address'].split('\n')[0],
+        city: orderData['Shipping Address'].split('\n')[1]?.split(',')[0]?.trim() || '',
+        governorate: '', // Extract from address if needed
+        delegation: '',  // Extract from address if needed
+        zipCode: orderData['Shipping Address'].match(/\b\d{4}\b/)?.[0] || '',
+        postalCode: orderData['Shipping Address'].match(/\b\d{4}\b/)?.[0] || '', // Same as zipCode
+        notes: orderData.Notes || ''
+      },
+      status: 'pending' as const,
+      paymentStatus: 'pending' as const,
+      subtotal,
+      shippingCost: shipping,
+      total,
+      notes: orderData.Notes
+    };
+
+    // Submit to Supabase
+    const { data: order, error } = await createOrder(orderDataForSupabase);
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (error) throw error;
     
-    // Generate a random order ID for demo purposes
-    const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-    
-    // In a real app, you would return the actual API response
     return {
       success: true,
-      orderId,
+      orderId: order?.id || `ORD-${Date.now()}`,
       message: 'Order submitted successfully',
       timestamp: new Date().toISOString(),
       data: orderData
     };
-    
-    // Uncomment this in production:
-    // const response = await fetch(`${SHEET_BEST_API}/${SHEET_ID}`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${import.meta.env.VITE_SHEET_BEST_TOKEN}`
-    //   },
-    //   body: JSON.stringify(orderData)
-    // });
-    
-    // if (!response.ok) {
-    //   throw new Error('Failed to submit order');
-    // }
-    
-    // return await response.json();
   } catch (error) {
-    console.error('Error submitting order to Google Sheets:', error);
+    console.error('Error submitting order:', error);
     toast.error('Failed to submit order. Please try again.');
     throw error;
   }

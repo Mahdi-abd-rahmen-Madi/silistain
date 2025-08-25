@@ -1,38 +1,103 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  base: '/',
-  publicDir: 'public',
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000', // Points to your Vercel dev server
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+export default defineConfig(({ mode }) => {
+  // Load env file based on `mode` in the current working directory.
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  return {
+    base: '/',
+    publicDir: 'public',
+    plugins: [react()],
+    resolve: {
+      alias: {
+        '@': '/src',
       },
     },
-  },
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          vendor: ['@heroicons/react', 'react-hot-toast'],
+    server: {
+      port: 3000,
+      open: true,
+      cors: true,
+      proxy: {
+        // Proxy API requests to Supabase
+        '/supabase': {
+          target: 'https://zzggvfexheroporjlzgd.supabase.co',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/supabase/, ''),
+          configure: (proxy) => {
+            proxy.on('error', (err) => {
+              console.log('Proxy error:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req) => {
+              console.log('Proxying request:', req.method, req.url);
+              // Ensure we're always sending the correct headers
+              proxyReq.setHeader('apikey', env.VITE_SUPABASE_ANON_KEY);
+              proxyReq.setHeader('Authorization', `Bearer ${env.VITE_SUPABASE_ANON_KEY}`);
+              
+              // For auth requests, we need to include credentials
+              if (req.url.includes('/auth/')) {
+                proxyReq.setHeader('Access-Control-Allow-Credentials', 'true');
+              }
+            });
+            proxy.on('proxyRes', (proxyRes, req) => {
+              // Ensure CORS headers are set correctly in the response
+              proxyRes.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000';
+              proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
+              
+              console.log('Received response:', proxyRes.statusCode, req.url);
+            });
+          },
+        },
+        // Handle OAuth callbacks
+        '/auth/v1/callback': {
+          target: 'https://zzggvfexheroporjlzgd.supabase.co',
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.setHeader('apikey', env.VITE_SUPABASE_ANON_KEY);
+            });
+          },
+        },
+        // Tunisian Municipality API proxy
+        '/api/tn-municipalities': {
+          target: 'https://tn-municipality-api.vercel.app',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api\/tn-municipalities/, '/api'),
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              console.log('Proxying request to Tunisian Municipality API:', proxyReq.path);
+              proxyReq.setHeader('Accept', 'application/json');
+            });
+            proxy.on('proxyRes', (proxyRes) => {
+              console.log('Received response from Tunisian Municipality API:', proxyRes.statusCode);
+              // Ensure CORS headers are set
+              proxyRes.headers['Access-Control-Allow-Origin'] = '*'; // Or your specific origin
+              proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS';
+              proxyRes.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept';
+            });
+          },
         },
       },
     },
-  },
-  server: {
-    port: 3000,
-    open: true,
-  },
-  define: {
-    'process.env': {}
-  }
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ['react', 'react-dom', 'react-router-dom'],
+            vendor: ['@heroicons/react', 'react-hot-toast'],
+          },
+        },
+      },
+    },
+    define: {
+      'process.env': {}
+    }
+  };
 });

@@ -6,8 +6,11 @@ import { Product } from '../../types/product';
 import { Order } from '../../types/order';
 import { OrdersTab } from '../../components/admin/OrdersTab';
 import { fetchMunicipalities } from '../../services/locationService';
+import { supabase, supabaseAdmin } from '../../utils/supabaseClient';
 
-export default function AdminDashboard() {
+interface AdminDashboardProps {}
+
+export default function AdminDashboard({}: AdminDashboardProps) {
   const { currentUser, logout } = useAuth();
   const { 
     products, 
@@ -18,115 +21,157 @@ export default function AdminDashboard() {
     deleteProduct,
     refreshProducts
   } = useProducts();
-  const [activeTab, setActiveTab] = useState('products');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [isDeleting, setIsDeleting] = useState<{[key: string]: boolean}>({});
+  
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users'>('products');
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
+  const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
   const [orders, setOrders] = useState<Order[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState<boolean>(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Load initial data
   useEffect(() => {
-    console.log('AdminDashboard mounted, currentUser:', currentUser);
-    
-    if (!currentUser) {
-      console.log('No current user, redirecting to login');
-      navigate('/login', { state: { from: '/admin' } });
-      return;
-    }
-
-    console.log('Loading data...');
-    setError('');
+    let isMounted = true;
     
     const loadData = async () => {
+      if (!currentUser) {
+        navigate('/login', { state: { from: '/admin' } });
+        return;
+      }
+
       try {
+        setError('');
+        
         // Load products
         await refreshProducts();
-        console.log('Products loaded successfully');
         
-        // Load orders (in a real app, this would be an API call)
-        await loadOrders();
+        // Only proceed if component is still mounted
+        if (isMounted) {
+          // Load orders
+          await loadOrders();
+        }
       } catch (err) {
-        console.error('Error loading data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load data');
+        if (isMounted) {
+          console.error('Error loading data:', err);
+          setError(err instanceof Error ? err.message : 'Failed to load data');
+        }
       }
     };
     
     loadData();
-  }, [currentUser, navigate, refreshProducts]);
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser, navigate]);
 
-  // Load orders (simulated for now)
-  const loadOrders = async () => {
+  // Load orders from Supabase
+  const loadOrders = useCallback(async () => {
     try {
       setOrdersLoading(true);
       setOrdersError(null);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!supabaseAdmin) {
+        throw new Error('Admin client not available');
+      }
       
-      // Mock data - in a real app, this would come from your API
-      const mockOrders: Order[] = [
-        {
-          id: '1',
-          orderNumber: 'ORD-2023-001',
-          userId: 'user1',
-          items: [
-            {
-              productId: 'p1',
-              name: 'Luxury Watch',
-              price: 299.99,
-              quantity: 1,
-              image: '/images/watch1.jpg'
-            }
-          ],
-          shippingAddress: {
-            firstName: 'John',
-            lastName: 'Doe',
-            email: 'john@example.com',
-            phone: '+216 12 345 678',
-            address: '123 Main St',
-            city: 'Ariana',
-            governorate: 'Ariana',
-            delegation: 'Ariana Ville',
-            postalCode: '2080',
-            notes: 'Please call before delivery'
-          },
-          status: 'pending',
-          paymentStatus: 'pending',
-          subtotal: 299.99,
-          shippingCost: 10.00,
-          total: 309.99,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        // Add more mock orders as needed
-      ];
+      console.log('Fetching orders from Supabase...');
       
-      setOrders(mockOrders);
+      // Get the current session to check user role
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      
+      // Use admin client for all order queries in admin dashboard
+      const { data: ordersData, error, status, statusText } = await supabaseAdmin
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      console.log('Supabase response:', { 
+        status, 
+        statusText, 
+        data: ordersData, 
+        error,
+        isAdmin: session?.user?.user_metadata?.is_admin,
+        userId: session?.user?.id
+      });
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      if (!ordersData) {
+        console.warn('No orders data returned from Supabase');
+        setOrders([]);
+        return [];
+      }
+      
+      console.log('Raw orders data:', ordersData);
+      
+      // Transform the data to match our Order type
+      const formattedOrders: Order[] = ordersData.map((order: any) => ({
+        id: order.id,
+        orderNumber: order.order_number || `ORD-${order.id.substring(0, 8).toUpperCase()}`,
+        userId: order.user_id || 'guest',
+        items: Array.isArray(order.items) ? order.items : [],
+        shippingAddress: order.shipping_address || {},
+        status: order.status || 'pending',
+        paymentStatus: order.payment_status || 'pending',
+        subtotal: Number(order.subtotal) || 0,
+        shippingCost: Number(order.shipping_cost) || 0,
+        total: Number(order.total) || 0,
+        createdAt: order.created_at,
+        updatedAt: order.updated_at || order.created_at
+      }));
+      
+      console.log('Formatted orders:', formattedOrders);
+      setOrders(formattedOrders);
+      return formattedOrders;
     } catch (err) {
       console.error('Error loading orders:', err);
-      setOrdersError('Failed to load orders. Please try again later.');
+      setOrdersError(err instanceof Error ? err.message : 'Failed to load orders');
+      throw err; // Re-throw to be caught by the caller
     } finally {
       setOrdersLoading(false);
     }
-  };
+  }, []);
 
   // Handle order status update
   const handleUpdateOrderStatus = useCallback(async (orderId: string, status: Order['status']) => {
     try {
-      // In a real app, this would be an API call to update the order status
-      setOrders(prevOrders =>
+      if (!supabaseAdmin) {
+        throw new Error('Admin client not available');
+      }
+      
+      // Update order status in the database
+      const { error } = await supabaseAdmin
+        .from('orders')
+        .update({ 
+          status,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', orderId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setOrders((prevOrders: Order[]) =>
         prevOrders.map(order =>
-          order.id === orderId ? { ...order, status, updatedAt: new Date().toISOString() } : order
+          order.id === orderId ? { 
+            ...order, 
+            status, 
+            updatedAt: new Date().toISOString() 
+          } : order
         )
       );
       
-      setSuccess('Order status updated successfully!');
+      setSuccess(`Order ${orderId} status updated to ${status}`);
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      console.error('Error updating order status:', err);
       setError('Failed to update order status');
     }
   }, []);
@@ -161,13 +206,15 @@ export default function AdminDashboard() {
       
       await deleteProduct(product.id, product.images?.[0]?.url);
       
-      setSuccess('Product deleted successfully!');
+      setSuccess('Product deleted successfully');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      console.error('Error deleting product:', err);
       setError('Failed to delete product');
     } finally {
-      setIsDeleting(prev => ({ ...prev, [product.id!]: false }));
+      setIsDeleting((prev: Record<string, boolean>) => ({
+        ...prev,
+        [product.id!]: false
+      }));
     }
   };
 
@@ -351,19 +398,45 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeTab === 'orders' ? (
-            <OrdersTab
-              orders={orders}
-              loading={ordersLoading}
-              error={ordersError}
-              onUpdateOrderStatus={handleUpdateOrderStatus}
-            />
-          ) : activeTab === 'users' ? (
+          {activeTab === 'orders' && (
+            <div>
+              <h2 className="text-lg font-medium text-gray-900 mb-6">Orders</h2>
+              {ordersLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+                </div>
+              ) : ordersError ? (
+                <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700">
+                        {ordersError}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <OrdersTab
+                  orders={orders}
+                  loading={ordersLoading}
+                  error={ordersError}
+                  onUpdateOrderStatus={handleUpdateOrderStatus}
+                />
+              )}
+            </div>
+          )}
+
+          {activeTab === 'users' && (
             <div>
               <h2 className="text-lg font-medium text-gray-900">Users</h2>
               <p className="mt-2 text-sm text-gray-500">User management coming soon.</p>
             </div>
-          ) : null}
+          )}
         </div>
       </main>
     </div>

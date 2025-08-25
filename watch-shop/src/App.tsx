@@ -3,11 +3,13 @@ import { AnimatePresence } from 'framer-motion';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { ProductProvider } from './context/ProductContext';
+import { FavoritesProvider } from './context/FavoritesContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import WatchDetails from './pages/WatchDetails';
 import Cart from './pages/Cart';
+import FavoritesPage from './pages/FavoritesPage';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import AdminSignup from './pages/AdminSignup';
@@ -19,7 +21,9 @@ import Footer from './components/Footer';
 import { ToastProvider } from './components/ui/Toast';
 import { Toaster } from './components/ui/Toaster';
 import { ReactElement } from 'react';
-import { AdminProtectedRoute } from './components/ProtectedRoute';
+import { AdminProtectedRoute, ProtectedRoute } from './components/ProtectedRoute';
+import Profile from './pages/profile';
+import Orders from './pages/Orders';
 
 function AppContent() {
   const location = useLocation();
@@ -38,7 +42,31 @@ function AppContent() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/admin/signup" element={<AdminSignup />} />
+            <Route path="/admin/signup" element={
+              <ProtectedRoute>
+                <AdminSignup />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/account/orders" element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            } />
+            <Route path="/favorites" element={
+              <ProtectedRoute>
+                <FavoritesPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/dashboard" element={
+              <AdminProtectedRoute>
+                <AdminDashboard />
+              </AdminProtectedRoute>
+            } />
             <Route path="/admin" element={
               <AdminProtectedRoute>
                 <AdminDashboard />
@@ -72,17 +100,19 @@ function AppContent() {
 
 function App(): ReactElement {
   return (
-    <AuthProvider>
-      <ProductProvider>
-        <CartProvider>
-          <ToastProvider>
-            <Router>
-              <AppContent />
-            </Router>
-          </ToastProvider>
-        </CartProvider>
-      </ProductProvider>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <ProductProvider>
+          <CartProvider>
+            <FavoritesProvider>
+              <ToastProvider>
+                <AppContent />
+              </ToastProvider>
+            </FavoritesProvider>
+          </CartProvider>
+        </ProductProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

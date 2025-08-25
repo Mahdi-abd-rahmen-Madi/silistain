@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeftIcon, ShoppingCartIcon, HeartIcon as HeartIconOutline, TruckIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
-import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, ShoppingCartIcon, TruckIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import watches from '../data/watches';
 import { Watch } from '../types';
+import FavoriteButton from '../components/FavoriteButton';
 
 type TabType = 'description' | 'specs' | 'shipping' | 'reviews';
 
@@ -14,7 +14,6 @@ const WatchDetails = () => {
   const [watch, setWatch] = useState<Watch | null>(null);
   const [selectedImage, setSelectedImage] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(1);
-  const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [selectedTab, setSelectedTab] = useState<TabType>('description');
 
   // Find the watch by ID
@@ -24,8 +23,7 @@ const WatchDetails = () => {
       return;
     }
     
-    const watchId = parseInt(id, 10);
-    const foundWatch = watches.find(w => w.id === watchId);
+    const foundWatch = watches.find(w => w.id === id);
     
     if (!foundWatch) {
       navigate('/shop');
@@ -35,6 +33,10 @@ const WatchDetails = () => {
     setWatch(foundWatch);
     setSelectedImage(0);
   }, [id, navigate]);
+
+  const getImageUrl = (image: string | { url: string }) => {
+    return typeof image === 'string' ? image : image.url;
+  };
 
   if (!watch) {
     return (
@@ -48,10 +50,6 @@ const WatchDetails = () => {
     if (!watch) return;
     // Add to cart functionality will be implemented later
     console.log(`Added ${quantity} ${watch.brand} ${watch.name} to cart`);
-  };
-
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
   };
 
   const increaseQuantity = () => {
@@ -87,7 +85,7 @@ const WatchDetails = () => {
               {/* Main Image */}
               <div className="bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-4 h-96 flex items-center justify-center">
                 <img
-                  src={watch.images ? watch.images[selectedImage] : watch.image}
+                  src={watch.images ? getImageUrl(watch.images[selectedImage]) : getImageUrl(watch.image)}
                   alt={`${watch.brand} ${watch.name}`}
                   className="h-full w-full object-contain"
                 />
@@ -96,7 +94,7 @@ const WatchDetails = () => {
               {/* Thumbnails */}
               {watch.images && watch.images.length > 1 && (
                 <div className="grid grid-cols-4 gap-3">
-                  {[watch.image, ...watch.images].map((img, index) => (
+                  {[watch.image, ...(watch.images || [])].map((img, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
@@ -107,7 +105,7 @@ const WatchDetails = () => {
                       }`}
                     >
                       <img
-                        src={img}
+                        src={getImageUrl(img)}
                         alt={`${watch.brand} ${watch.name} - View ${index + 1}`}
                         className="h-full w-full object-cover"
                       />
@@ -122,20 +120,10 @@ const WatchDetails = () => {
               {/* Brand and Name */}
               <div className="flex justify-between items-start">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{watch.brand}</h1>
-                  <h2 className="text-2xl text-gray-700 dark:text-gray-300 mb-2">{watch.name}</h2>
+                  <h1 className="text-3xl font-bold text-gray-900">{watch.brand} {watch.name}</h1>
+                  <p className="text-2xl text-gray-900 mt-2">${watch.price.toFixed(2)}</p>
                 </div>
-                <button
-                  onClick={toggleFavorite}
-                  className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                  aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                >
-                  {isFavorite ? (
-                    <HeartIconSolid className="h-6 w-6 text-red-500" />
-                  ) : (
-                    <HeartIconOutline className="h-6 w-6" />
-                  )}
-                </button>
+                <FavoriteButton productId={watch.id.toString()} className="mt-1" />
               </div>
 
               {/* Price */}

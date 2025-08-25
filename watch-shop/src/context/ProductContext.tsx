@@ -36,16 +36,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       
       console.log('Supabase client: Initialized');
       
-      // Check if user is authenticated
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      
-      if (authError) {
-        console.error('Auth error:', authError);
-        throw authError;
-      }
-      
-      console.log('Current user:', authData.user?.email || 'Not authenticated');
-      
+      // Fetch products without requiring authentication
       const { data, error, status, statusText } = await supabase
         .from('products')
         .select('*')
