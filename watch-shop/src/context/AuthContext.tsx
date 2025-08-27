@@ -6,6 +6,8 @@ type User = {
   id: string;
   email: string | null;
   isAdmin: boolean;
+  photoURL?: string;  // For profile image URL
+  displayName?: string; // For user's display name
   user_metadata?: {
     [key: string]: any;
     full_name?: string;

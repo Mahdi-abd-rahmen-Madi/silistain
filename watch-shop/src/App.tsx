@@ -7,8 +7,8 @@ import { FavoritesProvider } from './context/FavoritesContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
-import WatchDetails from './pages/WatchDetails';
-import Cart from './pages/Cart';
+import ProductDetailsPage from './pages/ProductDetailsPage';
+import CartPage from './pages/CartPage';
 import FavoritesPage from './pages/FavoritesPage';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
@@ -37,8 +37,8 @@ function AppContent() {
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
-            <Route path="/watch/:id" element={<WatchDetails />} />
-            <Route path="/cart" element={<Cart />} />
+            <Route path="/product/:id" element={<ProductDetailsPage />} />
+            <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
@@ -84,7 +84,7 @@ function AppContent() {
               path="/admin/products/edit/:id" 
               element={
                 <AdminProtectedRoute>
-                  <ProductForm isEditing />
+                  <ProductForm isEditing productId={window.location.pathname.split('/').pop()} />
                 </AdminProtectedRoute>
               } 
             />

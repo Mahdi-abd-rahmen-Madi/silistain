@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Heart, User, LogOut } from 'lucide-react';
+import { ShoppingCart, Menu, X, Heart, User, LogOut, ChevronDown } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { Cart } from './Cart';
+import { ProfileImage } from './ui/ProfileImage';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/Avatar';
 import {
   DropdownMenu,
@@ -81,44 +82,23 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
-            {currentUser && (
-              <Link
-                to="/favorites"
-                className="text-gray-700 hover:text-accent transition-colors flex items-center"
-              >
-                <Heart className="h-4 w-4 mr-1" /> Favorites
-              </Link>
-            )}
           </div>
 
           {/* Right side - Desktop */}
-          <div className="flex items-center space-x-4">
-            {currentUser?.isAdmin && (
-              <button
-                onClick={() => navigate('/admin/dashboard')}
-                className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
-                aria-label="Admin Dashboard"
-                title="Admin Dashboard"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-            )}
+          <div className="relative flex items-center space-x-4">
             {currentUser && (
-              <button
-                onClick={() => navigate('/favorites')}
-                className="p-2 text-gray-700 hover:text-red-500 transition-colors"
+              <Link
+                to="/favorites"
+                className="p-2 text-gray-700 hover:text-accent transition-colors"
                 aria-label="Favorites"
               >
-                <Heart className="h-6 w-6" />
-              </button>
+                <Heart className="h-5 w-5" />
+              </Link>
             )}
             <button
               onClick={toggleCart}
-              className="relative p-2 text-gray-700 hover:text-gray-900"
-              aria-label="Cart"
+              className="p-2 text-gray-700 hover:text-accent transition-colors relative"
+              aria-label="Shopping cart"
             >
               <ShoppingCart className="h-6 w-6" />
               {cartItemCount > 0 && (
@@ -128,21 +108,18 @@ const Navbar = () => {
               )}
             </button>
             {currentUser ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      {currentUser.user_metadata?.avatar_url ? (
-                        <AvatarImage src={currentUser.user_metadata.avatar_url} alt={currentUser.email || 'User'} />
-                      ) : (
-                        <AvatarFallback>
-                          {currentUser.email ? currentUser.email[0].toUpperCase() : 'U'}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+              <div className="relative">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="default" className="relative h-10 w-10 p-0 rounded-full">
+                      <ProfileImage 
+                        imageUrl={currentUser.user_metadata?.avatar_url || ''} 
+                        name={currentUser.email || 'User'} 
+                        size={40}
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 absolute right-0 mt-1 z-[1000] bg-white shadow-lg rounded-md border border-gray-100" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
@@ -172,12 +149,13 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
+                  <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <Button variant="outline" size="sm" asChild>
                 <Link to="/login">Sign In</Link>

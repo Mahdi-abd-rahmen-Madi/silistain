@@ -362,7 +362,7 @@ const Home = () => {
                 <Truck className="h-6 w-6 text-accent" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Free Shipping</h3>
-              <p className="text-gray-600">Free shipping on all orders over $100</p>
+              <p className="text-gray-600">Free shipping on all orders</p>
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">

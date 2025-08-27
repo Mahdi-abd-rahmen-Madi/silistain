@@ -6,7 +6,7 @@ import { Product } from '../../types/product';
 import { Order } from '../../types/order';
 import { OrdersTab } from '../../components/admin/OrdersTab';
 import { fetchMunicipalities } from '../../services/locationService';
-import { supabase, supabaseAdmin } from '../../utils/supabaseClient';
+import { supabase, getAdminClient } from '../../utils/supabaseClient';
 
 interface AdminDashboardProps {}
 
@@ -74,18 +74,20 @@ export default function AdminDashboard({}: AdminDashboardProps) {
       setOrdersLoading(true);
       setOrdersError(null);
       
-      if (!supabaseAdmin) {
+      console.log('Fetching orders from Supabase...');
+      
+      // Get the admin client
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
         throw new Error('Admin client not available');
       }
-      
-      console.log('Fetching orders from Supabase...');
       
       // Get the current session to check user role
       const { data: { session } } = await supabase.auth.getSession();
       console.log('Current session:', session);
       
       // Use admin client for all order queries in admin dashboard
-      const { data: ordersData, error, status, statusText } = await supabaseAdmin
+      const { data: ordersData, error, status, statusText } = await adminClient
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
@@ -143,12 +145,13 @@ export default function AdminDashboard({}: AdminDashboardProps) {
   // Handle order status update
   const handleUpdateOrderStatus = useCallback(async (orderId: string, status: Order['status']) => {
     try {
-      if (!supabaseAdmin) {
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
         throw new Error('Admin client not available');
       }
       
       // Update order status in the database
-      const { error } = await supabaseAdmin
+      const { error } = await adminClient
         .from('orders')
         .update({ 
           status,

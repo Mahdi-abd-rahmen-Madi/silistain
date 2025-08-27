@@ -1,8 +1,10 @@
-import { XMarkIcon, MinusIcon, PlusIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
-import { useCart } from '../context/CartContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { XMarkIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { useCart, CartItem as CartItemType } from '../context/CartContext';
+import { motion } from 'framer-motion';
 import { Button } from './ui/Button';
 import { Link } from 'react-router-dom';
+import { CartItem } from './cart/CartItem';
+import { CartSummary } from './cart/CartSummary';
 
 export function Cart() {
   const { 
@@ -21,32 +23,49 @@ export function Cart() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-[99999] overflow-hidden" style={{ zIndex: 99999 }}>
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={closeCart} />
+        <motion.div 
+          className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={closeCart}
+        />
         
         <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3 }}
-            className="w-screen max-w-md"
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ 
+              type: 'tween', 
+              ease: [0.16, 1, 0.3, 1],
+              duration: 0.5,
+              opacity: { duration: 0.3 }
+            }}
+            className="w-screen max-w-md relative z-[10000]"
+            style={{
+              // @ts-ignore - This is a valid CSS property
+              '--tw-z-index': 10000,
+              zIndex: 10000
+            }}
           >
-            <div className="flex h-full flex-col bg-white shadow-xl">
+            <div className="absolute right-4 top-4 z-[10001]">
+              <button
+                onClick={closeCart}
+                className="p-2 rounded-full bg-white shadow-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                aria-label="Close cart"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex h-full flex-col bg-white shadow-2xl">
               <div className="flex-1 overflow-y-auto py-6 px-4 sm:px-6">
-                <div className="flex items-start justify-between">
-                  <h2 className="text-lg font-medium text-gray-900">Shopping cart</h2>
-                  <div className="ml-3 flex h-7 items-center">
-                    <button
-                      type="button"
-                      className="-m-2 p-2 text-gray-400 hover:text-gray-500"
-                      onClick={closeCart}
-                    >
-                      <span className="sr-only">Close panel</span>
-                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                    </button>
-                  </div>
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-semibold text-gray-900">Your Cart</h2>
+                  <p className="mt-1 text-sm text-gray-500">Review your items before checkout</p>
                 </div>
 
                 <div className="mt-8">
@@ -70,53 +89,13 @@ export function Cart() {
                     ) : (
                       <ul className="-my-6 divide-y divide-gray-200">
                         {cartItems.map((item) => (
-                          <li key={item.id} className="flex py-6">
-                            <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                              <img
-                                src={item.image as string || '/placeholder-watch.jpg'}
-                                alt={item.name}
-                                className="h-full w-full object-cover object-center"
-                              />
-                            </div>
-
-                            <div className="ml-4 flex flex-1 flex-col">
-                              <div>
-                                <div className="flex justify-between text-base font-medium text-gray-900">
-                                  <h3>{item.name}</h3>
-                                  <p className="ml-4">${item.price.toFixed(2)}</p>
-                                </div>
-                                {item.brand && <p className="mt-1 text-sm text-gray-500">{item.brand}</p>}
-                              </div>
-                              <div className="flex flex-1 items-end justify-between text-sm">
-                                <div className="flex items-center border rounded-md">
-                                  <button
-                                    type="button"
-                                    className="px-2 py-1 text-gray-600 hover:bg-gray-100"
-                                    onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                                  >
-                                    <MinusIcon className="h-4 w-4" />
-                                  </button>
-                                  <span className="px-3 py-1">{item.quantity}</span>
-                                  <button
-                                    type="button"
-                                    className="px-2 py-1 text-gray-600 hover:bg-gray-100"
-                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                  >
-                                    <PlusIcon className="h-4 w-4" />
-                                  </button>
-                                </div>
-
-                                <div className="flex">
-                                  <button
-                                    type="button"
-                                    className="font-medium text-indigo-600 hover:text-indigo-500"
-                                    onClick={() => removeFromCart(item.id)}
-                                  >
-                                    Remove
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
+                          <li key={item.id}>
+                            <CartItem
+                              item={item}
+                              onUpdateQuantity={updateQuantity}
+                              onRemove={removeFromCart}
+                              variant="drawer"
+                            />
                           </li>
                         ))}
                       </ul>
@@ -127,22 +106,13 @@ export function Cart() {
 
               {cartCount > 0 && (
                 <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
-                  <div className="flex justify-between text-base font-medium text-gray-900">
-                    <p>Subtotal</p>
-                    <p>${subtotal.toFixed(2)}</p>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-600 mt-1">
-                    <p>Shipping</p>
-                    <p>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</p>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-600 mt-1">
-                    <p>Tax</p>
-                    <p>${tax.toFixed(2)}</p>
-                  </div>
-                  <div className="mt-4 flex justify-between text-base font-medium text-gray-900 border-t border-gray-200 pt-4">
-                    <p>Total</p>
-                    <p>${total.toFixed(2)}</p>
-                  </div>
+                  <CartSummary 
+                    subtotal={subtotal}
+                    tax={tax}
+                    shipping={shipping}
+                    total={total}
+                    showTaxAndShipping={false}
+                  />
                   <div className="mt-6">
                     <Link
                       to="/checkout"

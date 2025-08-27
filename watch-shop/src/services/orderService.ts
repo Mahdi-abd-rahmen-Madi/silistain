@@ -8,8 +8,8 @@ interface CreateOrderData {
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentStatus: 'pending' | 'paid' | 'refunded' | 'failed';
   subtotal: number;
-  shippingCost: number;
-  total: number;
+  shippingCost?: number; // Optional with default 0 for free shipping
+  total: number; // Should be subtotal + tax (no shipping cost)
   notes?: string;
 }
 
@@ -22,7 +22,7 @@ export const createOrder = async (orderData: CreateOrderData): Promise<{ data: O
         status: orderData.status,
         payment_status: orderData.paymentStatus,
         subtotal: orderData.subtotal,
-        shipping_cost: orderData.shippingCost,
+        shipping_cost: 0, // Free shipping
         total: orderData.total,
         shipping_address: orderData.shippingAddress,
         notes: orderData.notes || null,

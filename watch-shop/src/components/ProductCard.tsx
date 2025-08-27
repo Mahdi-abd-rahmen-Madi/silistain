@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/Button';
 import { motion } from 'framer-motion';
-import { Heart, ShoppingCart, Star, Check } from 'lucide-react';
+import { ShoppingCart, Star, Check } from 'lucide-react';
 import { QuickView } from './QuickView';
 import { useToast } from '../hooks/use-toast';
-
+import FavoriteButton from './FavoriteButton';
 import { Product } from '../types/product';
 
 interface ProductCardProps {
@@ -13,11 +14,15 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const cartButtonRef = useRef<HTMLButtonElement>(null);
   const { toast } = useToast();
+  
+  const handleProductClick = () => {
+    navigate(`/product/${product.id}`);
+  };
   
   const handleAddToCartClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -43,29 +48,17 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
 
 
-  const toggleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-    toast({
-      title: !isWishlisted ? 'Added to wishlist' : 'Removed from wishlist',
-      description: !isWishlisted 
-        ? `${product.brand} ${product.name} has been added to your wishlist.`
-        : `${product.brand} ${product.name} has been removed from your wishlist.`,
-    });
-  };
+  // Removed toggleWishlist in favor of FavoriteButton's built-in functionality
 
   // Check if product is featured
   const isFeatured = product.isFeatured || product.featured;
   
   return (
     <motion.div
-      className={`group relative bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${
-        isFeatured ? 'ring-2 ring-gold-500' : ''
-      }`}
+      className="relative bg-white rounded-xl shadow-sm overflow-hidden group cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      whileHover={{ y: -5 }}
+      onClick={handleProductClick}
     >
       {/* Featured Badge */}
       {isFeatured && (
@@ -186,22 +179,21 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           <div className={`absolute right-3 top-3 z-10 flex flex-col space-y-2 transition-all duration-300 ${
           isHovered ? 'scale-110' : 'scale-100'
         }`}>
-            <button
-              onClick={toggleWishlist}
-              className={`group relative rounded-full p-2.5 bg-white shadow-md transition-all duration-300 ${
-                isWishlisted 
-                  ? 'text-red-500 hover:bg-red-50 hover:shadow-lg hover:scale-110' 
-                  : 'text-gray-700 hover:bg-gray-50 hover:shadow-lg hover:scale-110'
-              }`}
-              aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-            >
-              <Heart 
-                className={`h-5 w-5 transition-transform duration-300 group-hover:scale-125 ${
-                  isWishlisted ? 'fill-current' : ''
-                }`} 
-                strokeWidth={isWishlisted ? 0 : 1.5} 
-              />
-            </button>
+            <FavoriteButton 
+              productId={product.id}
+              productData={product}
+              size="sm"
+              variant="ghost"
+              onToggle={(isFavorited) => {
+                toast({
+                  title: isFavorited ? 'Added to favorites' : 'Removed from favorites',
+                  description: isFavorited
+                    ? `${product.brand} ${product.name} has been added to your favorites.`
+                    : `${product.brand} ${product.name} has been removed from your favorites.`,
+                });
+              }}
+              className="bg-white shadow-md hover:shadow-lg"
+            />
             
             <motion.button
               ref={cartButtonRef}

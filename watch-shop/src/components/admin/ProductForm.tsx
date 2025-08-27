@@ -26,14 +26,30 @@ interface ProductFormProps {
   productId?: string;
 }
 
-export default function ProductForm({ isEditing = false, initialData, productId }: ProductFormProps) {
+export default function ProductForm({
+  isEditing = false,
+  initialData,
+  productId: propProductId,
+}: ProductFormProps) {
+  // Destructure productId from props and rename to avoid naming conflicts
+  const effectiveProductId = propProductId;
   const [formData, setFormData] = useState<ProductFormData>(initialData || initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const { 
+    addProduct, 
+    updateProduct, 
+    getProductById, 
+    refreshProducts, 
+    products = [] 
+  } = useProducts();
   
-  const { addProduct, updateProduct, getProductById } = useProducts();
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id: paramId } = useParams<{ id: string }>();
+  
+  // Use the effectiveProductId from props or params, with props taking precedence
+  const productId = effectiveProductId || paramId || '';
 
   // Handle file selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,18 +60,24 @@ export default function ProductForm({ isEditing = false, initialData, productId 
       .filter(file => file.type.startsWith('image/'))
       .slice(0, MAX_IMAGES - (formData.images?.length || 0));
 
-    const newImagePreviews = newImages.map(file => ({
+    const newImagePreviews = newImages.map((file, index) => ({
       url: '',
       file,
       preview: URL.createObjectURL(file),
-      isPrimary: false,
-      order: (formData.images?.length || 0) + 1
+      isPrimary: (formData.images?.length || 0) === 0 && index === 0, // First image is primary by default
+      order: (formData.images?.length || 0) + index
     }));
 
     setFormData(prev => ({
       ...prev,
-      images: [...(prev.images || []), ...newImagePreviews]
+      images: [...(prev.images || []), ...newImagePreviews].map((img, idx) => ({
+        ...img,
+        order: idx // Ensure order is sequential
+      }))
     }));
+
+    // Reset file input to allow selecting the same file again
+    e.target.value = '';
   };
 
   // Remove an image
@@ -66,8 +88,23 @@ export default function ProductForm({ isEditing = false, initialData, productId 
       if (newImages[index]?.preview) {
         URL.revokeObjectURL(newImages[index].preview!);
       }
+      
+      const isRemovingPrimary = newImages[index]?.isPrimary;
       newImages.splice(index, 1);
-      return { ...prev, images: newImages };
+      
+      // If we removed the primary image, set the first remaining image as primary
+      if (isRemovingPrimary && newImages.length > 0) {
+        newImages[0].isPrimary = true;
+      }
+      
+      return { 
+        ...prev, 
+        images: newImages,
+        // Update imageUrl if we removed the primary image
+        imageUrl: isRemovingPrimary && newImages.length > 0 
+          ? (newImages[0].preview || newImages[0].url) 
+          : prev.imageUrl
+      };
     });
   };
 
@@ -78,7 +115,14 @@ export default function ProductForm({ isEditing = false, initialData, productId 
         ...img,
         isPrimary: i === index
       }));
-      return { ...prev, images: newImages };
+      
+      // If this is a new image that hasn't been uploaded yet, update the imageUrl
+      const newImageUrl = newImages[index]?.preview || newImages[index]?.url;
+      return { 
+        ...prev, 
+        images: newImages,
+        imageUrl: newImageUrl || prev.imageUrl
+      };
     });
   };
 
@@ -96,52 +140,125 @@ export default function ProductForm({ isEditing = false, initialData, productId 
   // Load product data if in edit mode
   useEffect(() => {
     const loadProduct = async () => {
-      if (isEditing && id) {
-        try {
-          const product = getProductById(id);
-          
-          if (!product) {
-            throw new Error('Product not found');
-          }
-          
-          const formattedData = {
-            ...product,
-            // Convert single imageUrl to images array for backward compatibility
-            images: product.imageUrl 
+      if (!isEditing || !productId) {
+        if (initialData) {
+          setFormData({
+            ...initialData,
+            images: initialData.imageUrl 
               ? [{ 
-                  url: product.imageUrl, 
+                  url: initialData.imageUrl, 
                   isPrimary: true, 
                   order: 0,
-                  preview: product.imageUrl // Add preview for existing images
+                  preview: initialData.imageUrl
                 }]
-              : (product.images || []).map((img: any) => ({
-                  ...img,
-                  preview: img.url // Add preview for existing images
-                }))
-          };
-          
-          setFormData(formattedData);
-        } catch (err) {
-          console.error('Error loading product:', err);
-          setError('Failed to load product data');
+              : initialData.images || []
+          });
         }
-      } else if (initialData) {
-        setFormData({
-          ...initialData,
-          images: initialData.imageUrl 
-            ? [{ 
-                url: initialData.imageUrl, 
-                isPrimary: true, 
-                order: 0,
-                preview: initialData.imageUrl
-              }]
-            : initialData.images || []
-        });
+        return;
+      }
+
+      try {
+        console.log('Loading product with ID:', productId);
+        console.log('Current products in context:', products.length);
+        
+        // First try to get from context
+        let product = getProductById(productId);
+        console.log('Product from context:', product ? 'Found' : 'Not found');
+        
+        // If not found in context, try to refresh
+        if (!product) {
+          console.log('Product not found in context, refreshing products...');
+          try {
+            const refreshedProducts = await refreshProducts();
+            console.log('Refreshed products count:', refreshedProducts.length);
+            product = getProductById(productId);
+            console.log('Product after refresh:', product ? 'Found' : 'Still not found');
+          } catch (refreshError) {
+            console.error('Failed to refresh products:', refreshError);
+            throw new Error(`Failed to load product data: ${refreshError instanceof Error ? refreshError.message : 'Unknown error'}`);
+          }
+        }
+        
+        // If still not found, show detailed error
+        if (!product) {
+          const availableIds = products?.map((p: Product) => p.id) || [];
+          throw new Error(`Product with ID ${productId} not found. Available IDs: ${availableIds.join(', ') || 'None'}`);
+        }
+        
+        // Handle images - support multiple image URLs (image_url_1 through image_url_5) and legacy imageUrl/fields
+        let images: ProductImage[] = [];
+        
+        // Get all image URLs from the product
+        const imageUrls = [
+          product.image_url_1,
+          product.image_url_2,
+          product.image_url_3,
+          product.image_url_4,
+          product.image_url_5
+        ].filter(Boolean) as string[];
+        
+        // If we have no image URLs but have a legacy imageUrl, use that
+        if (imageUrls.length === 0 && product.imageUrl) {
+          imageUrls.push(product.imageUrl);
+        }
+        
+        // Create image objects from the URLs
+        images = imageUrls.map((url, index) => ({
+          url,
+          isPrimary: index === 0, // First image is primary by default
+          order: index,
+          preview: url
+        }));
+        
+        // If we also have an images array, merge them (excluding duplicates)
+        if (Array.isArray(product.images) && product.images.length > 0) {
+          const existingUrls = new Set(images.map(img => img.url));
+          let order = images.length;
+          
+          product.images.forEach(img => {
+            if (img.url && !existingUrls.has(img.url)) {
+              images.push({
+                ...img,
+                preview: img.preview || img.url,
+                order: order++,
+                isPrimary: img.isPrimary || false
+              });
+            }
+          });
+        } else if (images.length === 0 && product.imageUrl) {
+          // If we still have no images, use the legacy imageUrl if it exists
+          images = [{
+            url: product.imageUrl,
+            isPrimary: true,
+            order: 0,
+            preview: product.imageUrl
+          }];
+        }
+        
+        const formattedData: ProductFormData = {
+          ...product,
+          images,
+          // Ensure all required fields have default values
+          name: product.name || '',
+          description: product.description || '',
+          price: product.price || 0,
+          category: product.category || '',
+          stock: product.stock || product.stock_quantity || 0,
+          featured: product.featured || false
+        };
+        
+        console.log('Formatted product data:', formattedData);
+        setFormData(formattedData);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load product data';
+        console.error('Error loading product:', errorMessage, err);
+        setError(errorMessage);
       }
     };
     
     loadProduct();
-  }, [isEditing, id, initialData, getProductById]);
+    // Include all dependencies that are used in the effect
+  }, [isEditing, productId, initialData, getProductById, refreshProducts, products]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -178,19 +295,20 @@ export default function ProductForm({ isEditing = false, initialData, productId 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || formData.price <= 0 || (!isEditing && (!formData.images || formData.images.length === 0))) {
-      setError('Please fill in all required fields and add at least one image');
+    if (!formData.name || formData.price <= 0) {
+      setError('Please fill in all required fields');
       return;
     }
 
     try {
+      console.log('[ProductForm] Starting form submission...');
       setIsSubmitting(true);
       setError('');
 
       // Process the form data before submission
       const submissionData = {
         ...formData,
-        // If no primary image is set, make the first one primary
+        // Ensure images have proper order and primary flag
         images: formData.images?.map((img, index) => ({
           ...img,
           isPrimary: img.isPrimary || index === 0,
@@ -198,30 +316,53 @@ export default function ProductForm({ isEditing = false, initialData, productId 
         }))
       };
 
+      console.log('[ProductForm] Prepared submission data:', {
+        ...submissionData,
+        images: submissionData.images?.map(img => ({
+          ...img,
+          file: img.file ? `[File: ${img.file.name}]` : undefined,
+          preview: img.preview ? '[Preview URL]' : undefined
+        }))
+      });
+
+      // Get all image files to upload
+      const imageFiles = submissionData.images
+        ?.filter(img => img.file)
+        .map(img => img.file) as File[] || [];
+
       if (isEditing && productId) {
-        // For updates, use the first image file if available
-        const imageFile = submissionData.images?.find(img => img.file)?.file;
-        await updateProduct(
-          productId,
-          submissionData,
-          imageFile // Pass single file or undefined
-        );
-      } else if (!isEditing) {
-        // For new products, require at least one image
-        const imageFile = submissionData.images?.find(img => img.file)?.file;
+        console.log(`[ProductForm] Updating product with ID: ${productId}`);
+        console.log(`[ProductForm] Found ${imageFiles.length} new image files for update`);
         
-        if (!imageFile) {
-          throw new Error('At least one image is required');
+        try {
+          console.log('[ProductForm] Calling updateProduct...');
+          await updateProduct(productId, submissionData, imageFiles);
+          console.log('[ProductForm] updateProduct completed successfully');
+        } catch (updateError) {
+          console.error('[ProductForm] Error in updateProduct:', updateError);
+          throw updateError;
+        }
+      } else {
+        console.log('[ProductForm] Creating new product');
+        
+        if (imageFiles.length === 0) {
+          const errorMsg = 'At least one image is required';
+          console.error('[ProductForm]', errorMsg);
+          throw new Error(errorMsg);
         }
         
-        await addProduct(submissionData, imageFile);
+        console.log(`[ProductForm] Calling addProduct with ${imageFiles.length} images`);
+        await addProduct(submissionData, imageFiles);
       }
       
+      console.log('[ProductForm] Navigation to /admin');
       navigate('/admin');
     } catch (err) {
-      console.error('Error saving product:', err);
-      setError('Failed to save product. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('[ProductForm] Error saving product:', errorMessage, err);
+      setError(`Failed to save product: ${errorMessage}`);
     } finally {
+      console.log('[ProductForm] Setting isSubmitting to false');
       setIsSubmitting(false);
     }
   };

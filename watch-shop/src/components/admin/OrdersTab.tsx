@@ -128,7 +128,7 @@ export const OrdersTab = ({
                   <div className="mt-2 sm:flex sm:justify-between">
                     <div className="sm:flex">
                       <p className="flex items-center text-sm text-gray-500">
-                        {order.items.length} item{order.items.length !== 1 ? 's' : ''} • ${order.total.toFixed(2)}
+                        {order.items.length} item{order.items.length !== 1 ? 's' : ''} • ${order.subtotal.toFixed(2)}
                       </p>
                       <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
                         {order.shippingAddress.city}, {order.shippingAddress.governorate}
@@ -249,21 +249,10 @@ export const OrdersTab = ({
                         </div>
 
                         <div className="mt-6">
-                          <h4 className="font-medium text-gray-900">Order Summary</h4>
-                          <dl className="mt-2 space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Subtotal</dt>
-                              <dd className="font-medium text-gray-900">${selectedOrder.subtotal.toFixed(2)}</dd>
-                            </div>
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Shipping</dt>
-                              <dd className="font-medium text-gray-900">${selectedOrder.shippingCost.toFixed(2)}</dd>
-                            </div>
-                            <div className="flex justify-between text-base font-medium text-gray-900 border-t border-gray-200 pt-2 mt-2">
-                              <dt>Total</dt>
-                              <dd>${selectedOrder.total.toFixed(2)}</dd>
-                            </div>
-                          </dl>
+                          <h4 className="font-medium text-gray-900">Order Total</h4>
+                          <div className="mt-2 text-2xl font-bold text-gray-900">
+                            ${selectedOrder.total.toFixed(2)}
+                          </div>
                         </div>
                       </div>
                     </div>

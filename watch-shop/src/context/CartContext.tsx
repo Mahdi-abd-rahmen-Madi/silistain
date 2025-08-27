@@ -43,8 +43,8 @@ interface CartProviderProps {
 
 // Constants for calculations
 const TAX_RATE = 0.1; // 10% tax
-const FREE_SHIPPING_THRESHOLD = 100; // Free shipping for orders over $100
-const SHIPPING_COST = 10; // Flat rate shipping cost
+// Free shipping on all orders
+const SHIPPING_COST = 0; // Free shipping for all orders
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -61,8 +61,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [calculateSubtotal]);
   
   const calculateShipping = useCallback((): number => {
-    return calculateSubtotal() >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  }, [calculateSubtotal]);
+    return 0; // Always free shipping
+  }, []);
   
   const calculateTotal = useCallback((): number => {
     return calculateSubtotal() + calculateTax() + calculateShipping();

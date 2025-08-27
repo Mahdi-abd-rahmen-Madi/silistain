@@ -131,8 +131,8 @@ export const formatOrderData = (order: CheckoutFormData, items: CartItemWithBran
   // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.1; // 10% tax
-  const shipping = 29.99;
-  const total = subtotal + tax + shipping;
+  const shipping = 0; // Free shipping
+  const total = subtotal + tax; // No shipping cost added
   
   return {
     'Order Date': new Date().toISOString(),
@@ -153,7 +153,7 @@ export const formatOrderData = (order: CheckoutFormData, items: CartItemWithBran
     'Items': itemsString,
     'Subtotal': `$${subtotal.toFixed(2)}`,
     'Tax': `$${tax.toFixed(2)}`,
-    'Shipping': `$${shipping.toFixed(2)}`,
+    'Shipping': '$0.00', // Free shipping
     'Total': `$${total.toFixed(2)}`,
     'Payment Method': 'Credit Card',
     'Payment Status': 'Paid',

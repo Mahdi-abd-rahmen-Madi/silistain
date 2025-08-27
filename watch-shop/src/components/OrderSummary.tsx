@@ -21,9 +21,7 @@ export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: Order
     onSubmit();
   };
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 29.99;
-  const tax = subtotal * 0.1;
-  const total = subtotal + shipping + tax;
+  const total = subtotal; // Total is just the subtotal (no shipping or tax)
 
   return (
     <div className="lg:col-span-1">
@@ -57,21 +55,9 @@ export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: Order
               ))}
             </div>
 
-            {/* Order Totals */}
-            <div className="mt-6 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Shipping</span>
-                <span className="font-medium">${shipping.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Tax</span>
-                <span className="font-medium">${tax.toFixed(2)}</span>
-              </div>
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between text-base font-medium">
+            {/* Order Total */}
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex justify-between items-center text-xl font-semibold">
                 <span>Total</span>
                 <span>${total.toFixed(2)}</span>
               </div>

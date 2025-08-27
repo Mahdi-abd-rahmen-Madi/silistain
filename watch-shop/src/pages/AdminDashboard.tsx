@@ -98,7 +98,7 @@ export default function AdminDashboard() {
               element={
                 <div className="space-y-6">
                   <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
-                  <ProductForm isEditing={true} />
+                  <ProductForm isEditing={true} productId={window.location.pathname.split('/').pop()} />
                 </div>
               } 
             />

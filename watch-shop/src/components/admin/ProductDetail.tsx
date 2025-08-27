@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
 import { PencilIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { Product } from '../../types/product';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { getProductById } = useProducts();
   const [product, setProduct] = useState<ReturnType<typeof getProductById>>(undefined);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -25,6 +27,36 @@ export default function ProductDetail() {
       </div>
     );
   }
+
+  // Get all available image URLs from the product
+  const getProductImages = (product: Product) => {
+    const images = [];
+    
+    // Check image_url_1 through image_url_5
+    for (let i = 1; i <= 5; i++) {
+      const imageUrl = product[`image_url_${i}` as keyof Product];
+      if (imageUrl && typeof imageUrl === 'string') {
+        images.push({
+          url: imageUrl,
+          isPrimary: i === 1,
+          order: i - 1
+        });
+      }
+    }
+    
+    // Fallback to the main image_url if no other images are found
+    if (images.length === 0 && product.imageUrl) {
+      images.push({
+        url: product.imageUrl,
+        isPrimary: true,
+        order: 0
+      });
+    }
+    
+    return images;
+  };
+  
+  const productImages = product ? getProductImages(product) : [];
 
   if (!product) {
     return (
@@ -104,6 +136,45 @@ export default function ProductDetail() {
                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
                   Regular
                 </span>
+              )}
+            </dd>
+          </div>
+          <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt className="text-sm font-medium text-gray-500">Images</dt>
+            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              {productImages.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="w-full h-64 bg-gray-100 rounded-md overflow-hidden">
+                    <img 
+                      src={productImages[selectedImageIndex]?.url} 
+                      alt={`${product.name} ${selectedImageIndex + 1}`}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  {productImages.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-2">
+                      {productImages.map((img, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedImageIndex(index)}
+                          className={`flex-shrink-0 w-16 h-16 border rounded-md overflow-hidden ${
+                            selectedImageIndex === index ? 'ring-2 ring-indigo-500' : 'border-gray-200'
+                          }`}
+                        >
+                          <img 
+                            src={img.url} 
+                            alt={`${product.name} ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="h-32 flex items-center justify-center bg-gray-50 rounded-md text-gray-400">
+                  No images available
+                </div>
               )}
             </dd>
           </div>

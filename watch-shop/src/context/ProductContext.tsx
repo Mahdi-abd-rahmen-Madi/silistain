@@ -8,10 +8,12 @@ interface ProductContextType {
   loading: boolean;
   error: string | null;
   refreshProducts: () => Promise<Product[]>;
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>, imageFile: File) => Promise<void>;
-  updateProduct: (id: string, updates: Partial<Product>, imageFile?: File) => Promise<void>;
+  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>, imageFiles: File[]) => Promise<void>;
+  updateProduct: (id: string, updates: Partial<Product>, imageFiles?: File[]) => Promise<void>;
   deleteProduct: (id: string, imageUrl?: string) => Promise<void>;
   getProductById: (id: string) => Product | undefined;
+  uploadImages: (files: File[]) => Promise<string[]>;
+  deleteImages: (imageUrls: string[]) => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -65,22 +67,52 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Map the database fields to our Product type
-      const mappedProducts = data.map(item => ({
-        id: item.id,
-        name: item.name || 'Unnamed Product',
-        description: item.description || '',
-        price: item.price,
-        imageUrl: item.image_url,
-        images: item.image_url ? [{ url: item.image_url, isPrimary: true }] : [],
-        category: item.category || 'other',
-        stock: item.stock_quantity || 0,
-        featured: item.is_featured || false,
-        isBestSeller: false,  // Will be set below
-        isNew: false,         // Will be set below
-        specifications: item.specifications || {},
-        createdAt: item.created_at ? new Date(item.created_at) : new Date(),
-        updatedAt: item.updated_at ? new Date(item.updated_at) : new Date()
-      }));
+      const mappedProducts = data.map(item => {
+        // Collect all available image URLs from image_url_1 to image_url_5
+        const allImageUrls = [];
+        for (let i = 1; i <= 5; i++) {
+          const imageUrl = item[`image_url_${i}` as keyof typeof item];
+          if (imageUrl && typeof imageUrl === 'string') {
+            allImageUrls.push({
+              url: imageUrl,
+              isPrimary: i === 1,
+              order: i - 1
+            });
+          }
+        }
+        
+        // Fallback to the main image_url if no other images are found
+        if (allImageUrls.length === 0 && item.image_url) {
+          allImageUrls.push({
+            url: item.image_url,
+            isPrimary: true,
+            order: 0
+          });
+        }
+        
+        return {
+          id: item.id,
+          name: item.name || 'Unnamed Product',
+          description: item.description || '',
+          price: item.price,
+          imageUrl: item.image_url,
+          images: allImageUrls,
+          category: item.category || 'other',
+          stock: item.stock_quantity || 0,
+          featured: item.is_featured || false,
+          isBestSeller: false,  // Will be set below
+          isNew: false,         // Will be set below
+          specifications: item.specifications || {},
+          createdAt: item.created_at ? new Date(item.created_at) : new Date(),
+          updatedAt: item.updated_at ? new Date(item.updated_at) : new Date(),
+          // Include individual image URLs for backward compatibility
+          ...(allImageUrls[0] && { image_url_1: allImageUrls[0].url }),
+          ...(allImageUrls[1] && { image_url_2: allImageUrls[1].url }),
+          ...(allImageUrls[2] && { image_url_3: allImageUrls[2].url }),
+          ...(allImageUrls[3] && { image_url_4: allImageUrls[3].url }),
+          ...(allImageUrls[4] && { image_url_5: allImageUrls[4].url })
+        };
+      });
 
       // Sort by stock in descending order and mark the top item as Best Seller
       const sortedByStock = [...mappedProducts].sort((a, b) => b.stock - a.stock);
@@ -122,22 +154,78 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const refreshProducts = useCallback(async (): Promise<Product[]> => {
     try {
       setLoading(true);
-      const products = await loadProducts();
-      if (products) {
-        console.log('Setting products in state (refreshProducts):', products.length);
-        setProducts(products);
-        return products;
+      setError(null);
+      
+      const { data, error: fetchError } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+      
+      if (!data) {
+        setProducts([]);
+        return [];
       }
-      setProducts([]);
-      return [];
+      
+      // Map the database fields to our Product type
+      const mappedProducts = data.map(item => {
+        // Collect all available image URLs from image_url_1 to image_url_5
+        const allImageUrls = [];
+        for (let i = 1; i <= 5; i++) {
+          const imageUrl = item[`image_url_${i}` as keyof typeof item];
+          if (imageUrl && typeof imageUrl === 'string') {
+            allImageUrls.push({
+              url: imageUrl,
+              isPrimary: i === 1,
+              order: i - 1
+            });
+          }
+        }
+        
+        // Fallback to the main image_url if no other images are found
+        if (allImageUrls.length === 0 && item.image_url) {
+          allImageUrls.push({
+            url: item.image_url,
+            isPrimary: true,
+            order: 0
+          });
+        }
+        
+        return {
+          id: item.id,
+          name: item.name || 'Unnamed Product',
+          description: item.description || '',
+          price: item.price,
+          imageUrl: item.image_url,
+          images: allImageUrls,
+          category: item.category || 'other',
+          stock: item.stock_quantity || 0,
+          featured: item.is_featured || false,
+          isBestSeller: false,
+          isNew: false,
+          specifications: item.specifications || {},
+          createdAt: item.created_at ? new Date(item.created_at) : new Date(),
+          updatedAt: item.updated_at ? new Date(item.updated_at) : new Date(),
+          // Include individual image URLs for backward compatibility
+          ...(allImageUrls[0] && { image_url_1: allImageUrls[0].url }),
+          ...(allImageUrls[1] && { image_url_2: allImageUrls[1].url }),
+          ...(allImageUrls[2] && { image_url_3: allImageUrls[2].url }),
+          ...(allImageUrls[3] && { image_url_4: allImageUrls[3].url }),
+          ...(allImageUrls[4] && { image_url_5: allImageUrls[4].url })
+        };
+      });
+      
+      setProducts(mappedProducts);
+      return mappedProducts;
     } catch (error) {
-      console.error('Error in refreshProducts:', error);
+      console.error('Error refreshing products:', error);
       setError(error instanceof Error ? error.message : 'Failed to refresh products');
       throw error;
     } finally {
       setLoading(false);
     }
-  }, [loadProducts]);
+  }, []);
 
   // Load products on mount
   useEffect(() => {
@@ -179,22 +267,52 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `products/${fileName}`;
+      const filePath = fileName; // Just use the filename, no subfolder
+      const bucketName = 'products'; // Using 'products' bucket which exists in your storage
 
-      const { error: uploadError } = await supabase.storage
-        .from('products')
-        .upload(filePath, file);
+      console.log('Uploading image to bucket:', bucketName, 'path:', filePath);
+      
+      // Upload the file
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true // Allow overwriting if file exists
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error details:', uploadError);
+        throw uploadError;
+      }
 
+      console.log('Upload successful, getting public URL...');
+      
+      // Get the public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('products')
+        .from(bucketName)
         .getPublicUrl(filePath);
+
+      console.log('Generated public URL:', publicUrl);
+      
+      if (!publicUrl) {
+        throw new Error('Failed to generate public URL for the uploaded image');
+      }
 
       return publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
-      throw error;
+      throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // Upload multiple images
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    try {
+      const uploadPromises = files.map(file => uploadImage(file));
+      return await Promise.all(uploadPromises);
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      throw new Error(`Failed to upload images: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -203,123 +321,237 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       if (!imageUrl || !supabase) return;
       
       // Extract the file path from the URL
-      const filePath = imageUrl.split('/').pop();
-      if (!filePath) return;
-
+      const url = new URL(imageUrl);
+      const pathParts = url.pathname.split('/');
+      const filePath = pathParts.slice(3).join('/'); // Remove the /storage/v1/object/public/ part
+      
       const { error } = await supabase.storage
-        .from('products')
+        .from('products') // Changed from 'product-images' to 'products' to match upload bucket
         .remove([filePath]);
-
+        
       if (error) throw error;
-    } catch (error) {
-      console.error('Error deleting image:', error);
-      // Don't throw here, as we might still want to continue with product deletion
+    } catch (err) {
+      console.error('Error deleting image:', err);
+      // Don't throw the error, as we still want to continue with the operation
     }
   };
 
-  const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>, imageFile: File): Promise<void> => {
+  // Delete multiple images
+  const deleteImages = async (imageUrls: string[]) => {
     try {
-      if (!supabase) {
-        throw new Error('Supabase client is not available');
-      }
+      if (!imageUrls || !imageUrls.length || !supabase) return;
       
+      const filePaths = imageUrls.map(url => {
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/');
+        return pathParts.slice(3).join('/');
+      });
+      
+      const { error } = await supabase.storage
+        .from('products')
+        .remove(filePaths);
+        
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error deleting images:', err);
+      // Don't throw the error, as we still want to continue with the operation
+    }
+  };
+
+  // Add a new product with multiple images
+  const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>, imageFiles: File[]) => {
+    if (!supabase) {
+      throw new Error('Supabase client is not available');
+    }
+
+    try {
       setLoading(true);
+      setError(null);
+
+      // Upload all images first
+      const imageUrls = await uploadImages(imageFiles);
       
-      // Upload image to Supabase Storage
-      const imageUrl = await uploadImage(imageFile);
+      // Prepare images array with proper structure
+      const productImages = imageUrls.map((url, index) => ({
+        url,
+        isPrimary: index === 0,
+        order: index
+      }));
       
-      // Get current user ID
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      // Prepare product data for database
+      const productData: any = {
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        image_url: imageUrls[0] || null, // First image as the main image for backward compatibility
+        image_url_1: imageUrls[0] || null,
+        image_url_2: imageUrls[1] || null,
+        image_url_3: imageUrls[2] || null,
+        image_url_4: imageUrls[3] || null,
+        image_url_5: imageUrls[4] || null,
+        category: product.category,
+        stock_quantity: product.stock,
+        is_featured: product.featured || false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
       
-      if (userError) throw userError;
-      if (!user) {
-        throw new Error('User not authenticated');
+      // Only include specifications if it exists and has properties
+      if (product.specifications && Object.keys(product.specifications).length > 0) {
+        productData.specifications = product.specifications;
       }
-      
-      // Insert product into Supabase
+
+      // Insert into database
       const { data, error } = await supabase
         .from('products')
-        .insert([{ 
-          name: product.name,
-          description: product.description,
-          price: product.price,
-          image_url: imageUrl,
-          category: product.category,
-          stock_quantity: product.stock,
-          is_featured: product.featured,
-          user_id: user.id
-        }])
+        .insert(productData)
         .select()
         .single();
 
       if (error) throw error;
       
-      // Refresh products
-      await loadProducts();
+      // Refresh the products list
+      await refreshProducts();
+      
+      return data;
     } catch (err) {
       console.error('Error adding product:', err);
-      setError('Failed to add product');
+      setError(err instanceof Error ? err.message : 'Failed to add product');
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateProduct = async (id: string, updates: Partial<Product>, imageFile?: File) => {
+  // Update an existing product with multiple images
+  const updateProduct = async (id: string, updates: Partial<Product>, imageFiles: File[] = []) => {
     try {
       if (!supabase) {
         throw new Error('Supabase client is not available');
       }
       
       setLoading(true);
+      setError(null);
       
-      // If there's a new image, upload it
-      let imageUrl = updates.imageUrl;
-      if (imageFile) {
-        // Delete old image if it exists
-        if (updates.imageUrl) {
-          await deleteImage(updates.imageUrl);
-        }
-        imageUrl = await uploadImage(imageFile);
+      // Get the existing product to handle image cleanup
+      const existingProduct = getProductById(id);
+      if (!existingProduct) {
+        throw new Error(`Product with ID ${id} not found`);
       }
+      
+      // Get existing image URLs, ensuring we only include valid, non-empty strings
+      const existingImageUrls = [
+        existingProduct.image_url_1,
+        existingProduct.image_url_2,
+        existingProduct.image_url_3,
+        existingProduct.image_url_4,
+        existingProduct.image_url_5
+      ].filter((url): url is string => Boolean(url && url.trim()));
+      
+      let newImageUrls: string[] = [];
+      
+      // Upload new images if any
+      if (imageFiles.length > 0) {
+        try {
+          newImageUrls = await uploadImages(imageFiles);
+          console.log('Successfully uploaded new images:', newImageUrls);
+        } catch (error) {
+          console.error('Error uploading new images:', error);
+          throw new Error('Failed to upload one or more images');
+        }
+      }
+      
+      // Get all existing non-empty image URLs from the product
+      const existingNonEmptyUrls = existingImageUrls.filter(Boolean) as string[];
+      
+      // Combine existing and new images, ensuring no duplicates and limit to 5
+      const allImageUrls = [...new Set([...existingNonEmptyUrls, ...newImageUrls])].slice(0, 5);
+      
+      // Initialize all image URL fields as null
+      const imageFields: Record<string, string | null> = {
+        // Always include all image fields, even if null, to clear empty ones in the database
+        image_url: allImageUrls[0] || null, // First image is the main image
+        image_url_1: allImageUrls[0] || null,
+        image_url_2: allImageUrls[1] || null,
+        image_url_3: allImageUrls[2] || null,
+        image_url_4: allImageUrls[3] || null,
+        image_url_5: allImageUrls[4] || null
+      };
+      
+      console.log('Image fields being set:', imageFields);
+      
+      console.log('Updating product with image fields:', imageFields);
       
       // Prepare updates for Supabase
       const updateData: any = {
-        ...updates,
+        // Map our Product type to database fields
+        ...(updates.name !== undefined && { name: updates.name }),
+        ...(updates.description !== undefined && { description: updates.description }),
+        ...(updates.price !== undefined && { price: updates.price }),
+        ...(updates.category !== undefined && { category: updates.category }),
+        ...(updates.stock !== undefined && { stock_quantity: updates.stock }),
+        ...(updates.featured !== undefined && { is_featured: updates.featured }),
+        // Only include specifications if it exists in updates
+        ...(updates.specifications !== undefined && { 
+          specifications: Object.keys(updates.specifications).length > 0 
+            ? updates.specifications 
+            : {}
+        }),
+        // Always update the updated_at timestamp
         updated_at: new Date().toISOString()
       };
       
-      // Map our Product type to database fields
-      if (updates.name !== undefined) updateData.name = updates.name;
-      if (updates.description !== undefined) updateData.description = updates.description;
-      if (updates.price !== undefined) updateData.price = updates.price;
-      if (updates.category !== undefined) updateData.category = updates.category;
-      if (updates.stock !== undefined) updateData.stock_quantity = updates.stock;
-      if (updates.featured !== undefined) updateData.is_featured = updates.featured;
-      if (imageUrl) updateData.image_url = imageUrl;
+      // Update the image fields in the update data
+      Object.assign(updateData, imageFields);
       
-      // Remove any undefined values
-      Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+      console.log('Updating product with data:', updateData);
       
-      // Update product in Supabase
+      // Update the product in Supabase
       const { error } = await supabase
         .from('products')
         .update(updateData)
         .eq('id', id);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+      
+      console.log('Product updated successfully');
+      
+      // Fetch the updated product data
+      const { data: updatedProduct, error: fetchError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError) {
+        console.error('Error fetching updated product:', fetchError);
+        throw fetchError;
+      }
+      
+      console.log('Fetched updated product:', updatedProduct);
+      
+      // Clean up old images that are no longer used
+      const oldImagesToDelete = existingImageUrls.filter(url => !allImageUrls.includes(url));
+      if (oldImagesToDelete.length > 0) {
+        console.log('Cleaning up old images:', oldImagesToDelete);
+        await deleteImages(oldImagesToDelete);
+      }
       
       // Refresh products
-      await loadProducts();
+      await refreshProducts();
     } catch (err) {
       console.error('Error updating product:', err);
-      setError('Failed to update product');
+      setError(err instanceof Error ? err.message : 'Failed to update product');
       throw err;
     } finally {
       setLoading(false);
     }
   };
-  
+
+  // Delete a product
   const deleteProduct = async (id: string, imageUrl?: string) => {
     try {
       if (!supabase) {
@@ -327,6 +559,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       }
       
       setLoading(true);
+      setError(null);
       
       // Delete the image from storage if it exists
       if (imageUrl) {
@@ -342,7 +575,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       
       // Refresh products
-      await loadProducts();
+      await refreshProducts();
     } catch (err) {
       console.error('Error deleting product:', err);
       setError('Failed to delete product');
@@ -352,6 +585,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     }
   };
   
+  // Get a single product by ID
   const getProductById = useCallback((id: string) => {
     return products.find(product => product.id === id);
   }, [products]);
@@ -366,7 +600,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         addProduct,
         updateProduct,
         deleteProduct,
-        getProductById
+        getProductById,
+        uploadImages,
+        deleteImages
       }}
     >
       {children}
