@@ -119,9 +119,9 @@ export default function ProductDetail() {
             <dt className="text-sm font-medium text-gray-500">Stock</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                product.stock || 0 > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {product.stock} in stock
+                {product.stock || 0} in stock
               </span>
             </dd>
           </div>

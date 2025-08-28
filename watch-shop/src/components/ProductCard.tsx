@@ -231,15 +231,15 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               product.discount && product.discount > 0 ? (
                 <>
                   <p className="text-sm font-medium text-gray-900">
-                    ${(product.price * (1 - product.discount / 100)).toFixed(2).replace(/\.?0+$/, '').replace(/0+(?=[1-9])/g, '')}
+                    ${(product.price * (1 - product.discount / 100)).toFixed(2)}
                   </p>
                   <p className="text-xs text-gray-500 line-through">
-                    ${product.price.toFixed(2).replace(/\.?0+$/, '').replace(/0+(?=[1-9])/g, '')}
+                    ${product.price.toFixed(2)}
                   </p>
                 </>
               ) : (
                 <p className="text-sm font-medium text-gray-900">
-                  ${product.price.toString().replace(/\.?0+$/, '').replace(/0+(?=[1-9])/g, '')}
+                  ${product.price.toFixed(2)}
                 </p>
               )
             ) : (

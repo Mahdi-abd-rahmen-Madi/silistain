@@ -88,12 +88,17 @@ const ProductDetailsPage: React.FC = () => {
   };
 
 
+  const handleBuyNow = () => {
+    addToCart({ ...currentProduct, quantity: 1 });
+    navigate('/checkout');
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-6 py-12">
       <Button 
         variant="ghost" 
-        onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2"
+        onClick={() => navigate('/shop')}
+        className="mb-8 flex items-center gap-2 hover:bg-gray-100 px-4 py-2 rounded-lg transition-colors"
       >
         <ArrowLeft size={16} /> Back to Products
       </Button>
@@ -137,7 +142,18 @@ const ProductDetailsPage: React.FC = () => {
                 ${currentProduct.price?.toFixed(2)}
               </p>
             </div>
-            <FavoriteButton productId={currentProduct.id} />
+            <FavoriteButton 
+              productId={currentProduct.id} 
+              productData={{
+                id: currentProduct.id,
+                name: currentProduct.name,
+                price: currentProduct.price,
+                imageUrl: currentProduct.imageUrl,
+                category: currentProduct.category,
+                description: currentProduct.description,
+                stock: currentProduct.stock
+              }}
+            />
           </div>
           
           <div className="mt-6 space-y-4">
@@ -153,13 +169,13 @@ const ProductDetailsPage: React.FC = () => {
               </p>
             </div>
             
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-5">
               <div className="flex items-center gap-2 text-blue-700 mb-2">
                 <Shield className="w-5 h-5" />
-                <span className="font-medium">Secure Checkout</span>
+                <span className="font-medium">Cash on Delivery</span>
               </div>
               <p className="text-sm text-blue-700">
-                Your payment information is processed securely.
+                Pay with cash when your order is delivered. No online payment required.
               </p>
             </div>
             
@@ -175,13 +191,21 @@ const ProductDetailsPage: React.FC = () => {
               </div>
             </div>
             
-            <div className="pt-4">
+            <div className="pt-6 space-y-4">
               <Button 
                 onClick={handleAddToCart}
-                className="w-full py-6 text-lg flex items-center justify-center gap-2"
+                className="w-full py-6 text-lg flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
               >
                 <ShoppingCart className="w-5 h-5" />
                 Add to Cart - ${currentProduct.price?.toFixed(2)}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleBuyNow}
+                className="w-full py-6 text-lg flex items-center justify-center gap-2 border-primary text-primary hover:bg-primary/10 transition-colors"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                Buy Now - ${currentProduct.price?.toFixed(2)}
               </Button>
             </div>
           </div>

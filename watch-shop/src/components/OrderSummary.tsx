@@ -119,14 +119,6 @@ export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: Order
                           <span className="text-gray-500 dark:text-gray-400">Items ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})</span>
                           <span>${subtotal.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">Shipping</span>
-                          <span>${shipping.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">Tax</span>
-                          <span>${tax.toFixed(2)}</span>
-                        </div>
                         <div className="flex justify-between pt-2 mt-2 border-t border-gray-200 dark:border-gray-700 font-medium">
                           <span>Total</span>
                           <span>${total.toFixed(2)}</span>

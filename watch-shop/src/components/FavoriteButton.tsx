@@ -83,6 +83,7 @@ export default function FavoriteButton({
       onClick={handleClick}
       disabled={isProcessing}
       className={`
+        flex items-center justify-center
         rounded-full transition-colors
         ${buttonSize}
         ${variant === 'outline' ? 'border border-gray-300 dark:border-gray-600' : ''}

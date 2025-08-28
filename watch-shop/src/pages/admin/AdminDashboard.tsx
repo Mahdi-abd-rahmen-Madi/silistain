@@ -5,6 +5,7 @@ import { useProducts } from '../../context/ProductContext';
 import { Product } from '../../types/product';
 import { Order } from '../../types/order';
 import { OrdersTab } from '../../components/admin/OrdersTab';
+import { HeroMediaManager } from '../../components/admin/HeroMediaManager';
 import { fetchMunicipalities } from '../../services/locationService';
 import { supabase, getAdminClient } from '../../utils/supabaseClient';
 
@@ -22,7 +23,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
     refreshProducts
   } = useProducts();
   
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'hero'>('products');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
@@ -248,200 +249,181 @@ export default function AdminDashboard({}: AdminDashboardProps) {
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('products')}
-              className={`${
+              className={`px-4 py-2 font-medium text-sm rounded-md ${
                 activeTab === 'products'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
             >
               Products
             </button>
             <button
               onClick={() => setActiveTab('orders')}
-              className={`${
+              className={`px-4 py-2 font-medium text-sm rounded-md ${
                 activeTab === 'orders'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
             >
               Orders
             </button>
             <button
               onClick={() => setActiveTab('users')}
-              className={`${
+              className={`px-4 py-2 font-medium text-sm rounded-md ${
                 activeTab === 'users'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
             >
               Users
+            </button>
+            <button
+              onClick={() => setActiveTab('hero')}
+              className={`px-4 py-2 font-medium text-sm rounded-md ${
+                activeTab === 'hero'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Hero Media
             </button>
           </nav>
         </div>
 
-        {/* Tab Panels */}
-        <div className="mt-8">
-          {error && (
-            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-              {error}
-            </div>
-          )}
-          
-          {success && (
-            <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-              {success}
-            </div>
-          )}
-
+        <div className="flex-1 p-6">
           {activeTab === 'products' && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium text-gray-900">Products</h2>
-                <Link
-                  to="/admin/products/new"
-                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Add Product
-                </Link>
-              </div>
-              
-              {loading && products.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
-                  <p className="text-gray-500">Loading products...</p>
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-lg font-medium text-gray-900">Products</h2>
+                  <Link
+                    to="/admin/products/new"
+                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Add Product
+                  </Link>
                 </div>
-              ) : error ? (
-                <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm text-red-700">
-                        {error}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                  <ul className="divide-y divide-gray-200">
-                    {products.map((product) => (
-                      <li key={product.id} className="hover:bg-gray-50">
-                        <div className="px-4 py-4 sm:px-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              {product.images?.[0]?.url ? (
-                                <img
-                                  className="h-16 w-16 rounded-md object-cover"
-                                  src={product.images[0].url}
-                                  alt={product.name}
-                                />
-                              ) : (
-                                <div className="h-16 w-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-400">
-                                  <span>No Image</span>
+                
+                {loading ? (
+                  <div className="text-center py-4">Loading products...</div>
+                ) : productsError ? (
+                  <div className="text-red-500">{productsError}</div>
+                ) : products.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">No products found</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Product
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Price
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {products.map((product) => (
+                          <tr key={product.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10">
+                                  {product.images?.[0]?.url && (
+                                    <img
+                                      className="h-10 w-10 rounded-md object-cover"
+                                      src={product.images[0].url}
+                                      alt={product.name}
+                                    />
+                                  )}
                                 </div>
-                              )}
-                              <div className="ml-4">
-                                <h3 className="text-sm font-medium text-indigo-600">
-                                  {product.name}
-                                </h3>
-                                <div className="mt-2 sm:flex sm:justify-between">
-                                  <div className="sm:flex">
-                                    <p className="text-sm text-gray-500">
-                                      {product.description || 'No description available'}
-                                    </p>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {product.name}
                                   </div>
-                                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                                    <span>
-                                      Last updated: {product.updatedAt ? new Date(product.updatedAt).toLocaleString() : 'N/A'}
-                                    </span>
+                                  <div className="text-sm text-gray-500">
+                                    {product.category}
                                   </div>
                                 </div>
-                                <p className="text-sm text-gray-500">
-                                  ${product.price.toFixed(2)}
-                                </p>
-                                {product.stock !== undefined && (
-                                  <p className="text-xs text-gray-500">
-                                    Stock: {product.stock}
-                                  </p>
-                                )}
-                                {product.featured && (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                    Featured
-                                  </span>
-                                )}
                               </div>
-                            </div>
-                            <div className="flex space-x-2">
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              ${product.price.toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                (product.stock ?? 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {(product.stock ?? 0) > 0 ? 'In Stock' : 'Out of Stock'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <Link
                                 to={`/admin/products/edit/${product.id}`}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                className="text-indigo-600 hover:text-indigo-900 mr-4"
                               >
                                 Edit
                               </Link>
                               <button
-                                type="button"
                                 onClick={() => handleDeleteProduct(product)}
+                                className="text-red-600 hover:text-red-900"
                                 disabled={isDeleting[product.id!]}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 {isDeleting[product.id!] ? 'Deleting...' : 'Delete'}
                               </button>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {activeTab === 'orders' && (
-            <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-6">Orders</h2>
-              {ordersLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-                </div>
-              ) : ordersError ? (
-                <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm text-red-700">
-                        {ordersError}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <OrdersTab
-                  orders={orders}
-                  loading={ordersLoading}
-                  error={ordersError}
-                  onUpdateOrderStatus={handleUpdateOrderStatus}
-                />
-              )}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="p-6">
+                <h2 className="text-lg font-medium text-gray-900 mb-6">Orders</h2>
+                {ordersLoading ? (
+                  <div className="text-center py-4">Loading orders...</div>
+                ) : ordersError ? (
+                  <div className="text-red-500">{ordersError}</div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">No orders found</div>
+                ) : (
+                  <OrdersTab 
+                    orders={orders} 
+                    onUpdateOrderStatus={handleUpdateOrderStatus} 
+                    loading={ordersLoading}
+                    error={ordersError}
+                  />
+                )}
+              </div>
             </div>
           )}
-
+          
           {activeTab === 'users' && (
-            <div>
+            <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-medium text-gray-900">Users</h2>
               <p className="mt-2 text-sm text-gray-500">User management coming soon.</p>
+            </div>
+          )}
+          
+          {activeTab === 'hero' && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <HeroMediaManager />
             </div>
           )}
         </div>
       </main>
     </div>
   );
-}
+};
