@@ -755,7 +755,7 @@ const Shop = () => {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {filteredWatches.map((watch) => {
                   // Find the original product to get the isBestSeller and isNew flags
                   const originalProduct = products.find(p => p.id === watch.id);
@@ -787,11 +787,11 @@ const Shop = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="relative"
+                      className="w-full"
                     >
                       <ProductCard 
                         product={product} 
-                        onAddToCart={handleAddToCart}
+                        onAddToCart={() => handleAddToCart(product)}
                       />
                     </motion.div>
                   );

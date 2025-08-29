@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
+import { supabase } from '../lib/supabaseClient';
+import toast from 'react-hot-toast';
 import { Product } from '../types/product';
 import { ProductCard } from '../components/ProductCard';
 import { Button } from '../components/ui/Button';
@@ -48,15 +50,40 @@ const Home = () => {
   const { addToCart } = useCart();
   const { products } = useProducts();
   const [activeTab, setActiveTab] = useState<string>('featured');
-  
-  const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleNewsletterSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const email = formData.get('email') as string;
-    // Handle newsletter subscription
-    console.log('Subscribing email:', email);
-    form.reset();
+    if (isSubmitting || !email) return;
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('newsletter_subscriptions')
+        .upsert(
+          { email, is_active: true },
+          { onConflict: 'email', ignoreDuplicates: false }
+        )
+        .select();
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('You\'re already subscribed to our newsletter!');
+        } else {
+          throw error;
+        }
+      } else {
+        setEmail('');
+        toast.success('Successfully subscribed to our newsletter!');
+      }
+    } catch (err) {
+      console.error('Error subscribing to newsletter:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to subscribe. Please try again.';
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   // Map products to the format expected by ProductCard
@@ -184,13 +211,14 @@ const Home = () => {
               </Tabs.List>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {renderProducts().map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product}
-                  onAddToCart={product.onAddToCart}
-                />
+                <div key={product.id} className="w-full">
+                  <ProductCard 
+                    product={product} 
+                    onAddToCart={() => addToCart(product, 1)} 
+                  />
+                </div>
               ))}
             </div>
           </Tabs.Root>
@@ -251,12 +279,19 @@ const Home = () => {
                 <input
                   type="email"
                   name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   className="flex-1 min-w-0 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors"
                   required
+                  disabled={isSubmitting}
                 />
-                <Button type="submit" className="whitespace-nowrap">
-                  Subscribe
+                <Button 
+                  type="submit" 
+                  className={`whitespace-nowrap ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Subscribing...' : 'Subscribe'}
                 </Button>
               </div>
               <p className="mt-3 text-xs text-gray-500">

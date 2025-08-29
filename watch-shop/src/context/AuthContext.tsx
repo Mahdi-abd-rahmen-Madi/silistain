@@ -6,8 +6,10 @@ type User = {
   id: string;
   email: string | null;
   isAdmin: boolean;
-  photoURL?: string;  // For profile image URL
-  displayName?: string; // For user's display name
+  full_name?: string;
+  avatar_url?: string;
+  created_at?: string;
+  updated_at?: string;
   user_metadata?: {
     [key: string]: any;
     full_name?: string;
@@ -24,6 +26,7 @@ interface AuthContextType {
   currentUser: User | null;
   logout: () => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<AuthResponse>;
+  signInWithMagicLink: (email: string) => Promise<AuthResponse>;
   loading: boolean;
   error: any;
 }
@@ -158,10 +161,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithMagicLink = async (email: string): Promise<AuthResponse> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?redirect_to=/shop`,
+        },
+      });
+
+      if (error) throw error;
+      
+      // Show success message to user
+      return { 
+        user: null, 
+        error: { message: 'Check your email for the magic link!' } 
+      };
+    } catch (error) {
+      console.error('Error sending magic link:', error);
+      setError(error);
+      return { user: null, error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
-    currentUser,
+    currentUser: currentUser ? {
+      ...currentUser,
+      full_name: currentUser.user_metadata?.full_name || '',
+      avatar_url: currentUser.user_metadata?.avatar_url || ''
+    } : null,
     logout,
     signInWithGoogle,
+    signInWithMagicLink,
     loading,
     error,
   };

@@ -11,11 +11,6 @@ type HeroMedia = {
   type: 'image' | 'video';
   url: string;
   thumbnail_url?: string;
-  title: string;
-  subtitle: string;
-  cta_text: string;
-  cta_link: string;
-  is_active: boolean;
   created_at?: string;
   updated_at?: string;
   created_by?: string | null;
@@ -26,12 +21,7 @@ export const HeroMediaManager = () => {
   // Initialize with default values
   const defaultHeroMedia: HeroMedia = {
     type: 'image',
-    url: '',
-    is_active: true,
-    title: '',
-    subtitle: '',
-    cta_text: 'Shop Now',
-    cta_link: '/shop'
+    url: ''
   };
 
   const [heroMedia, setHeroMedia] = useState<HeroMedia | null>(null);
@@ -53,12 +43,7 @@ export const HeroMediaManager = () => {
       setHeroMedia(prev => ({
         ...(prev || defaultHeroMedia),
         url,
-        type,
-        title: prev?.title || defaultHeroMedia.title,
-        subtitle: prev?.subtitle || defaultHeroMedia.subtitle,
-        cta_text: prev?.cta_text || defaultHeroMedia.cta_text,
-        cta_link: prev?.cta_link || defaultHeroMedia.cta_link,
-        is_active: prev?.is_active ?? defaultHeroMedia.is_active
+        type
       }));
     }
   };
@@ -71,13 +56,8 @@ export const HeroMediaManager = () => {
       setHeroMedia(prev => ({
         ...(prev || defaultHeroMedia),
         thumbnail_url: url,
-        title: prev?.title || defaultHeroMedia.title,
         type: prev?.type || defaultHeroMedia.type,
-        url: prev?.url || defaultHeroMedia.url,
-        subtitle: prev?.subtitle || defaultHeroMedia.subtitle,
-        cta_text: prev?.cta_text || defaultHeroMedia.cta_text,
-        cta_link: prev?.cta_link || defaultHeroMedia.cta_link,
-        is_active: prev?.is_active ?? defaultHeroMedia.is_active
+        url: prev?.url || defaultHeroMedia.url
       }));
     }
   };
@@ -90,11 +70,12 @@ export const HeroMediaManager = () => {
     try {
       setIsLoading(true);
       
-      // First try to get the active hero media
+      // Get the most recent hero media
       const { data, error } = await supabase
         .from('hero_media')
         .select('*')
-        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) {
@@ -104,20 +85,6 @@ export const HeroMediaManager = () => {
 
       // If we have data, set it, otherwise use default values
       setHeroMedia(data || { ...defaultHeroMedia });
-      
-      // If no active media found, try to get any media
-      if (!data) {
-        const { data: anyMedia } = await supabase
-          .from('hero_media')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-          
-        if (anyMedia) {
-          setHeroMedia(anyMedia);
-        }
-      }
     } catch (error) {
       console.error('Error fetching hero media:', error);
       toast({
@@ -169,28 +136,6 @@ export const HeroMediaManager = () => {
         }
       }
 
-      // If this is a new active hero media, deactivate others
-      if (currentMedia.is_active) {
-        let query = supabase
-          .from('hero_media')
-          .update({ is_active: false });
-          
-        // If we have an ID, exclude it from the update
-        if (currentMedia.id) {
-          query = query.neq('id', currentMedia.id);
-        } else {
-          // If no ID, ensure we don't update all records by adding a condition that's always true
-          query = query.neq('id', '00000000-0000-0000-0000-000000000000');
-        }
-
-        const { error: deactivateError } = await query;
-
-        if (deactivateError) {
-          console.error('Error deactivating other media:', deactivateError);
-          throw deactivateError;
-        }
-      }
-
       // Get the current user ID
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -202,56 +147,56 @@ export const HeroMediaManager = () => {
         updated_at: string;
         created_by?: string | null;
       } = {
-        ...currentMedia,
+        type: currentMedia.type,
+        url: currentMedia.url,
+        thumbnail_url: currentMedia.thumbnail_url,
         updated_at: now,
+        created_by: user?.id || null,
+        user_id: user?.id
       };
 
-      // For new records, set created_at and created_by
-      // Ensure created_by is set for new records
-      if (!currentMedia.id) {
-        const { data: { user } } = await supabase.auth.getUser();
-        currentMedia.created_by = user?.id || null;
+      // Remove any undefined values to avoid overwriting with null in the database
+      Object.keys(dataToSave).forEach(key => {
+        if (dataToSave[key as keyof typeof dataToSave] === undefined) {
+          delete dataToSave[key as keyof typeof dataToSave];
+        }
+      });
+
+      let error = null;
+      let data = null;
+
+      if (currentMedia.id) {
+        // Update existing record
+        const { data: updateData, error: updateError } = await supabase
+          .from('hero_media')
+          .update(dataToSave)
+          .eq('id', currentMedia.id)
+          .select()
+          .single();
+        
+        data = updateData;
+        error = updateError;
+      } else {
+        // Create new record
+        const { data: insertData, error: insertError } = await supabase
+          .from('hero_media')
+          .insert([{ ...dataToSave, created_at: now }])
+          .select()
+          .single();
+        
+        data = insertData;
+        error = insertError;
       }
 
-      console.log('Saving hero media data:', dataToSave);
-      
-      // Insert or update the hero media
-      const { data, error: upsertError } = await supabase
-        .from('hero_media')
-        .upsert(dataToSave)
-        .select()
-        .single();
-
-      if (upsertError) {
-        console.error('Upsert error:', upsertError);
-        throw upsertError;
-      }
-      
-      if (!data) {
-        const error = new Error('No data returned from upsert');
-        console.error(error);
+      if (error) {
+        console.error('Error saving hero media:', error);
         throw error;
       }
 
-      console.log('Successfully saved hero media:', data);
+      // Update the local state with the saved data
+      setHeroMedia(data);
       
-      // Update local state with the saved data
-      const updatedMedia = {
-        ...data,
-        // Ensure all required fields are present
-        title: data.title || '',
-        subtitle: data.subtitle || '',
-        cta_text: data.cta_text || 'Shop Now',
-        cta_link: data.cta_link || '/shop',
-        is_active: data.is_active ?? false,
-        type: data.type || 'image',
-        url: data.url || ''
-      };
-      
-      console.log('Updating local state with:', updatedMedia);
-      setHeroMedia(updatedMedia);
-
-      // Clear file inputs
+      // Reset file inputs
       if (fileInputRef.current) fileInputRef.current.value = '';
       if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
 
@@ -259,14 +204,12 @@ export const HeroMediaManager = () => {
         title: 'Success',
         description: 'Hero media saved successfully',
       });
-
-    } catch (err) {
-      console.error('Error saving hero media:', err);
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      setError(errorMessage);
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
       toast({
         title: 'Error',
-        description: `Failed to save hero media: ${errorMessage}`,
+        description: 'Failed to save hero media',
         variant: 'destructive',
       });
     } finally {
@@ -324,21 +267,21 @@ export const HeroMediaManager = () => {
   const currentHeroMedia = heroMedia || defaultHeroMedia;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       <div>
-        <h2 className="text-2xl font-bold">Hero Media</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-xl sm:text-2xl font-bold">Hero Media</h2>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Manage the hero section on the home page
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="media-type">Media Type</Label>
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="media-type" className="text-sm sm:text-base">Media Type</Label>
             <select
               id="media-type"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               value={currentHeroMedia.type}
               onChange={(e) =>
                 setHeroMedia(prev => ({
@@ -352,134 +295,74 @@ export const HeroMediaManager = () => {
             </select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="media-file">
+          <div className="space-y-1.5">
+            <Label htmlFor="media" className="text-sm sm:text-base">
               {currentHeroMedia.type === 'image' ? 'Image' : 'Video'} File
             </Label>
-            <Input
-              id="media"
-              type="file"
-              ref={fileInputRef}
-              accept={currentHeroMedia.type === 'image' ? 'image/*' : 'video/*'}
-              onChange={handleFileChange}
-            />
+            <div className="relative">
+              <Input
+                id="media"
+                type="file"
+                ref={fileInputRef}
+                accept={currentHeroMedia.type === 'image' ? 'image/*' : 'video/*'}
+                onChange={handleFileChange}
+                className="text-xs sm:text-sm py-2 h-auto min-h-10"
+              />
+            </div>
             {currentHeroMedia.url && (
               <div className="mt-2">
                 {currentHeroMedia.type === 'image' ? (
                   <img
                     src={currentHeroMedia.url}
                     alt="Preview"
-                    className="max-h-40 rounded-md"
+                    className="max-h-40 w-auto max-w-full rounded-md"
                   />
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {currentHeroMedia.url}
-                  </p>
+                  <div className="mt-2 p-2 bg-gray-50 rounded-md">
+                    <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                      {currentHeroMedia.url}
+                    </p>
+                  </div>
                 )}
               </div>
             )}
           </div>
 
           {currentHeroMedia.type === 'video' && (
-            <div className="space-y-2">
-              <Label htmlFor="thumbnail">Thumbnail (Optional)</Label>
-              <Input
-                id="thumbnail"
-                type="file"
-                ref={thumbnailInputRef}
-                accept="image/*"
-                onChange={handleThumbnailChange}
-              />
+            <div className="space-y-1.5">
+              <Label htmlFor="thumbnail" className="text-sm sm:text-base">Thumbnail (Optional)</Label>
+              <div className="relative">
+                <Input
+                  id="thumbnail"
+                  type="file"
+                  ref={thumbnailInputRef}
+                  accept="image/*"
+                  onChange={handleThumbnailChange}
+                  className="text-xs sm:text-sm py-2 h-auto min-h-10"
+                />
+              </div>
               {currentHeroMedia.thumbnail_url && (
                 <div className="mt-2">
                   <img
                     src={currentHeroMedia.thumbnail_url}
                     alt="Thumbnail Preview"
-                    className="h-20 w-20 object-cover rounded-md"
+                    className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-md border border-gray-200"
                   />
                 </div>
               )}
             </div>
           )}
-
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={currentHeroMedia.title}
-              onChange={(e) =>
-                setHeroMedia(prev => ({
-                  ...(prev || defaultHeroMedia),
-                  title: e.target.value
-                }))
-              }
-              placeholder="Enter title"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="subtitle">Subtitle</Label>
-            <Input
-              id="subtitle"
-              value={currentHeroMedia.subtitle || ''}
-              onChange={(e) =>
-                setHeroMedia(prev => ({
-                  ...(prev || defaultHeroMedia),
-                  subtitle: e.target.value
-                }))
-              }
-              placeholder="Enter subtitle"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="cta_text">Button Text</Label>
-            <Input
-              id="cta_text"
-              value={currentHeroMedia.cta_text}
-              onChange={(e) =>
-                setHeroMedia(prev => ({
-                  ...(prev || defaultHeroMedia),
-                  cta_text: e.target.value
-                }))
-              }
-              placeholder="e.g. Shop Now"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="cta_link">Button Link</Label>
-            <Input
-              id="cta_link"
-              value={currentHeroMedia.cta_link}
-              onChange={(e) =>
-                setHeroMedia(prev => ({
-                  ...(prev || defaultHeroMedia),
-                  cta_link: e.target.value
-                }))
-              }
-              placeholder="e.g. /shop"
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_active"
-              checked={currentHeroMedia.is_active}
-              onCheckedChange={(checked) =>
-                setHeroMedia(prev => ({
-                  ...(prev || defaultHeroMedia),
-                  is_active: checked as boolean
-                }))
-              }
-            />
-            <Label htmlFor="is_active">Active</Label>
-          </div>
         </div>
 
-        <Button type="submit" disabled={isUploading}>
-          {isUploading ? 'Uploading...' : 'Save Changes'}
-        </Button>
+        <div className="pt-2">
+          <Button 
+            type="submit" 
+            disabled={isUploading || isSaving}
+            className="w-full sm:w-auto px-6 py-2 text-sm sm:text-base"
+          >
+            {isUploading ? 'Uploading...' : isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </form>
     </div>
   );

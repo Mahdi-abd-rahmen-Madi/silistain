@@ -18,8 +18,7 @@ import ProductForm from './components/admin/ProductForm';
 import Unauthorized from './pages/Unauthorized';
 import NotFound from './pages/NotFound';
 import Footer from './components/Footer';
-import { ToastProvider } from './components/ui/Toast';
-import { Toaster } from './components/ui/Toaster';
+import { Toaster } from 'react-hot-toast';
 import { ReactElement } from 'react';
 import { AdminProtectedRoute, ProtectedRoute } from './components/ProtectedRoute';
 import Profile from './pages/profile';
@@ -32,6 +31,7 @@ function AppContent() {
   return (
     <div className="flex flex-col min-h-screen">
       {!isAdminRoute && <Navbar />}
+      <Toaster />
       <main className={`flex-grow ${isAdminRoute ? 'pt-0' : ''}`}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
@@ -93,7 +93,6 @@ function AppContent() {
         </AnimatePresence>
       </main>
       {!isAdminRoute && <Footer />}
-      <Toaster />
     </div>
   );
 }
@@ -105,9 +104,7 @@ function App(): ReactElement {
         <ProductProvider>
           <CartProvider>
             <FavoritesProvider>
-              <ToastProvider>
-                <AppContent />
-              </ToastProvider>
+              <AppContent />
             </FavoritesProvider>
           </CartProvider>
         </ProductProvider>

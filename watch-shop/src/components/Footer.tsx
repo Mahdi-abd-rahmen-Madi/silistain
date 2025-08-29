@@ -1,6 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNewsletterSubscription } from '../hooks/useNewsletterSubscription';
+import { toast } from 'react-hot-toast';
 
 const Footer: React.FC = () => {
+  const { email, setEmail, subscribe, isLoading, isSuccess, error } = useNewsletterSubscription();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLoading || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      const success = await subscribe(email);
+      if (success) {
+        toast.success('Successfully subscribed to our newsletter!');
+      } else if (error) {
+        toast.error(error);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.';
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <footer className="bg-gray-800 text-white py-8">
       <div className="container mx-auto px-4">
@@ -35,18 +59,31 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
             <p className="text-gray-300 mb-4">Subscribe to our newsletter for the latest updates and exclusive offers.</p>
-            <div className="flex">
-              <input 
-                type="email" 
-                placeholder="Your email" 
-                className="px-4 py-2 w-full rounded-l-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent"
-              />
-              <button 
-                className="bg-accent hover:bg-accent-dark text-white px-4 py-2 rounded-r-md transition-colors"
-              >
-                Subscribe
-              </button>
-            </div>
+            <form onSubmit={handleSubmit} className="space-y-2">
+              <div className="flex">
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your email" 
+                  className="px-4 py-2 w-full rounded-l-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent"
+                  required
+                  disabled={isLoading || isSubmitting}
+                />
+                <button 
+                  type="submit"
+                  disabled={isLoading || isSubmitting}
+                  className={`bg-accent hover:bg-accent-dark text-white px-4 py-2 rounded-r-md transition-colors ${
+                    (isLoading || isSubmitting) ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {isLoading || isSubmitting ? 'Subscribing...' : 'Subscribe'}
+                </button>
+              </div>
+              {error && (
+                <p className="text-red-400 text-sm">{error}</p>
+              )}
+            </form>
           </div>
         </div>
         

@@ -73,12 +73,12 @@ export const OrdersTab = ({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <h2 className="text-lg font-medium text-gray-900">Orders</h2>
-        <div className="flex space-x-2">
+        <div className="w-full sm:w-auto">
           <select
-            className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            className="block w-full pl-3 pr-10 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
             value=""
             onChange={(e) => {
               // Filter by status
@@ -94,7 +94,7 @@ export const OrdersTab = ({
         </div>
       </div>
 
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
+      <div className="bg-white shadow overflow-hidden rounded-md">
         <ul className="divide-y divide-gray-200">
           {orders.length === 0 ? (
             <li className="p-4 text-center text-gray-500">
@@ -103,13 +103,13 @@ export const OrdersTab = ({
           ) : (
             orders.map((order) => (
               <li key={order.id} className="hover:bg-gray-50">
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
+                <div className="p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex items-center">
                       <p className="text-sm font-medium text-indigo-600 truncate">
                         Order #{order.orderNumber}
                       </p>
-                      <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${
                         order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
                         order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
@@ -119,25 +119,27 @@ export const OrdersTab = ({
                         {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
                     </div>
-                    <div className="ml-2 flex-shrink-0 flex">
-                      <p className="text-sm font-medium">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-                  <div className="mt-2 sm:flex sm:justify-between">
-                    <div className="sm:flex">
-                      <p className="flex items-center text-sm text-gray-500">
-                        {order.items.length} item{order.items.length !== 1 ? 's' : ''} • ${order.subtotal.toFixed(2)}
-                      </p>
-                      <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                        {order.shippingAddress.city}, {order.shippingAddress.governorate}
-                      </p>
-                    </div>
-                    <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                      <span className="mr-2">Status:</span>
+                  
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:flex sm:justify-between sm:items-center">
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      ${order.subtotal.toFixed(2)}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 truncate col-span-2">
+                      {order.shippingAddress.city}, {order.shippingAddress.governorate}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="w-full sm:w-auto">
                       <select
-                        className="border rounded p-1 text-sm"
+                        className="block w-full text-xs sm:text-sm border rounded p-1.5"
                         value={order.status}
                         onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
                       >
@@ -148,22 +150,22 @@ export const OrdersTab = ({
                         <option value="cancelled">Cancelled</option>
                       </select>
                     </div>
-                  </div>
-                  <div className="mt-2 flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => handleViewOrder(order)}
-                      className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      View
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleEditOrder(order)}
-                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      Edit
-                    </button>
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleViewOrder(order)}
+                        className="text-xs sm:text-sm px-2.5 py-1.5 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                      >
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleEditOrder(order)}
+                        className="text-xs sm:text-sm px-2.5 py-1.5 border border-transparent rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 </div>
               </li>

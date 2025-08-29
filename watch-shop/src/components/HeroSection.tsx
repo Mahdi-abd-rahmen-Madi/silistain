@@ -50,17 +50,17 @@ export const HeroSection = () => {
   }
 
   return (
-    <section className="relative w-full min-h-screen overflow-hidden bg-gradient-to-b from-gray-50 to-white">
+    <section className="relative w-full min-h-[80vh] sm:min-h-screen overflow-hidden bg-gradient-to-b from-gray-50 to-white">
       {/* Decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/3 -right-20 w-72 h-72 bg-accent/10 rounded-full filter blur-3xl"></div>
         <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-primary/5 rounded-full filter blur-3xl"></div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[80vh]">
-          {/* Text content */}
-          <div className="text-center lg:text-left pt-20 lg:pt-0">
+      <div className="relative max-w-7xl mx-auto py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center min-h-[60vh] sm:min-h-[80vh]">
+          {/* Text content - 7 columns on desktop */}
+          <div className="lg:col-span-7 text-center lg:text-left pt-12 sm:pt-16 lg:pt-0">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent/10 text-accent">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.215.33-.35.677-.35 1.005 0 .325.13.673.35 1.005.208.322.477.65.822.88a1 1 0 001.45-.385c.22-.396.13-.913-.18-1.3.43-.36.72-.89.72-1.5 0-.61-.29-1.14-.72-1.5.31-.387.4-.904.18-1.3zM8.5 1.5a1 1 0 01.894.553c.22.396.13.913-.18 1.3-.43.36-.72.89-.72 1.5 0 .61.29 1.14.72 1.5.31.387.4.904.18 1.3a1 1 0 11-1.788.894c-.345-.23-.614-.558-.822-.88-.215-.33-.35-.68-.35-1.005 0-.325.13-.673.35-1.005.208-.322.477-.65.822-.88a1 1 0 01.894-.553zM4.5 7.5a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
@@ -68,16 +68,16 @@ export const HeroSection = () => {
               New Collection 2025
             </span>
             
-            <h1 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+            <h1 className="mt-4 sm:mt-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl md:text-5xl lg:text-6xl">
               Timeless Elegance on Your Wrist
             </h1>
             
-            <p className="mt-6 text-lg text-gray-600 max-w-2xl mx-auto lg:mx-0">
+            <p className="mt-4 sm:mt-6 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto lg:mx-0">
               Discover our curated collection of premium watches that combine precision engineering with exquisite design. 
               Each timepiece tells a story of craftsmanship and innovation.
             </p>
             
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
               <a
                 href="/shop" 
                 className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -95,7 +95,7 @@ export const HeroSection = () => {
               </a>
             </div>
             
-            <div className="mt-12 flex flex-wrap justify-center lg:justify-start gap-8">
+            <div className="mt-8 sm:mt-12 flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-6 md:gap-8">
               <div className="flex items-center">
                 <div className="flex-shrink-0 bg-accent/10 p-2 rounded-full">
                   <svg className="h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,9 +121,12 @@ export const HeroSection = () => {
             </div>
           </div>
           
-          {/* Media content - Responsive container */}
-          <div className="relative w-full lg:w-1/2 flex items-center justify-center lg:justify-end lg:pr-4">
-            <div className="relative w-[90vw] max-w-full h-auto max-h-[35vh] sm:max-h-[40vh] md:max-h-[45vh] lg:max-h-[50vh] xl:max-h-[60vh] aspect-video">
+          {/* Media content - 5 columns on desktop */}
+          <div className="lg:col-span-5 relative w-full flex items-center justify-center lg:justify-end">
+            <div className="relative w-full max-w-[90vw] md:max-w-[80vw] lg:max-w-full h-auto max-h-[35vh] sm:max-h-[40vh] md:max-h-[45vh] lg:max-h-[50vh] xl:max-h-[60vh] aspect-video">
+              {/* Decorative elements */}
+              <div className="absolute -z-10 -right-4 -top-4 w-32 h-32 rounded-full bg-accent/5 blur-2xl"></div>
+              <div className="absolute -z-10 -left-4 -bottom-4 w-40 h-40 rounded-full bg-primary/5 blur-2xl"></div>
               <div className="relative w-full h-full flex items-center justify-center mx-auto">
                 {heroMedia.type === 'image' ? (
                   <img
@@ -139,14 +142,14 @@ export const HeroSection = () => {
                       loop
                       muted
                       playsInline
-                      className="w-full h-full max-w-[90vw] object-contain rounded-2xl shadow-xl"
+                      className="w-full h-full max-w-[90vw] object-contain rounded-2xl shadow-xl border border-gray-100/50 bg-white/5 backdrop-blur-sm"
                       poster={heroMedia.thumbnail_url}
                     >
                       <source src={heroMedia.url} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
-                    {/* Limited Time Offer Badge */}
-                    <div className="absolute bottom-2 right-2 sm:-bottom-3 sm:-right-3 bg-white rounded-full shadow-lg p-1.5 z-10 animate-bounce transform scale-75 sm:scale-90 md:scale-100">
+                    {/* Limited Time Offer Badge - Improved positioning */}
+                    <div className="absolute -bottom-4 -right-4 bg-white rounded-full shadow-lg p-2 z-10 animate-bounce transform scale-90 sm:scale-100">
                     <div className="flex items-center space-x-1 whitespace-nowrap">
                       <div className="flex-shrink-0 bg-accent/10 p-2 rounded-full">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-accent" viewBox="0 0 20 20" fill="currentColor">

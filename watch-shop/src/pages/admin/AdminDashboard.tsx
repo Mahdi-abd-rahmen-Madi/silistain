@@ -226,71 +226,76 @@ export default function AdminDashboard({}: AdminDashboardProps) {
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">
-              Logged in as: {currentUser?.email}
-            </span>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Logout
-            </button>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+            <div className="flex items-center justify-between sm:justify-end gap-3">
+              <span className="text-xs sm:text-sm text-gray-600 truncate max-w-[180px] sm:max-w-none">
+                {currentUser?.email}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 whitespace-nowrap"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
         {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('products')}
-              className={`px-4 py-2 font-medium text-sm rounded-md ${
-                activeTab === 'products'
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              Products
-            </button>
-            <button
-              onClick={() => setActiveTab('orders')}
-              className={`px-4 py-2 font-medium text-sm rounded-md ${
-                activeTab === 'orders'
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              Orders
-            </button>
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`px-4 py-2 font-medium text-sm rounded-md ${
-                activeTab === 'users'
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              Users
-            </button>
-            <button
-              onClick={() => setActiveTab('hero')}
-              className={`px-4 py-2 font-medium text-sm rounded-md ${
-                activeTab === 'hero'
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              Hero Media
-            </button>
-          </nav>
+        <div className="relative">
+          <div className="overflow-x-auto pb-1 -mx-2 sm:mx-0">
+            <nav className="flex space-x-1 sm:space-x-2 px-2 sm:px-0">
+              <button
+                onClick={() => setActiveTab('products')}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md whitespace-nowrap ${
+                  activeTab === 'products'
+                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Products
+              </button>
+              <button
+                onClick={() => setActiveTab('orders')}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md whitespace-nowrap ${
+                  activeTab === 'orders'
+                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Orders
+              </button>
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md whitespace-nowrap ${
+                  activeTab === 'users'
+                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Users
+              </button>
+              <button
+                onClick={() => setActiveTab('hero')}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md whitespace-nowrap ${
+                  activeTab === 'hero'
+                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Hero Media
+              </button>
+            </nav>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-200 -z-10"></div>
         </div>
 
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-2 sm:p-4 md:p-6">
           {activeTab === 'products' && (
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="p-6">
