@@ -1,0 +1,154 @@
+{
+  "navbar": {
+    "home": "Accueil",
+    "shop": "Boutique",
+    "about": "À propos",
+    "contact": "Contact",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "profile": "Profil",
+    "logout": "Déconnexion"
+  },
+  "hero": {
+    "title": "Découvrez Notre Collection Exclusive de Montres de Luxe",
+    "subtitle": "Des pièces uniques qui allient élégance et précision",
+    "cta": "Découvrir la Collection",
+    "new_collection": "Nouvelle Collection",
+    "limited_offer": "Offre limitée : 20% de réduction",
+    "learn_more": "En savoir plus"
+  },
+  "features": {
+    "free_shipping": "Livraison gratuite",
+    "free_shipping_desc": "Sur toutes les commandes de plus de 100€",
+    "warranty": "Garantie 2 ans",
+    "warranty_desc": "Qualité garantie",
+    "secure_payment": "Paiement sécurisé",
+    "secure_payment_desc": "Paiement 100% sécurisé",
+    "support": "Support 24/7",
+    "support_desc": "Assistance clientèle"
+  },
+  "auth": {
+    "login_title": "Connectez-vous à votre compte",
+    "register_title": "Créez votre compte",
+    "email": "Email",
+    "password": "Mot de passe",
+    "confirm_password": "Confirmez le mot de passe",
+    "forgot_password": "Mot de passe oublié ?",
+    "no_account": "Pas encore de compte ?",
+    "have_account": "Déjà un compte ?",
+    "sign_in": "Se connecter",
+    "sign_up": "S'inscrire",
+    "or": "Ou continuer avec"
+  },
+  "profile": {
+    "title": "Mon Profil",
+    "personal_info": "Informations personnelles",
+    "orders": "Mes Commandes",
+    "favorites": "Favoris",
+    "admin_dashboard": "Tableau de bord Admin",
+    "settings": "Paramètres",
+    "edit_profile": "Modifier le profil",
+    "save_changes": "Enregistrer les modifications"
+  },
+  "collections": {
+    "title": "Nos Collections",
+    "subtitle": "Découvrez notre sélection de montres de luxe soigneusement choisies",
+    "filters": {
+      "featured": "En vedette",
+      "new_arrivals": "Nouveautés",
+      "bestsellers": "Meilleures ventes"
+    },
+    "view_all": "Voir tous les produits",
+    "features": {
+      "free_shipping": "Livraison gratuite",
+      "free_shipping_desc": "Livraison gratuite pour toutes les commandes",
+      "warranty": "Garantie de 2 ans",
+      "warranty_desc": "Chaque montre est garantie 2 ans",
+      "authentic": "Produits authentiques",
+      "authentic_desc": "Montres 100% authentiques des meilleures marques"
+    },
+    "newsletter": {
+      "title": "Restez informé",
+      "description": "Abonnez-vous à notre newsletter pour recevoir des mises à jour sur les nouvelles arrivées, les offres spéciales et les offres exclusives.",
+      "subscribe": "S'abonner",
+      "subscribing": "Inscription en cours",
+      "privacy": "Nous respectons votre vie privée. Désabonnez-vous à tout moment."
+    }
+  },
+  "contact": {
+    "title": "Contactez-nous",
+    "subtitle": "Contactez notre équipe via nos réseaux sociaux",
+    "our_information": "Nos informations",
+    "location": "Localisation",
+    "location_address": "Tunis, Tunisie",
+    "location_description": "Nous livrons dans toutes les régions de Tunis",
+    "working_hours": "Heures d'ouverture",
+    "working_hours_value": "24/7 - Nous sommes toujours là pour vous",
+    "whatsapp": "WhatsApp",
+    "phone_number": "+216 55 171 771",
+    "whatsapp_description": "Disponible 24/7 pour toute demande de renseignements",
+    "follow_us": "Suivez-nous",
+    "facebook": "Facebook",
+    "facebook_handle": "@moriskos.watches",
+    "tiktok": "TikTok",
+    "tiktok_handle": "@silistain"
+  },
+  "categories": {
+    "men": "Homme",
+    "smart": "Connectées",
+    "diving": "Plongée",
+    "luxury": "Luxe"
+  },
+  "shop": {
+    "title": "Notre Collection de Montres",
+    "description": "Découvrez notre sélection minutieuse de montres de luxe",
+    "filters": "Filtres",
+    "sort_by": "Trier par",
+    "sort_options": {
+      "featured": "En vedette",
+      "price_low_high": "Prix : croissant",
+      "price_high_low": "Prix : décroissant",
+      "newest": "Nouveautés",
+      "name_az": "Nom : A à Z",
+      "name_za": "Nom : Z à A"
+    },
+    "filter_options": {
+      "all_categories": "Toutes les catégories",
+      "all_brands": "Toutes les marques",
+      "categories": "Catégories",
+      "brands": "Marques",
+      "price_range": "Tranche de prix",
+      "min": "Min",
+      "max": "Max",
+      "search": "Rechercher",
+      "search_placeholder": "Rechercher des produits...",
+      "apply_filters": "Appliquer les filtres",
+      "reset_filters": "Réinitialiser les filtres"
+    },
+    "product": {
+      "unknown_brand": "Marque inconnue",
+      "add_to_cart": "Ajouter au panier",
+      "view_details": "Voir les détails",
+      "in_stock": "En stock",
+      "out_of_stock": "Rupture de stock",
+      "on_sale": "Promo"
+    },
+    "no_products": "Aucun produit ne correspond à vos filtres.",
+    "try_adjusting_filters": "Essayez d'ajuster vos filtres ou votre terme de recherche.",
+    "loading": "Chargement des produits...",
+    "error_loading": "Erreur lors du chargement des produits. Veuillez réessayer plus tard.",
+    "search_placeholder": "Rechercher des produits..."
+  },
+  "footer": {
+    "quick_links": "Liens rapides",
+    "shop": "Boutique",
+    "profile": "Profil",
+    "contact": "Contact",
+    "newsletter": "Newsletter",
+    "newsletter_description": "Abonnez-vous pour des mises à jour et des offres exclusives.",
+    "email_placeholder": "Votre email",
+    "subscribing": "Inscription en cours...",
+    "subscribe": "S'abonner",
+    "copyright": "© 2025 Silistain. Tous droits réservés."
+  }
+}

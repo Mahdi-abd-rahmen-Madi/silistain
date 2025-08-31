@@ -25,29 +25,9 @@ export function CartSummary({
         <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Order Summary</h2>
         
         <div className="space-y-4">
-          <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-            <span className="font-medium">${subtotal.toFixed(2)}</span>
-          </div>
-          
-          {showTaxAndShipping && (
-            <>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Shipping</span>
-                <span className="font-medium">${shipping.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Tax</span>
-                <span className="font-medium">${tax.toFixed(2)}</span>
-              </div>
-            </>
-          )}
-          
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-            <div className="flex justify-between font-semibold text-lg">
-              <span>Total</span>
-              <span>${total.toFixed(2)}</span>
-            </div>
+          <div className="flex justify-between font-semibold text-lg">
+            <span>Total</span>
+            <span>${total.toFixed(2)}</span>
           </div>
           
           {onCheckout && (

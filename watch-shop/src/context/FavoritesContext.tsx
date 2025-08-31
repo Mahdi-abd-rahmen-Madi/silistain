@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import { useAuth } from './AuthContext';
 import { Product, ProductImage } from '../types/product';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { supabase } from '../utils/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 interface WatchSpecifications {
   movement: string;
@@ -57,30 +57,42 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     // Handle images array - ensure it's always an array of ProductImage objects
     const images: ProductImage[] = [];
     
-    // Case 1: Product has an images array
+    // Case 1: Handle direct image properties
+    if (product.image) {
+      images.push({
+        url: product.image,
+        isPrimary: true
+      });
+    }
+    
+    // Case 2: Handle images array
     if (Array.isArray(product.images)) {
       product.images.forEach((img: any) => {
         if (typeof img === 'string') {
-          images.push({ url: img, isPrimary: images.length === 0 });
+          images.push({ 
+            url: img, 
+            isPrimary: images.length === 0 
+          });
         } else if (img?.url) {
           images.push({
             url: img.url,
             isPrimary: img.isPrimary || images.length === 0,
-            order: img.order,
+            order: img.order || 0,
             preview: img.preview
           });
         }
       });
     }
     
-    // Case 2: Fallback to imageUrl if no images in array
+    // Case 3: Fallback to imageUrl if no images in array
     const primaryImageUrl = 
       (images.find(img => img.isPrimary)?.url) || // First check for primary image
       (images[0]?.url) || // Then first image in array
       (product.imageUrl) || // Then imageUrl field
-      ''; // Finally fallback to empty string
+      (product.image_url) || // Check for snake_case version
+      '/placeholder-watch.jpg'; // Fallback to placeholder
     
-    // Ensure at least one image exists if imageUrl was provided
+    // Ensure at least one image exists
     if (primaryImageUrl && !images.length) {
       images.push({
         url: primaryImageUrl,

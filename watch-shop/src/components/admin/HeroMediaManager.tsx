@@ -6,6 +6,13 @@ import { Label } from '../../components/ui/Label';
 import { Switch } from '../../components/ui/Switch';
 import { useToast } from '../../hooks/use-toast';
 
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  image_url?: string;
+};
+
 type HeroMedia = {
   id?: string;
   type: 'image' | 'video';
@@ -15,21 +22,28 @@ type HeroMedia = {
   updated_at?: string;
   created_by?: string | null;
   user_id?: string;
+  title?: string;
+  subtitle?: string;
+  cta_text?: string;
+  cta_link?: string;
+  product_id?: string | null;
 };
 
 export const HeroMediaManager = () => {
   // Initialize with default values
   const defaultHeroMedia: HeroMedia = {
     type: 'image',
-    url: ''
+    url: '',
+    cta_text: 'Shop Now',
+    cta_link: '/shop'
   };
 
   const [heroMedia, setHeroMedia] = useState<HeroMedia | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
@@ -48,23 +62,35 @@ export const HeroMediaManager = () => {
     }
   };
 
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const file = e.target.files[0];
-      const url = URL.createObjectURL(file);
-      
-      setHeroMedia(prev => ({
-        ...(prev || defaultHeroMedia),
-        thumbnail_url: url,
-        type: prev?.type || defaultHeroMedia.type,
-        url: prev?.url || defaultHeroMedia.url
-      }));
-    }
-  };
 
   useEffect(() => {
-    fetchHeroMedia();
+    const fetchData = async () => {
+      await Promise.all([
+        fetchHeroMedia(),
+        fetchProducts()
+      ]);
+    };
+    fetchData();
   }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, price, image_url')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load products',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const fetchHeroMedia = async () => {
     try {
@@ -97,6 +123,27 @@ export const HeroMediaManager = () => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    console.log('Input changed:', { name, value });
+    setHeroMedia(prev => {
+      const updated = {
+        ...(prev || defaultHeroMedia),
+        [name]: value
+      };
+      console.log('Updated hero media state:', updated);
+      return updated;
+    });
+  };
+
+  const handleProductSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const productId = e.target.value;
+    setHeroMedia(prev => ({
+      ...(prev || defaultHeroMedia),
+      product_id: productId || null
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSaving || isUploading) {
@@ -105,6 +152,7 @@ export const HeroMediaManager = () => {
     }
     
     console.log('Starting form submission');
+    console.log('Current hero media state:', heroMedia);
     setIsSaving(true);
     setError(null);
 
@@ -141,51 +189,78 @@ export const HeroMediaManager = () => {
       
       // Prepare the data to be saved
       const now = new Date().toISOString();
-      const dataToSave: Omit<HeroMedia, 'id' | 'created_at' | 'updated_at' | 'created_by'> & {
-        id?: string;
-        created_at?: string;
-        updated_at: string;
-        created_by?: string | null;
-      } = {
+      // Only include fields that exist in the database
+      const dataToSave: any = {
         type: currentMedia.type,
         url: currentMedia.url,
         thumbnail_url: currentMedia.thumbnail_url,
+        cta_text: currentMedia.cta_text,
+        product_id: currentMedia.product_id || null,
         updated_at: now,
         created_by: user?.id || null,
-        user_id: user?.id
+        user_id: user?.id,
+        is_active: true
       };
+      
+      console.log('Data to save:', dataToSave);
 
-      // Remove any undefined values to avoid overwriting with null in the database
-      Object.keys(dataToSave).forEach(key => {
-        if (dataToSave[key as keyof typeof dataToSave] === undefined) {
-          delete dataToSave[key as keyof typeof dataToSave];
+      // Clean up the data object before sending
+      const cleanData: Record<string, any> = {};
+      Object.entries(dataToSave).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          cleanData[key] = value;
         }
       });
+      
+      console.log('Cleaned data to save:', cleanData);
 
       let error = null;
       let data = null;
 
-      if (currentMedia.id) {
-        // Update existing record
-        const { data: updateData, error: updateError } = await supabase
-          .from('hero_media')
-          .update(dataToSave)
-          .eq('id', currentMedia.id)
-          .select()
-          .single();
-        
-        data = updateData;
-        error = updateError;
-      } else {
-        // Create new record
-        const { data: insertData, error: insertError } = await supabase
-          .from('hero_media')
-          .insert([{ ...dataToSave, created_at: now }])
-          .select()
-          .single();
-        
-        data = insertData;
-        error = insertError;
+      try {
+        if (currentMedia.id) {
+          // Update existing record
+          console.log('Updating hero media with ID:', currentMedia.id);
+          const { data: updatedData, error: updateError } = await supabase
+            .from('hero_media')
+            .update(cleanData)
+            .eq('id', currentMedia.id)
+            .select()
+            .single();
+          
+          data = updatedData;
+          error = updateError;
+          
+          if (error) throw error;
+          console.log('Update successful:', data);
+          toast({
+            title: 'Success',
+            description: 'Hero media updated successfully!',
+            variant: 'default',
+          });
+        } else {
+          // Create new record
+          console.log('Creating new hero media');
+          const { data: newData, error: insertError } = await supabase
+            .from('hero_media')
+            .insert([cleanData])
+            .select()
+            .single();
+          
+          data = newData;
+          error = insertError;
+          
+          if (error) throw error;
+          console.log('Creation successful:', data);
+          toast({
+            title: 'Success',
+            description: 'Hero media created successfully!',
+            variant: 'default',
+          });
+        }
+      } catch (dbError) {
+        console.error('Database operation failed:', dbError);
+        throw dbError;
       }
 
       if (error) {
@@ -267,37 +342,47 @@ export const HeroMediaManager = () => {
   const currentHeroMedia = heroMedia || defaultHeroMedia;
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
-      <div>
-        <h2 className="text-xl sm:text-2xl font-bold">Hero Media</h2>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Manage the hero section on the home page
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-        <div className="space-y-3 sm:space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="media-type" className="text-sm sm:text-base">Media Type</Label>
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit}>
+        <h2 className="text-lg font-medium mb-4">Hero Content</h2>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="cta_text">Button Text</Label>
+            <Input
+              id="cta_text"
+              name="cta_text"
+              value={heroMedia?.cta_text || ''}
+              onChange={handleInputChange}
+              placeholder="e.g. Shop Now"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label htmlFor="product_id">Link to Product (Optional)</Label>
             <select
-              id="media-type"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              value={currentHeroMedia.type}
-              onChange={(e) =>
-                setHeroMedia(prev => ({
-                  ...(prev || defaultHeroMedia),
-                  type: e.target.value as 'image' | 'video'
-                }))
-              }
+              id="product_id"
+              name="product_id"
+              value={heroMedia?.product_id || ''}
+              onChange={handleProductSelect}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
             >
-              <option value="image">Image</option>
-              <option value="video">Video</option>
+              <option value="">Select a product (or leave for default shop link)</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name} (${product.price})
+                </option>
+              ))}
             </select>
+            {heroMedia?.product_id && (
+              <p className="mt-1 text-sm text-gray-500">
+                Will link to: {heroMedia.cta_link}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="media" className="text-sm sm:text-base">
-              {currentHeroMedia.type === 'image' ? 'Image' : 'Video'} File
+              {(heroMedia || defaultHeroMedia).type === 'image' ? 'Image' : 'Video'} File
             </Label>
             <div className="relative">
               <Input
@@ -328,30 +413,6 @@ export const HeroMediaManager = () => {
             )}
           </div>
 
-          {currentHeroMedia.type === 'video' && (
-            <div className="space-y-1.5">
-              <Label htmlFor="thumbnail" className="text-sm sm:text-base">Thumbnail (Optional)</Label>
-              <div className="relative">
-                <Input
-                  id="thumbnail"
-                  type="file"
-                  ref={thumbnailInputRef}
-                  accept="image/*"
-                  onChange={handleThumbnailChange}
-                  className="text-xs sm:text-sm py-2 h-auto min-h-10"
-                />
-              </div>
-              {currentHeroMedia.thumbnail_url && (
-                <div className="mt-2">
-                  <img
-                    src={currentHeroMedia.thumbnail_url}
-                    alt="Thumbnail Preview"
-                    className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-md border border-gray-200"
-                  />
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="pt-2">

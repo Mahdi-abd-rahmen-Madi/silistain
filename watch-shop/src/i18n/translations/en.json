@@ -1,0 +1,154 @@
+{
+  "navbar": {
+    "home": "Home",
+    "shop": "Shop",
+    "about": "About",
+    "contact": "Contact",
+    "login": "Login",
+    "register": "Register",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "hero": {
+    "title": "Discover Our Exclusive Collection of Luxury Watches",
+    "subtitle": "Unique pieces that combine elegance and precision",
+    "cta": "Discover the Collection",
+    "new_collection": "New Collection",
+    "limited_offer": "Limited Time 20% OFF",
+    "learn_more": "Learn More"
+  },
+  "features": {
+    "free_shipping": "Free Shipping",
+    "free_shipping_desc": "On all orders over $100",
+    "warranty": "2-Year Warranty",
+    "warranty_desc": "Guaranteed quality",
+    "secure_payment": "Secure Payment",
+    "secure_payment_desc": "100% secure payment",
+    "support": "24/7 Support",
+    "support_desc": "Customer support"
+  },
+  "auth": {
+    "login_title": "Sign in to your account",
+    "register_title": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "forgot_password": "Forgot password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "sign_in": "Sign in",
+    "sign_up": "Sign up",
+    "or": "Or continue with"
+  },
+  "profile": {
+    "title": "My Profile",
+    "personal_info": "Personal Information",
+    "orders": "My Orders",
+    "favorites": "Favorites",
+    "admin_dashboard": "Admin Dashboard",
+    "settings": "Settings",
+    "edit_profile": "Edit Profile",
+    "save_changes": "Save Changes"
+  },
+  "collections": {
+    "title": "Our Collections",
+    "subtitle": "Discover our handpicked selection of premium timepieces",
+    "filters": {
+      "featured": "Featured",
+      "new_arrivals": "New Arrivals",
+      "bestsellers": "Bestsellers"
+    },
+    "view_all": "View All Products",
+    "features": {
+      "free_shipping": "Free Shipping",
+      "free_shipping_desc": "Free shipping on all orders",
+      "warranty": "2-Year Warranty",
+      "warranty_desc": "Every watch comes with a 2-year warranty",
+      "authentic": "Authentic Products",
+      "authentic_desc": "100% authentic watches from top brands"
+    },
+    "newsletter": {
+      "title": "Stay Updated",
+      "description": "Subscribe to our newsletter to receive updates on new arrivals, special offers, and exclusive deals.",
+      "subscribe": "Subscribe",
+      "subscribing": "Subscribing",
+      "privacy": "We respect your privacy. Unsubscribe at any time."
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Get in touch with our team through our social media channels",
+    "our_information": "Our Information",
+    "location": "Location",
+    "location_address": "Tunis, Tunisia",
+    "location_description": "We deliver to all areas of Tunis",
+    "working_hours": "Working Hours",
+    "working_hours_value": "24/7 - We're always here for you",
+    "whatsapp": "WhatsApp",
+    "phone_number": "+216 55 171 771",
+    "whatsapp_description": "Available 24/7 for any inquiries",
+    "follow_us": "Follow Us",
+    "facebook": "Facebook",
+    "facebook_handle": "@moriskos.watches",
+    "tiktok": "TikTok",
+    "tiktok_handle": "@silistain"
+  },
+  "categories": {
+    "men": "Men's",
+    "smart": "Smart",
+    "diving": "Diving",
+    "luxury": "Luxury"
+  },
+  "shop": {
+    "title": "Our Watch Collection",
+    "description": "Discover our handpicked selection of premium timepieces",
+    "filters": "Filters",
+    "sort_by": "Sort by",
+    "sort_options": {
+      "featured": "Featured",
+      "price_low_high": "Price: Low to High",
+      "price_high_low": "Price: High to Low",
+      "newest": "Newest Arrivals",
+      "name_az": "Name: A to Z",
+      "name_za": "Name: Z to A"
+    },
+    "filter_options": {
+      "all_categories": "All Categories",
+      "all_brands": "All Brands",
+      "categories": "Categories",
+      "brands": "Brands",
+      "price_range": "Price Range",
+      "min": "Min",
+      "max": "Max",
+      "search": "Search",
+      "search_placeholder": "Search products...",
+      "apply_filters": "Apply Filters",
+      "reset_filters": "Reset Filters"
+    },
+    "product": {
+      "unknown_brand": "Unknown Brand",
+      "add_to_cart": "Add to Cart",
+      "view_details": "View Details",
+      "in_stock": "In Stock",
+      "out_of_stock": "Out of Stock",
+      "on_sale": "Sale"
+    },
+    "no_products": "No products found matching your filters.",
+    "try_adjusting_filters": "Try adjusting your filters or search term.",
+    "loading": "Loading products...",
+    "error_loading": "Error loading products. Please try again later.",
+    "search_placeholder": "Search products..."
+  },
+  "footer": {
+    "quick_links": "Quick Links",
+    "shop": "Shop",
+    "profile": "Profile",
+    "contact": "Contact",
+    "newsletter": "Newsletter",
+    "newsletter_description": "Subscribe for updates and exclusive offers.",
+    "email_placeholder": "Your email",
+    "subscribing": "Subscribing...",
+    "subscribe": "Subscribe",
+    "copyright": "© 2025 Silistain. All rights reserved."
+  }
+}

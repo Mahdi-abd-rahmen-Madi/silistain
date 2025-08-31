@@ -25,7 +25,6 @@ export function CartItem({ item, onUpdateQuantity, onRemove, variant = 'page' }:
             <h3>{item.name}</h3>
             <p className="ml-4">${item.price.toFixed(2)}</p>
           </div>
-          {item.brand && <p className="mt-1 text-sm text-gray-500">{item.brand}</p>}
         </div>
         
         <div className="flex flex-1 items-end justify-between text-sm mt-2">

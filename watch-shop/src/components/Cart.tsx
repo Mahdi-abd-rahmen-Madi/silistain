@@ -23,7 +23,7 @@ export function Cart() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999] overflow-hidden" style={{ zIndex: 99999 }}>
+    <div className="fixed inset-0 z-[99999] overflow-hidden touch-none" style={{ zIndex: 99999 }}>
       <div className="absolute inset-0 overflow-hidden">
         <motion.div 
           className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"
@@ -34,7 +34,7 @@ export function Cart() {
           onClick={closeCart}
         />
         
-        <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
+        <div className="fixed inset-0 flex justify-end sm:pl-10">
           <motion.div
             initial={{ x: '100%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -45,30 +45,33 @@ export function Cart() {
               duration: 0.5,
               opacity: { duration: 0.3 }
             }}
-            className="w-screen max-w-md relative z-[10000]"
+            className="w-full max-w-full sm:max-w-md relative z-[10000] h-full flex flex-col"
             style={{
-              // @ts-ignore - This is a valid CSS property
-              '--tw-z-index': 10000,
-              zIndex: 10000
-            }}
+              zIndex: 10000,
+              maxHeight: '100vh',
+              WebkitOverflowScrolling: 'touch',
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none' as any,
+            } as any}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute right-4 top-4 z-[10001]">
+            <div className="sticky top-0 z-10 flex-shrink-0 bg-white shadow-sm p-2 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900 px-2">Your Cart</h2>
               <button
                 onClick={closeCart}
-                className="p-2 rounded-full bg-white shadow-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-full bg-white hover:bg-gray-100 transition-colors"
                 aria-label="Close cart"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-6 w-6 text-gray-700" />
               </button>
             </div>
-            <div className="flex h-full flex-col bg-white shadow-2xl">
-              <div className="flex-1 overflow-y-auto py-6 px-4 sm:px-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-900">Your Cart</h2>
-                  <p className="mt-1 text-sm text-gray-500">Review your items before checkout</p>
-                </div>
+            <div className="flex-1 overflow-y-auto bg-white">
+              <div className="p-4 sm:p-6">
+                {cartCount > 0 && (
+                  <p className="text-sm text-gray-500 text-center mb-4">Review your items before checkout</p>
+                )}
 
-                <div className="mt-8">
+                <div className="mt-2">
                   <div className="flow-root">
                     {cartCount === 0 ? (
                       <div className="text-center py-12">
@@ -87,7 +90,7 @@ export function Cart() {
                         </div>
                       </div>
                     ) : (
-                      <ul className="-my-6 divide-y divide-gray-200">
+                      <ul className="divide-y divide-gray-200">
                         {cartItems.map((item) => (
                           <li key={item.id}>
                             <CartItem
@@ -105,7 +108,8 @@ export function Cart() {
               </div>
 
               {cartCount > 0 && (
-                <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
+                <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                <div className="mb-4">
                   <CartSummary 
                     subtotal={subtotal}
                     tax={tax}
@@ -113,27 +117,23 @@ export function Cart() {
                     total={total}
                     showTaxAndShipping={false}
                   />
-                  <div className="mt-6">
-                    <Link
-                      to="/checkout"
-                      className="flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700"
-                      onClick={closeCart}
-                    >
-                      Checkout
-                    </Link>
-                  </div>
-                  <div className="mt-4 flex justify-center text-center text-sm text-gray-500">
-                    <p>
-                      or{' '}
-                      <button
-                        type="button"
-                        className="font-medium text-indigo-600 hover:text-indigo-500"
-                        onClick={closeCart}
-                      >
-                        Continue Shopping<span aria-hidden="true"> &rarr;</span>
-                      </button>
-                    </p>
-                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Link
+                    to="/checkout"
+                    className="block w-full text-center rounded-lg bg-indigo-600 px-6 py-3.5 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    onClick={closeCart}
+                  >
+                    Proceed to Checkout
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={closeCart}
+                    className="w-full text-center text-sm font-medium text-indigo-600 hover:text-indigo-500 py-2"
+                  >
+                    or Continue Shopping
+                  </button>
+                </div>
                 </div>
               )}
             </div>

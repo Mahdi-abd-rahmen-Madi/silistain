@@ -1,0 +1,154 @@
+{
+  "navbar": {
+    "home": "الرئيسية",
+    "shop": "المتجر",
+    "about": "من نحن",
+    "contact": "اتصل بنا",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "profile": "الملف الشخصي",
+    "logout": "تسجيل الخروج"
+  },
+  "hero": {
+    "title": "اكتشف مجموعتنا الحصرية من الساعات الفاخرة",
+    "subtitle": "قطع فريدة تجمع بين الأناقة والدقة",
+    "cta": "اكتشف المجموعة",
+    "new_collection": "مجموعة جديدة",
+    "limited_offer": "عرض لفترة محدودة خصم 20٪",
+    "learn_more": "المزيد من المعلومات"
+  },
+  "features": {
+    "free_shipping": "شحن مجاني",
+    "free_shipping_desc": "لجميع الطلبات فوق 100 دولار",
+    "warranty": "ضمان لمدة سنتين",
+    "warranty_desc": "جودة مضمونة",
+    "secure_payment": "دفع آمن",
+    "secure_payment_desc": "دفع آمن بنسبة 100٪",
+    "support": "دعم فني على مدار الساعة",
+    "support_desc": "خدمة العملاء"
+  },
+  "auth": {
+    "login_title": "تسجيل الدخول إلى حسابك",
+    "register_title": "إنشاء حساب جديد",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirm_password": "تأكيد كلمة المرور",
+    "forgot_password": "نسيت كلمة المرور؟",
+    "no_account": "ليس لديك حساب؟",
+    "have_account": "لديك حساب بالفعل؟",
+    "sign_in": "تسجيل الدخول",
+    "sign_up": "إنشاء حساب",
+    "or": "أو تابع باستخدام"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "personal_info": "المعلومات الشخصية",
+    "orders": "طلباتي",
+    "favorites": "المفضلة",
+    "admin_dashboard": "لوحة التحكم",
+    "settings": "الإعدادات",
+    "edit_profile": "تعديل الملف الشخصي",
+    "save_changes": "حفظ التغييرات"
+  },
+  "collections": {
+    "title": "مجموعاتنا",
+    "subtitle": "اكتشف مجموعتنا المختارة بعناية من الساعات الفاخرة",
+    "filters": {
+      "featured": "متميز",
+      "new_arrivals": "وصل حديثاً",
+      "bestsellers": "الأكثر مبيعاً"
+    },
+    "view_all": "عرض جميع المنتجات",
+    "features": {
+      "free_shipping": "شحن مجاني",
+      "free_shipping_desc": "شحن مجاني لجميع الطلبات",
+      "warranty": "ضمان لمدة سنتين",
+      "warranty_desc": "كل ساعة تأتي مع ضمان لمدة سنتين",
+      "authentic": "منتجات أصلية",
+      "authentic_desc": "ساعات أصلية 100٪ من أشهر الماركات"
+    },
+    "newsletter": {
+      "title": "ابقَ على اطلاع",
+      "description": "اشترك في نشرتنا البريدية لتلقي آخر المستجدات حول المنتجات الجديدة والعروض الخاصة والعروض الحصرية.",
+      "subscribe": "اشتراك",
+      "subscribing": "جاري الاشتراك...",
+      "privacy": "نحن نحترم خصوصيتك. يمكنك إلغاء الاشتراك في أي وقت."
+    }
+  },
+  "contact": {
+    "title": "اتصل بنا",
+    "subtitle": "تواصل مع فريقنا من خلال قنوات التواصل الاجتماعي الخاصة بنا",
+    "our_information": "معلوماتنا",
+    "location": "الموقع",
+    "location_address": "تونس العاصمة، تونس",
+    "location_description": "نقوم بالتوصيل لجميع مناطق تونس",
+    "working_hours": "ساعات العمل",
+    "working_hours_value": "على مدار الساعة - نحن هنا لمساعدتك",
+    "whatsapp": "واتساب",
+    "phone_number": "216 55 171 771+",
+    "whatsapp_description": "متاح على مدار الساعة لجميع الاستفسارات",
+    "follow_us": "تابعنا",
+    "facebook": "فيسبوك",
+    "facebook_handle": "@moriskos.watches",
+    "tiktok": "تيك توك",
+    "tiktok_handle": "@silistain"
+  },
+  "categories": {
+    "men": "رجالية",
+    "smart": "ذكية",
+    "diving": "غوص",
+    "luxury": "فاخرة"
+  },
+  "shop": {
+    "title": "مجموعة ساعاتنا",
+    "description": "اكتشف مجموعتنا المختارة بعناية من الساعات الفاخرة",
+    "filters": "المرشحات",
+    "sort_by": "ترتيب حسب",
+    "sort_options": {
+      "featured": "مميز",
+      "price_low_high": "السعر: من الأقل إلى الأعلى",
+      "price_high_low": "السعر: من الأعلى إلى الأقل",
+      "newest": "أحدث المنتجات",
+      "name_az": "الاسم: أ - ي",
+      "name_za": "الاسم: ي - أ"
+    },
+    "filter_options": {
+      "all_categories": "جميع الفئات",
+      "all_brands": "جميع الماركات",
+      "categories": "الفئات",
+      "brands": "العلامات التجارية",
+      "price_range": "نطاق السعر",
+      "min": "الحد الأدنى",
+      "max": "الحد الأقصى",
+      "search": "بحث",
+      "search_placeholder": "ابحث عن منتجات...",
+      "apply_filters": "تطبيق الفلاتر",
+      "reset_filters": "إعادة تعيين الفلاتر"
+    },
+    "product": {
+      "unknown_brand": "ماركة غير معروفة",
+      "add_to_cart": "أضف إلى السلة",
+      "view_details": "عرض التفاصيل",
+      "in_stock": "متوفر في المخزون",
+      "out_of_stock": "غير متوفر",
+      "on_sale": "تخفيض"
+    },
+    "no_products": "لم يتم العثور على منتجات تطابق عوامل التصفية الخاصة بك.",
+    "try_adjusting_filters": "حاول تعديل عوامل التصفية أو مصطلح البحث الخاص بك.",
+    "loading": "جاري تحميل المنتجات...",
+    "error_loading": "حدث خطأ أثناء تحميل المنتجات. يرجى المحاولة مرة أخرى لاحقًا.",
+    "search_placeholder": "ابحث عن منتجات..."
+  },
+  "footer": {
+    "quick_links": "روابط سريعة",
+    "shop": "المتجر",
+    "profile": "الملف الشخصي",
+    "contact": "اتصل بنا",
+    "newsletter": "النشرة البريدية",
+    "newsletter_description": "اشترك للحصول على التحديثات والعروض الحصرية.",
+    "email_placeholder": "بريدك الإلكتروني",
+    "subscribing": "جاري الاشتراك...",
+    "subscribe": "اشتراك",
+    "copyright": "© 2025 سيليستين. جميع الحقوق محفوظة."
+  }
+}

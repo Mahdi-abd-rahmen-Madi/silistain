@@ -43,10 +43,11 @@ export interface Filters {
 
 export type SortOption = 
   | 'featured' 
-  | 'price-asc' 
-  | 'price-desc' 
-  | 'name-asc' 
-  | 'name-desc';
+  | 'price_low_high' 
+  | 'price_high_low' 
+  | 'newest' 
+  | 'name_az' 
+  | 'name_za';
 
 export interface ShopProps {
   // Add any props if needed

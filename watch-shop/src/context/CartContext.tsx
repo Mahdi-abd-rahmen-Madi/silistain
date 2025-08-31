@@ -57,8 +57,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [cartItems]);
   
   const calculateTax = useCallback((): number => {
-    return calculateSubtotal() * TAX_RATE;
-  }, [calculateSubtotal]);
+    return 0; // Tax removed as per user request
+  }, []);
   
   const calculateShipping = useCallback((): number => {
     return 0; // Always free shipping

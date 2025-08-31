@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
 import { Product, ProductImage } from '../../types/product';
 import { PhotoIcon, XMarkIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { supabase } from '../../lib/supabaseClient';
 
 type ProductFormData = Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & {
   images?: (ProductImage & { file?: File; preview?: string })[];
@@ -15,6 +16,7 @@ const initialFormData: ProductFormData = {
   description: '',
   price: 0,
   category: '',
+  brand: '',
   stock: 0,
   featured: false,
   images: [],
@@ -36,6 +38,8 @@ export default function ProductForm({
   const [formData, setFormData] = useState<ProductFormData>(initialData || initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [brands, setBrands] = useState<string[]>([]);
+  const [isLoadingBrands, setIsLoadingBrands] = useState(false);
 
   const { 
     addProduct, 
@@ -50,6 +54,16 @@ export default function ProductForm({
   
   // Use the effectiveProductId from props or params, with props taking precedence
   const productId = effectiveProductId || paramId || '';
+
+  // Ensure brand is included in form data
+  useEffect(() => {
+    if (initialData && !formData.brand) {
+      setFormData(prev => ({
+        ...prev,
+        brand: initialData.brand || ''
+      }));
+    }
+  }, [initialData, formData.brand]);
 
   // Handle file selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +120,28 @@ export default function ProductForm({
         }
       });
     };
+  }, []);
+
+  // Fetch existing brands
+  const fetchBrands = useCallback(async () => {
+    try {
+      setIsLoadingBrands(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select('brand')
+        .not('brand', 'is', null)
+        .not('brand', 'eq', '');
+      
+      if (error) throw error;
+      
+      // Get unique brands and sort them
+      const uniqueBrands = [...new Set((data as { brand: string }[]).map(item => item.brand))].sort() as string[];
+      setBrands(uniqueBrands);
+    } catch (err) {
+      console.error('Error fetching brands:', err);
+    } finally {
+      setIsLoadingBrands(false);
+    }
   }, []);
 
   // Load product data if in edit mode
@@ -214,6 +250,7 @@ export default function ProductForm({
           description: product.description || '',
           price: product.price || 0,
           category: product.category || '',
+          brand: product.brand || '',
           stock: product.stock || product.stock_quantity || 0,
           featured: product.featured || false
         };
@@ -228,8 +265,9 @@ export default function ProductForm({
     };
     
     loadProduct();
+    fetchBrands();
     // Include all dependencies that are used in the effect
-  }, [isEditing, productId, initialData, getProductById, refreshProducts, products]);
+  }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchBrands]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -432,6 +470,35 @@ export default function ProductForm({
                   <option value="luxury">Luxury Watches</option>
                   <option value="sports">Sports Watches</option>
                 </select>
+              </div>
+
+              <div className="sm:col-span-6 md:col-span-3">
+                <label htmlFor="brand" className="block text-sm font-medium text-gray-700">
+                  Brand
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    id="brand"
+                    name="brand"
+                    value={formData.brand || ''}
+                    onChange={handleChange}
+                    list="brands-list"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm sm:text-base"
+                    placeholder="Enter brand name"
+                  />
+                  <datalist id="brands-list">
+                    {!isLoadingBrands && brands.map((brand, index) => (
+                      <option key={index} value={brand} />
+                    ))}
+                  </datalist>
+                  {isLoadingBrands && (
+                    <p className="mt-1 text-xs text-gray-500">Loading brands...</p>
+                  )}
+                  {!isLoadingBrands && brands.length === 0 && (
+                    <p className="mt-1 text-xs text-gray-500">No brands found. Start typing to add a new one.</p>
+                  )}
+                </div>
               </div>
 
               <div className="sm:col-span-6 md:col-span-3">

@@ -8,6 +8,8 @@ import { OrderSummary } from '../components/OrderSummary';
 import { CartItem } from '../context/CartContext';
 import { fetchMunicipalities, getGovernorates, getDelegations, getCities } from '../services/locationService';
 import type { Municipality } from '../types/order';
+import { useTranslation } from 'react-i18next';
+
 
 // Form field types
 interface FormFields {
@@ -162,9 +164,10 @@ const Checkout = () => {
       const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.1 + 29.99;
       
       // Ensure cart items have required brand property
+      const { t } = useTranslation();
       const itemsWithBrand = cartItems.map(item => ({
         ...item,
-        brand: item.brand || 'Unknown Brand' // Provide a default brand if missing
+        brand: item.brand || t('product.unknown_brand') // Provide a default brand if missing
       }));
       
       // Format the order data with all required fields
@@ -183,11 +186,11 @@ const Checkout = () => {
       const orderData = formatOrderData(orderFormData, itemsWithBrand);
 
       // Submit the order
-      const result = await submitOrderToSheets(orderData);
+      const response = await submitOrderToSheets(orderData, t); // Pass the translation function to submitOrderToSheets
       
       // Handle success - create proper OrderDetails object
       const orderDetails: OrderDetails = {
-        orderId: result?.orderId || `order_${Date.now()}`,
+        orderId: response?.orderId || `order_${Date.now()}`,
         customerName: `${formData.firstName} ${formData.lastName}`,
         email: formData.email as string,
         total: total,

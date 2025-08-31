@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 // Define user type
 type User = {
@@ -14,6 +14,13 @@ type User = {
     [key: string]: any;
     full_name?: string;
     avatar_url?: string;
+    role?: string;
+  };
+  app_metadata?: {
+    [key: string]: any;
+    provider?: string;
+    providers?: string[];
+    role?: string;
   };
 };
 
@@ -26,6 +33,7 @@ interface AuthContextType {
   currentUser: User | null;
   logout: () => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<AuthResponse>;
+  signInWithTikTok: () => Promise<AuthResponse>;
   signInWithMagicLink: (email: string) => Promise<AuthResponse>;
   loading: boolean;
   error: any;
@@ -51,22 +59,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // First, check for existing session
     const checkSession = async () => {
       try {
+        console.log('Checking for existing session...');
+        console.log('VITE_ADMIN_EMAIL from env:', import.meta.env.VITE_ADMIN_EMAIL);
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error getting session:', error);
+          throw error;
+        }
         
         if (session?.user) {
           const userEmail = session.user.email || null;
-          const isAdmin = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+          console.log('Session user email:', userEmail);
+          
+          // Check if user is admin by email or has admin role in app_metadata
+          const isAdminByEmail = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+          const isAdminByRole = session.user.app_metadata?.role === 'admin';
+          const isAdmin = isAdminByEmail || isAdminByRole;
+          
+          console.log('Admin check:', { 
+            userEmail, 
+            adminEmail: import.meta.env.VITE_ADMIN_EMAIL, 
+            isAdminByEmail,
+            isAdminByRole,
+            app_metadata: session.user.app_metadata,
+            isAdmin
+          });
           
           const user = {
             id: session.user.id,
             email: userEmail,
             isAdmin,
             user_metadata: session.user.user_metadata || {},
+            app_metadata: session.user.app_metadata || {}
           };
           
-          console.log('Existing session found:', user);
+          console.log('Existing session found - User object:', JSON.stringify(user, null, 2));
+          console.log('Current environment variables:', JSON.stringify(import.meta.env, null, 2));
+          
           setCurrentUser(user);
         } else {
           console.log('No existing session found');
@@ -89,13 +120,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           const userEmail = session.user.email || null;
-          const isAdmin = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+          
+          // Use the same admin check logic as above
+          const isAdminByEmail = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+          const isAdminByRole = session.user.app_metadata?.role === 'admin';
+          const isAdmin = isAdminByEmail || isAdminByRole;
+          
+          console.log('Auth state change - Admin check:', { 
+            event, 
+            userEmail, 
+            isAdminByEmail, 
+            isAdminByRole, 
+            isAdmin 
+          });
           
           const user = {
             id: session.user.id,
             email: userEmail,
             isAdmin,
             user_metadata: session.user.user_metadata || {},
+            app_metadata: session.user.app_metadata || {}
           };
           
           console.log('User session updated:', user);
@@ -188,6 +232,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithTikTok = async (): Promise<AuthResponse> => {
+    setLoading(true);
+    setError(null);
+    try {
+      // First, check if TikTok is configured in Supabase
+      const { data: providers } = await supabase.auth.getUser();
+      
+      // Use the OAuth provider with 'tiktok' as the provider ID
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'tiktok' as any, // Type assertion as TikTok might not be in the default provider types
+        options: {
+          redirectTo: `${window.location.origin}/shop`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) throw error;
+      
+      return { user: null, error: null };
+    } catch (error) {
+      console.error('Error signing in with TikTok:', error);
+      setError('TikTok login is not currently available. Please try another method.');
+      return { 
+        user: null, 
+        error: new Error('TikTok login is not currently available. Please try another method.') 
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     currentUser: currentUser ? {
       ...currentUser,
@@ -196,6 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } : null,
     logout,
     signInWithGoogle,
+    signInWithTikTok,
     signInWithMagicLink,
     loading,
     error,

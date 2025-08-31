@@ -1,5 +1,5 @@
 import { Order, OrderItem, OrderAddress } from '../types/order';
-import { supabase } from '../utils/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 interface CreateOrderData {
   userId?: string | null;  // Make userId optional and nullable

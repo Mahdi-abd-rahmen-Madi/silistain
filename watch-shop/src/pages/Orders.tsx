@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card
 import { Badge } from '../components/ui/Badge';
 import { format } from 'date-fns';
 import { ArrowLeft, ShoppingBag, Clock, CheckCircle, Truck, PackageCheck, XCircle } from 'lucide-react';
-import { supabase } from '../utils/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 interface OrderItem {
   id: string;
@@ -85,7 +85,18 @@ export default function Orders() {
         if (error) throw error;
         
         if (isMounted) {
-          setOrders(data || []);
+          // Calculate total for each order based on items
+          const ordersWithCalculatedTotals = data?.map(order => {
+            if (order.items?.length > 0) {
+              const calculatedTotal = order.items.reduce((sum: number, item: { price: number; quantity?: number }) => {
+                return sum + (item.price * (item.quantity || 1));
+              }, 0);
+              return { ...order, total: calculatedTotal };
+            }
+            return order;
+          }) || [];
+          
+          setOrders(ordersWithCalculatedTotals);
         }
       } catch (err) {
         console.error('Error fetching orders:', err);
@@ -205,7 +216,12 @@ export default function Orders() {
                             <div className="ml-4 flex-1">
                               <div className="flex justify-between text-base font-medium text-gray-900">
                                 <h3>{item.name}</h3>
-                                <p className="ml-4">${item.price.toFixed(2)}</p>
+                                <p className="text-sm text-gray-500">
+                                  ${item.price.toFixed(2)}
+                                  {item.quantity > 1 && (
+                                    <span className="text-xs text-gray-400 ml-1">× {item.quantity} = ${(item.price * item.quantity).toFixed(2)}</span>
+                                  )}
+                                </p>
                               </div>
                               <p className="mt-1 text-sm text-gray-500">Qty: {item.quantity}</p>
                               {item.brand && (

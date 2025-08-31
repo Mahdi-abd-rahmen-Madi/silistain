@@ -7,6 +7,7 @@ import { QuickView } from './QuickView';
 import { useToast } from '../hooks/use-toast';
 import FavoriteButton from './FavoriteButton';
 import { Product } from '../types/product';
+import { useTranslation } from 'react-i18next';
 
 interface ProductCardProps {
   product: Product;
@@ -14,6 +15,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
@@ -55,10 +57,11 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   
   return (
     <motion.div
-      className="relative bg-white rounded-xl shadow-sm overflow-hidden group cursor-pointer"
+      className="relative bg-white rounded-xl shadow-sm overflow-hidden group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleProductClick}
+      style={{ cursor: 'pointer' }}
     >
       {/* Featured Badge */}
       {isFeatured && (
@@ -72,15 +75,57 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </div>
       )}
       {/* Product Image with Overlay Actions */}
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-50">
+      <div 
+        className="relative aspect-square overflow-hidden rounded-lg bg-gray-50"
+        onContextMenu={(e) => e.preventDefault()}
+        style={{
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          position: 'relative'
+        }}
+      >
+        <div 
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(to bottom, transparent 0%, transparent 5%, rgba(0,0,0,0.05) 15%, transparent 25%, transparent 75%, rgba(0,0,0,0.05) 85%, transparent 95%, transparent 100%)',
+            zIndex: 1,
+            pointerEvents: 'none'
+          }}
+        />
         <img
           src={product.images?.[0]?.url || product.imageUrl || '/placeholder-watch.jpg'}
           alt={product.name}
-          className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105 select-none"
+          draggable="false"
+          onDragStart={(e) => e.preventDefault()}
+          style={{
+            WebkitTouchCallout: 'none',
+            WebkitUserDrag: 'none',
+            KhtmlUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none',
+            userSelect: 'none',
+            pointerEvents: 'none'
+          } as React.CSSProperties & {
+            WebkitTouchCallout: string;
+            WebkitUserDrag: string;
+            KhtmlUserSelect: string;
+            MozUserSelect: string;
+            msUserSelect: string;
+          }}
         />
         
         {/* Badges - Always visible */}
-        <div className="absolute left-3 top-3 z-10 flex flex-col space-y-2">
+        <div 
+          className="absolute left-3 top-3 z-10 flex flex-col space-y-2"
+          style={{ pointerEvents: 'none' }}
+        >
           {/* Show New Arrival badge if product is new, otherwise show Best Seller if applicable */}
           {product.isNew ? (
             <motion.span 
@@ -225,21 +270,28 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             }`}>
               {product.name}
             </h3>
+            {product.brand && (
+              <p className="text-xs text-gray-500">
+                {product.brand === 'product.unknown_brand' || product.brand === 'Unknown Brand' 
+                  ? t('product.unknown_brand') 
+                  : product.brand}
+              </p>
+            )}
           </div>
           <div className="text-right">
             {product.price && product.price > 0 ? (
               product.discount && product.discount > 0 ? (
                 <>
                   <p className="text-sm font-medium text-gray-900">
-                    ${(product.price * (1 - product.discount / 100)).toFixed(2)}
+                    {Math.round(product.price * (1 - product.discount / 100))} TND
                   </p>
                   <p className="text-xs text-gray-500 line-through">
-                    ${product.price.toFixed(2)}
+                    {Math.round(product.price)} TND
                   </p>
                 </>
               ) : (
                 <p className="text-sm font-medium text-gray-900">
-                  ${product.price.toFixed(2)}
+                  {Math.round(product.price)} TND
                 </p>
               )
             ) : (

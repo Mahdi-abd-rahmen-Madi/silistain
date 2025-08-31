@@ -7,7 +7,7 @@ import { Order } from '../../types/order';
 import { OrdersTab } from '../../components/admin/OrdersTab';
 import { HeroMediaManager } from '../../components/admin/HeroMediaManager';
 import { fetchMunicipalities } from '../../services/locationService';
-import { supabase, getAdminClient } from '../../utils/supabaseClient';
+import { supabase, getAdminClient } from '../../lib/supabaseClient';
 
 interface AdminDashboardProps {}
 

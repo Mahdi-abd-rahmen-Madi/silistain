@@ -48,9 +48,10 @@ interface OrderItem {
 /**
  * Submits order data to Supabase
  * @param {Object} orderData - The order data to submit
+ * @param {Function} t - Translation function (optional)
  * @returns {Promise<Object>} - The response from the API
  */
-export const submitOrderToSheets = async (orderData: FormattedOrderData): Promise<ApiResponse> => {
+export const submitOrderToSheets = async (orderData: FormattedOrderData, t: (key: string) => string = (key) => key): Promise<ApiResponse> => {
   try {
     // Calculate totals
     const subtotal = parseFloat(orderData.Subtotal.replace('$', ''));
@@ -65,7 +66,7 @@ export const submitOrderToSheets = async (orderData: FormattedOrderData): Promis
       return {
         productId: '', // You'll need to map this from your products
         name: match[2].trim(),
-        brand: match[3]?.trim() || 'Unknown Brand',
+        brand: match[3]?.trim() || t('product.unknown_brand'),
         price: parseFloat(match[4]),
         quantity: parseInt(match[1]),
         image: '' // Add image URL if available

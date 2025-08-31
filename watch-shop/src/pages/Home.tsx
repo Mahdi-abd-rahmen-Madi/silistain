@@ -1,5 +1,6 @@
 import { useMemo, useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
 import { supabase } from '../lib/supabaseClient';
@@ -49,6 +50,7 @@ type MappedProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
 const Home = () => {
   const { addToCart } = useCart();
   const { products } = useProducts();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<string>('featured');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,8 +95,8 @@ const Home = () => {
     return products.map((product): MappedProduct => ({
       ...product,
       id: product.id,
-      name: product.name || 'Unnamed Product',
-      brand: product.brand || 'Unknown Brand',
+      name: product.name || t('product.unnamed_product'),
+      brand: product.brand || t('product.unknown_brand'),
       price: Number(product.price) || 0,
       image: (product.images?.[0]?.url || '') as string,
       images: (product.images || []).map(img => ({
@@ -167,8 +169,8 @@ const Home = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Our Collections</h2>
-            <p className="mt-4 text-lg text-gray-600">Discover our handpicked selection of premium timepieces</p>
+            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">{t('collections.title')}</h2>
+            <p className="mt-4 text-lg text-gray-600">{t('collections.subtitle')}</p>
           </div>
           
           <Tabs.Root 
@@ -186,7 +188,7 @@ const Home = () => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Featured
+                  {t('collections.filters.featured')}
                 </Tabs.Trigger>
                 <Tabs.Trigger 
                   value="new" 
@@ -196,7 +198,7 @@ const Home = () => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  New Arrivals
+                  {t('collections.filters.new_arrivals')}
                 </Tabs.Trigger>
                 <Tabs.Trigger 
                   value="bestsellers" 
@@ -206,7 +208,7 @@ const Home = () => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Bestsellers
+                  {t('collections.filters.bestsellers')}
                 </Tabs.Trigger>
               </Tabs.List>
             </div>
@@ -225,9 +227,11 @@ const Home = () => {
           
           <div className="mt-10 text-center">
             <Button variant="outline" size="lg" asChild>
-              <Link to="/shop" className="group">
-                View All Products
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+              <Link to="/shop">
+                <Button variant="outline" className="mt-8">
+                  {t('collections.view_all')}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </Link>
             </Button>
           </div>
@@ -236,30 +240,28 @@ const Home = () => {
 
       {/* Features */}
       <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-4">
-                <Truck className="h-6 w-6 text-accent" />
+            <div className="bg-gray-50 p-6 rounded-lg text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-accent/10 text-accent mb-4">
+                <Truck className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Free Shipping</h3>
-              <p className="text-gray-600">Free shipping on all orders</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('collections.features.free_shipping')}</h3>
+              <p className="text-gray-600">{t('collections.features.free_shipping_desc')}</p>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-4">
-                <Shield className="h-6 w-6 text-accent" />
+            <div className="bg-gray-50 p-6 rounded-lg text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-accent/10 text-accent mb-4">
+                <Shield className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">2-Year Warranty</h3>
-              <p className="text-gray-600">Every watch comes with a 2-year warranty</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('collections.features.warranty')}</h3>
+              <p className="text-gray-600">{t('collections.features.warranty_desc')}</p>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle className="h-6 w-6 text-accent" />
+            <div className="bg-gray-50 p-6 rounded-lg text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-accent/10 text-accent mb-4">
+                <CheckCircle className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Authentic Products</h3>
-              <p className="text-gray-600">100% authentic watches from top brands</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('collections.features.authentic')}</h3>
+              <p className="text-gray-600">{t('collections.features.authentic_desc')}</p>
             </div>
           </div>
         </div>
@@ -268,36 +270,31 @@ const Home = () => {
       {/* Newsletter */}
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-gray-50 rounded-2xl p-8 md:p-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Stay Updated</h2>
-            <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-              Subscribe to our newsletter to receive updates on new arrivals, special offers, and exclusive deals.
+          <div className="max-w-2xl mx-auto text-center mt-16">
+            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">{t('collections.newsletter.title')}</h2>
+            <p className="mt-4 text-lg text-gray-600">
+              {t('collections.newsletter.description')}
             </p>
-            
-            <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  name="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="flex-1 min-w-0 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-colors"
-                  required
-                  disabled={isSubmitting}
-                />
-                <Button 
-                  type="submit" 
-                  className={`whitespace-nowrap ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Subscribing...' : 'Subscribe'}
-                </Button>
-              </div>
-              <p className="mt-3 text-xs text-gray-500">
-                We respect your privacy. Unsubscribe at any time.
-              </p>
+            <form onSubmit={handleNewsletterSubmit} className="mt-8 flex max-w-md mx-auto">
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('auth.email')}
+                className="min-w-0 flex-auto rounded-l-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6"
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-none rounded-r-md bg-accent px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accent/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
+              >
+                {isSubmitting ? `${t('collections.newsletter.subscribing')}...` : t('collections.newsletter.subscribe')}
+              </button>
             </form>
+            <p className="mt-3 text-sm text-gray-500">
+              {t('collections.newsletter.privacy')}
+            </p>
           </div>
         </div>
       </section>

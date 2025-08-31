@@ -4,6 +4,8 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { ProductProvider } from './context/ProductContext';
 import { FavoritesProvider } from './context/FavoritesContext';
+import { OrdersProvider } from './context/OrdersContext';
+import { LanguageProvider } from './context/LanguageContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
@@ -12,6 +14,7 @@ import CartPage from './pages/CartPage';
 import FavoritesPage from './pages/FavoritesPage';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
+import Contact from './pages/Contact';
 import AdminSignup from './pages/AdminSignup';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ProductForm from './components/admin/ProductForm';
@@ -41,6 +44,7 @@ function AppContent() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/admin/signup" element={
               <ProtectedRoute>
@@ -63,6 +67,11 @@ function AppContent() {
               </ProtectedRoute>
             } />
             <Route path="/admin/dashboard" element={
+              <AdminProtectedRoute>
+                <AdminDashboard />
+              </AdminProtectedRoute>
+            } />
+            <Route path="/admin/messages" element={
               <AdminProtectedRoute>
                 <AdminDashboard />
               </AdminProtectedRoute>
@@ -101,13 +110,17 @@ function App(): ReactElement {
   return (
     <Router>
       <AuthProvider>
-        <ProductProvider>
-          <CartProvider>
-            <FavoritesProvider>
-              <AppContent />
-            </FavoritesProvider>
-          </CartProvider>
-        </ProductProvider>
+        <LanguageProvider>
+          <ProductProvider>
+            <CartProvider>
+              <FavoritesProvider>
+                <OrdersProvider>
+                  <AppContent />
+                </OrdersProvider>
+              </FavoritesProvider>
+            </CartProvider>
+          </ProductProvider>
+        </LanguageProvider>
       </AuthProvider>
     </Router>
   );
