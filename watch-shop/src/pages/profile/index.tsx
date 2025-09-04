@@ -9,6 +9,7 @@ import { Heart, User, LogOut, Package, Loader2, AlertCircle } from 'lucide-react
 import { useNavigate } from 'react-router-dom';
 import * as Tabs from '@radix-ui/react-tabs';
 import { Product } from '../../types/product';
+import { useTranslation } from 'react-i18next';
 
 // Extend the User type to include favorites
 type UserWithFavorites = {
@@ -19,6 +20,7 @@ type UserWithFavorites = {
 };
 
 const Profile = () => {
+  const { t } = useTranslation();
   const { currentUser, logout } = useAuth();
   const { favorites, loading: favoritesLoading, error: favoritesError } = useFavorites();
   const { orders, loading: ordersLoading, error: ordersError, fetchRecentOrders } = useOrders();
@@ -47,7 +49,7 @@ const Profile = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your profile...</p>
+          <p className="text-gray-600">{t('profile.loading.profile')}</p>
         </div>
       </div>
     );
@@ -62,7 +64,7 @@ const Profile = () => {
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
           <p className="text-gray-600">
-            {activeTab === 'favorites' ? 'Loading your favorites...' : 'Loading your orders...'}
+            {activeTab === 'favorites' ? t('profile.loading.favorites') : t('profile.loading.orders')}
           </p>
         </div>
       </div>
@@ -73,8 +75,8 @@ const Profile = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Please sign in to view your profile</h2>
-          <Button onClick={() => navigate('/login')}>Sign In</Button>
+          <h2 className="text-2xl font-bold mb-4">{t('profile.not_signed_in')}</h2>
+          <Button onClick={() => navigate('/login')}>{t('auth.sign_in')}</Button>
         </div>
       </div>
     );
@@ -91,11 +93,11 @@ const Profile = () => {
             </div>
             <div className="flex-1 text-center sm:text-left">
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                {currentUser?.email?.split('@')[0] || 'User'}
+                {currentUser?.email?.split('@')[0] || t('profile.title')}
               </h1>
               {currentUser?.user_metadata?.created_at && (
                 <p className="text-sm sm:text-base text-gray-500 mt-1">
-                  Member since {new Date(currentUser.user_metadata.created_at).toLocaleDateString(undefined, {
+                  {t('profile.member_since')} {new Date(currentUser.user_metadata.created_at).toLocaleDateString(undefined, {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
@@ -110,7 +112,7 @@ const Profile = () => {
               size="sm"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+              {t('profile.sign_out')}
             </Button>
           </div>
         </div>
@@ -134,9 +136,9 @@ const Profile = () => {
               >
                 <div className="flex items-center justify-center gap-2">
                   <Heart className="w-4 h-4 flex-shrink-0" />
-                  <span>Favorites</span>
+                  <span>{t('profile.tabs.favorites')}</span>
                   <span className="ml-1 bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
-                    {favorites.length}
+                    {t('profile.tabs.favorites_count', { count: favorites.length })}
                   </span>
                 </div>
               </Tabs.Trigger>
@@ -150,10 +152,10 @@ const Profile = () => {
               >
                 <div className="flex items-center justify-center gap-2">
                   <Package className="w-4 h-4 flex-shrink-0" />
-                  <span>My Orders</span>
+                  <span>{t('profile.tabs.orders')}</span>
                   {orders.length > 0 && (
                     <span className="ml-1 bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
-                      {orders.length}
+                      {t('profile.tabs.orders_count', { count: orders.length })}
                     </span>
                   )}
                 </div>
@@ -165,26 +167,26 @@ const Profile = () => {
             {favoritesError ? (
               <div className="text-center py-8 sm:py-12 bg-white rounded-lg p-6 shadow-sm">
                 <AlertCircle className="w-12 h-12 mx-auto text-red-400 mb-4" />
-                <p className="text-red-500 mb-4">Error loading favorites: {favoritesError}</p>
+                <p className="text-red-500 mb-4">{t('profile.loading.error', { resource: t('profile.favorites').toLowerCase() })}: {favoritesError}</p>
                 <Button 
                   onClick={() => window.location.reload()} 
                   variant="outline"
                   size="sm"
                 >
-                  Try Again
+                  {t('profile.loading.try_again')}
                 </Button>
               </div>
             ) : favorites.length === 0 ? (
               <div className="text-center py-12 sm:py-16 bg-white rounded-lg p-6 shadow-sm">
                 <Heart className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-800">No favorites yet</h3>
-                <p className="text-gray-500 mt-2 max-w-md mx-auto">Save your favorite watches to see them here</p>
+                <h3 className="text-lg font-medium text-gray-800">{t('profile.tabs.no_favorites_title')}</h3>
+                <p className="text-gray-500 mt-2 max-w-md mx-auto">{t('profile.tabs.no_favorites_message')}</p>
                 <Button 
                   onClick={() => navigate('/shop')} 
                   className="mt-4"
                   size="sm"
                 >
-                  Browse Watches
+                  {t('profile.tabs.browse_watches')}
                 </Button>
               </div>
             ) : (
@@ -205,27 +207,27 @@ const Profile = () => {
             {ordersError ? (
               <div className="text-center py-8 sm:py-12 bg-white rounded-lg p-6 shadow-sm">
                 <AlertCircle className="w-12 h-12 mx-auto text-red-400 mb-4" />
-                <p className="text-red-500 mb-4">Error loading orders: {ordersError}</p>
+                <p className="text-red-500 mb-4">{t('profile.loading.error', { resource: t('profile.orders').toLowerCase() })}: {ordersError}</p>
                 <Button 
                   onClick={() => fetchRecentOrders(2)}
                   variant="outline"
                   size="sm"
                 >
-                  Try Again
+                  {t('profile.loading.try_again')}
                 </Button>
               </div>
             ) : orders.length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="text-center py-8 sm:py-12">
                   <Package className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-800">No orders yet</h3>
-                  <p className="text-gray-500 mt-2 mb-6">Your recent orders will appear here</p>
+                  <h3 className="text-lg font-medium text-gray-800">{t('profile.tabs.no_orders_title')}</h3>
+                  <p className="text-gray-500 mt-2 mb-6">{t('profile.tabs.no_orders_message')}</p>
                   <Button 
                     onClick={() => navigate('/shop')}
                     variant="outline"
                     size="sm"
                   >
-                    Start Shopping
+                    {t('profile.tabs.start_shopping')}
                   </Button>
                 </div>
               </div>
@@ -242,7 +244,7 @@ const Profile = () => {
                     size="sm"
                     onClick={() => navigate('/account/orders')}
                   >
-                    View All Orders
+                    {t('profile.tabs.view_all_orders')}
                   </Button>
                 </div>
               </div>

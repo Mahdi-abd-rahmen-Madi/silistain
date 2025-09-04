@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Order } from '../context/OrdersContext';
 import { useState, useMemo } from 'react';
 import { ProductImage } from '../types/product';
+import { useTranslation } from 'react-i18next';
 
 interface OrderCardProps {
   order: Order;
@@ -33,25 +34,43 @@ const paymentStatusColors = {
 };
 
 export function OrderCard({ order }: OrderCardProps) {
-  const formattedDate = format(new Date(order.created_at), 'MMM d, yyyy');
+  const { t } = useTranslation();
+  const formattedDate = format(new Date(order.created_at), t('date.formats.default', { defaultValue: 'MMM d, yyyy' }));
   const status = (order.status || '').toLowerCase();
   const paymentStatus = (order.payment_status || 'pending').toLowerCase();
+  
+  // Get localized status text
+  const getStatusText = (status: string) => {
+    return t(`orders.status.${status}`, { 
+      defaultValue: status.charAt(0).toUpperCase() + status.slice(1) 
+    });
+  };
+  
+  // Get localized payment status text
+  const getPaymentStatusText = (status: string) => {
+    if (status === 'paid') return t('orders.payment_status.paid');
+    if (status === 'refunded') return t('orders.payment_status.refunded');
+    if (status === 'failed') return t('orders.payment_status.failed');
+    return t('orders.payment_status.pending');
+  };
   
   return (
     <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow transition-shadow duration-200">
       <div className="p-4 border-b bg-gray-50">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-sm text-gray-500">Order #{order.order_number || order.id.split('-')[0].toUpperCase()}</p>
+            <p className="text-sm text-gray-500">{t('orders.order_number', { 
+              number: order.order_number || order.id.split('-')[0].toUpperCase() 
+            })}</p>
             <p className="text-xs text-gray-400">{formattedDate}</p>
           </div>
           <div className="flex flex-col items-end gap-1">
             <span className={`text-xs px-2 py-1 rounded-full ${statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'} flex items-center gap-1`}>
               {statusIcons[status as keyof typeof statusIcons] || <Package className="w-3 h-3" />}
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {getStatusText(status)}
             </span>
             <span className={`text-xs px-2 py-1 rounded-full ${paymentStatusColors[paymentStatus as keyof typeof paymentStatusColors] || 'bg-gray-100 text-gray-800'}`}>
-              {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
+              {getPaymentStatusText(paymentStatus)}
             </span>
           </div>
         </div>
@@ -124,8 +143,8 @@ export function OrderCard({ order }: OrderCardProps) {
                 {item.brand && <p className="text-xs text-gray-500">{item.brand}</p>}
                 <p className="text-sm text-gray-500">Qty: {item.quantity || 1}</p>
                 <p className="text-sm font-medium text-gray-900">
-                  ${(item.price || 0).toFixed(2)}
-                  {item.quantity > 1 && ` × ${item.quantity} = $${((item.price || 0) * item.quantity).toFixed(2)}`}
+                  {(item.price || 0).toFixed(2)} TND
+                  {item.quantity > 1 && ` × ${item.quantity} = ${((item.price || 0) * item.quantity).toFixed(2)} TND`}
                 </p>
               </div>
             </div>
@@ -138,7 +157,7 @@ export function OrderCard({ order }: OrderCardProps) {
           <div className="pt-4 border-t">
             <div className="text-right">
               <p className="text-sm text-gray-500">Total</p>
-              <p className="text-lg font-bold">${(order.total || 0).toFixed(2)}</p>
+              <p className="text-lg font-bold">{(order.total || 0).toFixed(2)} TND</p>
             </div>
           </div>
         </div>

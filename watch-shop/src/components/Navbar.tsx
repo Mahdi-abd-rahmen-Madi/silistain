@@ -16,15 +16,22 @@ const Navbar = () => {
   const { t } = useTranslation();
   const location = useLocation();
   
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (desktop only, mobile handled by overlay)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (isMenuOpen && !target.closest('.mobile-menu') && !target.closest('.hamburger-button')) {
-        setIsMenuOpen(false);
+      if (window.innerWidth >= 768) { // Only for desktop
+        const target = event.target as HTMLElement;
+        const profileMenu = target.closest('.profile-menu');
+        if (isProfileOpen && !profileMenu) {
+          setIsProfileOpen(false);
+        }
       }
-      if (isProfileOpen && !target.closest('.profile-menu')) {
-        setIsProfileOpen(false);
+      
+      if (isMenuOpen) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.mobile-menu') && !target.closest('.hamburger-button')) {
+          setIsMenuOpen(false);
+        }
       }
     };
 
@@ -32,9 +39,10 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen, isProfileOpen]);
 
-  // Close mobile menu when route changes
+  // Close mobile menu and profile dropdown when route changes
   useEffect(() => {
     setIsMenuOpen(false);
+    setIsProfileOpen(false);
   }, [location.pathname]);
 
   // Focus management for mobile menu
@@ -115,24 +123,67 @@ const Navbar = () => {
                 aria-haspopup="true"
                 aria-label="User menu"
               >
-                {currentUser?.avatar_url ? (
-                  <img 
-                    src={currentUser.avatar_url} 
-                    alt="Profile"
-                    className="h-6 w-6 rounded-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const fallback = target.nextSibling as HTMLElement;
-                      if (fallback) fallback.style.display = 'flex';
-                    }}
-                  />
-                ) : (
-                  <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                <div className="relative h-6 w-6">
+                  {currentUser?.avatar_url && (
+                    <img 
+                      src={currentUser.avatar_url} 
+                      alt="Profile"
+                      className="absolute inset-0 h-full w-full rounded-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <div className="h-full w-full rounded-full bg-indigo-100 flex items-center justify-center">
                     <User className="h-4 w-4 text-indigo-700" />
                   </div>
-                )}
+                </div>
               </button>
+              
+              {isProfileOpen && (
+                <div 
+                  className="fixed inset-0 bg-black bg-opacity-25 z-40 md:hidden"
+                  onClick={() => setIsProfileOpen(false)}
+                />
+              )}
+              {/* Mobile Profile Dropdown */}
+              <div 
+                className={`absolute top-14 right-4 w-56 bg-white rounded-md shadow-lg py-1 z-50 ${isProfileOpen ? 'block' : 'hidden'}`}
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="mobile-user-menu"
+              >
+                <div className="px-4 py-2 text-sm text-gray-500 border-b border-gray-100">
+                  {currentUser?.email || 'User'}
+                </div>
+                <Link 
+                  to="/profile"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  onClick={() => setIsProfileOpen(false)}
+                >
+                  {t('navbar.profile')}
+                </Link>
+                <Link 
+                  to="/favorites"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  onClick={() => setIsProfileOpen(false)}
+                >
+                  {t('profile.favorites')}
+                </Link>
+                {currentUser?.isAdmin && (
+                  <Link 
+                    to="/admin/dashboard" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    role="menuitem"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    {t('profile.admin_dashboard')}
+                  </Link>
+                )}
+              </div>
             </div>
 
             {/* Desktop Navigation */}
@@ -174,30 +225,36 @@ const Navbar = () => {
                   aria-haspopup="true"
                   aria-label="User menu"
                 >
-                  {currentUser?.avatar_url ? (
-                    <img 
-                      src={currentUser.avatar_url} 
-                      alt="Profile"
-                      className="h-6 w-6 rounded-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const fallback = target.nextSibling as HTMLElement;
-                        if (fallback) fallback.style.display = 'flex';
-                      }}
-                    />
-                  ) : (
-                    <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                  <div className="relative h-6 w-6">
+                    {currentUser?.avatar_url && (
+                      <img 
+                        src={currentUser.avatar_url} 
+                        alt="Profile"
+                        className="absolute inset-0 h-full w-full rounded-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <div className="h-full w-full rounded-full bg-indigo-100 flex items-center justify-center">
                       <User className="h-4 w-4 text-indigo-700" />
                     </div>
-                  )}
+                  </div>
                 </button>
                 
+                {isProfileOpen && (
+                  <div 
+                    className="fixed inset-0 bg-black bg-opacity-25 z-40 md:hidden"
+                    onClick={() => setIsProfileOpen(false)}
+                  />
+                )}
                 <div 
                   className={`absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 ${isProfileOpen ? 'block' : 'hidden'}`}
                   role="menu"
                   aria-orientation="vertical"
                   aria-labelledby="user-menu"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <div className="px-4 py-2 text-sm text-gray-500 border-b border-gray-100">
                     {currentUser?.email || 'User'}

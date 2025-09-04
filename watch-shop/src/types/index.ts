@@ -55,21 +55,22 @@ export interface ShopProps {
 
 export interface CheckoutFormData {
   firstName: string;
-  lastName: string;
-  email: string;
+  lastName?: string;  // Made optional
+  email?: string;     // Made optional
   phone: string;
   address: string;
-  city: string;
+  city?: string;      // Made optional
   governorate: string;
   delegation: string;
   zipCode: string;
+  country?: string;   // Made optional
   cardNumber: string;
   cardName: string;
   expiryDate: string;
   cvv: string;
   saveInfo: boolean;
   shippingSameAsBilling: boolean;
-  [key: string]: string | boolean; // Index signature for dynamic property access
+  [key: string]: string | boolean | undefined; // Updated to include undefined for optional fields
 }
 
 export interface OrderDetails {

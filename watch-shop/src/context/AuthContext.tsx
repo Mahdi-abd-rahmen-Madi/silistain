@@ -177,27 +177,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async (): Promise<AuthResponse> => {
-    setLoading(true);
-    setError(null);
     try {
+      setError(null);
+      const siteUrl = import.meta.env.VITE_SITE_URL || 'http://localhost:3000';
+      console.log('Using site URL for OAuth:', siteUrl);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/shop`,
+          redirectTo: `${siteUrl}/auth/callback`,
           queryParams: {
             access_type: 'offline',
-            prompt: 'select_account',
+            prompt: 'consent',
           },
         },
       });
 
       if (error) throw error;
       
-      // The OAuth flow will redirect the user, so we don't need to do anything else here
-      // The auth state change listener will handle updating the user state after the redirect
-      return { user: null, error: null };
+      return { user: currentUser, error: null };
     } catch (error) {
-      console.error('Error signing in with Google:', error);
+      console.error('Google sign in error:', error);
       setError(error);
       return { user: null, error };
     } finally {
@@ -209,22 +208,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase.auth.signInWithOtp({
+      const siteUrl = import.meta.env.VITE_SITE_URL || 'http://localhost:3000';
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?redirect_to=/shop`,
+          emailRedirectTo: `${siteUrl}/auth/callback`,
         },
       });
 
       if (error) throw error;
       
-      // Show success message to user
-      return { 
-        user: null, 
-        error: { message: 'Check your email for the magic link!' } 
-      };
+      return { user: currentUser, error: null };
     } catch (error) {
-      console.error('Error sending magic link:', error);
+      console.error('Magic link error:', error);
       setError(error);
       return { user: null, error };
     } finally {

@@ -3,6 +3,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 // Create a single supabase client for interacting with your database
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const siteUrl = import.meta.env.VITE_SITE_URL || 'http://localhost:3000';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
@@ -13,12 +14,26 @@ let supabaseInstance: SupabaseClient | null = null;
 
 const createSupabaseClient = (): SupabaseClient => {
   if (!supabaseInstance) {
+    console.log('Initializing Supabase client with site URL:', siteUrl);
+    
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        flowType: 'pkce',
+        debug: true,
       },
+      global: {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      },
+    });
+    
+    // Override the redirectTo URL for all auth methods
+    supabaseInstance.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
     });
   }
   return supabaseInstance;

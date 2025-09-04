@@ -14,16 +14,15 @@ import { useTranslation } from 'react-i18next';
 // Form field types
 interface FormFields {
   firstName: string;
-  lastName: string;
-  email?: string; // Made optional
+  lastName?: string | undefined; // Made optional with explicit undefined
+  email?: string;
   phone: string;
   address: string;
-  city: string;
   governorate: string;
   delegation: string;
   zipCode: string;
   saveInfo: boolean;
-  [key: string]: string | boolean | undefined; // Added undefined to support optional fields
+  [key: string]: string | boolean | undefined; // Supports optional fields
 };
 
 interface Delegation {
@@ -35,6 +34,7 @@ interface Delegation {
 type LocalMunicipality = Omit<Municipality, 'id' | 'created_at'>;
 
 const Checkout = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { cartItems, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,7 +43,6 @@ const Checkout = () => {
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
   const [municipalities, setMunicipalities] = useState<LocalMunicipality[]>([]);
   const [delegations, setDelegations] = useState<Delegation[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Form state
@@ -53,7 +52,6 @@ const Checkout = () => {
     email: '',
     phone: '',
     address: '',
-    city: '',
     governorate: '',
     delegation: '',
     zipCode: '',
@@ -123,23 +121,10 @@ const Checkout = () => {
 
     setFormData(prev => ({
       ...prev,
-      delegation: value,
-      city: selectedDelegation?.name || ''
+      delegation: value
     }));
 
-    // Load cities for the selected delegation
-    if (value) {
-      getCities(value)
-        .then((cities: Municipality[]) => {
-          setCities(cities.map(c => c.name));
-        })
-        .catch((err: Error) => {
-          console.error('Error loading cities:', err);
-          setError('Failed to load cities. Please try again.');
-        });
-    } else {
-      setCities([]);
-    }
+    // City loading removed as city field is no longer used
   };
 
   // Handle form field changes
@@ -164,7 +149,6 @@ const Checkout = () => {
       const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.1 + 29.99;
       
       // Ensure cart items have required brand property
-      const { t } = useTranslation();
       const itemsWithBrand = cartItems.map(item => ({
         ...item,
         brand: item.brand || t('product.unknown_brand') // Provide a default brand if missing
@@ -219,47 +203,61 @@ const Checkout = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden p-8 text-center">
             <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-6" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Order Confirmed!</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              {t('checkout.order_confirmed')}
+            </h1>
             <p className="text-gray-600 dark:text-gray-300 mb-8">
-              Thank you for your purchase. Your order has been received and is being processed.
+              {t('checkout.thank_you')}
               {orderDetails && (
                 <>
                   <br />
-                  We've sent a confirmation email to <span className="font-medium">{orderDetails.email}</span>.
+                  {t('checkout.confirmation_sent', { email: orderDetails.email })}
                 </>
               )}
             </p>
 
             {orderDetails && (
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 mb-8">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Order Details</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  {t('checkout.order_details')}
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Order Number</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t('checkout.order_number')}
+                    </p>
                     <p className="font-medium">#{orderDetails.orderId}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Date</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t('checkout.date')}
+                    </p>
                     <p className="font-medium">{new Date().toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Total</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t('checkout.total')}
+                    </p>
                     <p className="font-medium">${orderDetails.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Payment Method</p>
-                    <p className="font-medium">Cash on Delivery</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t('checkout.payment_method_label')}
+                    </p>
+                    <p className="font-medium">{t('checkout.cash_on_delivery')}</p>
                   </div>
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
-                  <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">What's next?</h4>
+                  <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">
+                    {t('checkout.whats_next')}
+                  </h4>
                   <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300 text-left">
                     <p className="flex items-start">
                       <span className="flex-shrink-0 h-5 w-5 text-green-500 mr-2">
                         <CheckCircleIcon className="h-5 w-5" />
                       </span>
-                      We're processing your order and will send you a shipping confirmation email when your items are on their way.
+                      {t('checkout.order_processing')}
                     </p>
                   </div>
                 </div>
@@ -271,19 +269,19 @@ const Checkout = () => {
                 onClick={() => navigate('/')}
                 className="px-6 py-3 bg-accent text-white font-medium rounded-lg hover:bg-accent/90 transition-colors flex-1 sm:flex-none"
               >
-                Continue Shopping
+                {t('checkout.continue_shopping')}
               </button>
               <button
                 onClick={() => navigate('/account/orders')}
                 className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex-1 sm:flex-none"
               >
-                Track Order
+                {t('checkout.track_order')}
               </button>
             </div>
 
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Need help? <a href="/contact" className="text-accent hover:underline">Contact our support team</a>
+                {t('checkout.need_help')} <a href="/contact" className="text-accent hover:underline">{t('checkout.contact_support')}</a>
               </p>
             </div>
           </div>
@@ -300,23 +298,23 @@ const Checkout = () => {
           className="flex items-center text-gray-600 dark:text-gray-300 hover:text-accent mb-6 transition-colors"
         >
           <ArrowLeftIcon className="h-5 w-5 mr-2" />
-          Back to Cart
+          {t('checkout.back_to_cart')}
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Checkout</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">{t('checkout.title')}</h1>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Billing Details */}
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-medium text-gray-900 dark:text-white">Billing Details</h2>
+                <h2 className="text-xl font-medium text-gray-900 dark:text-white">{t('checkout.billing_details')}</h2>
               </div>
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      First Name <span className="text-red-500">*</span>
+                      {t('checkout.form.first_name')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -330,7 +328,7 @@ const Checkout = () => {
                   </div>
                   <div>
                     <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Last Name <span className="text-red-500">*</span>
+                      {t('checkout.form.last_name')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -346,7 +344,7 @@ const Checkout = () => {
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Email Address <span className="text-gray-400">(Optional)</span>
+                    {t('checkout.form.email')} <span className="text-gray-400">{t('checkout.form.email_optional')}</span>
                   </label>
                   <input
                     type="email"
@@ -355,14 +353,14 @@ const Checkout = () => {
                     value={formData.email || ''}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                    placeholder="example@domain.com"
+                    placeholder={t('checkout.form.email_placeholder')}
                   />
-                  <p className="mt-1 text-xs text-gray-500">We'll only use this to send you order updates</p>
+                  <p className="mt-1 text-xs text-gray-500">{t('checkout.form.email_help')}</p>
                 </div>
 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Phone Number <span className="text-red-500">*</span>
+                    {t('checkout.form.phone')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -377,7 +375,7 @@ const Checkout = () => {
 
                 <div>
                   <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Street Address <span className="text-red-500">*</span>
+                    {t('checkout.form.address')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -392,7 +390,7 @@ const Checkout = () => {
 
                 <div className="mb-4">
                   <label htmlFor="governorate" className="block text-sm font-medium text-gray-700">
-                    Governorate <span className="text-red-500">*</span>
+                    {t('checkout.form.governorate')} <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="governorate"
@@ -402,7 +400,7 @@ const Checkout = () => {
                     required
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                   >
-                    <option value="">Select Governorate</option>
+                    <option value="">{t('checkout.form.select_governorate')}</option>
                     {governorates.map((gov) => (
                       <option key={gov} value={gov}>
                         {gov}
@@ -413,7 +411,7 @@ const Checkout = () => {
 
                 <div className="mb-4">
                   <label htmlFor="delegation" className="block text-sm font-medium text-gray-700">
-                    Delegation <span className="text-red-500">*</span>
+                    {t('checkout.form.delegation')} <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="delegation"
@@ -424,28 +422,13 @@ const Checkout = () => {
                     disabled={!formData.governorate || delegations.length === 0}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
-                    <option value="">Select Delegation</option>
+                    <option value="">{t('checkout.form.select_delegation')}</option>
                     {delegations.map((del, index) => (
                       <option key={`${del.delegation}-${index}`} value={del.delegation}>
                         {del.name}
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    City <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    required
-                    value={formData.city}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                  />
                 </div>
 
                 <div className="flex items-center">
@@ -458,7 +441,7 @@ const Checkout = () => {
                     className="h-4 w-4 text-accent focus:ring-accent border-gray-300 dark:border-gray-600 rounded"
                   />
                   <label htmlFor="saveInfo" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                    Save this information for next time
+                    {t('checkout.form.save_info')}
                   </label>
                 </div>
               </div>
@@ -467,7 +450,7 @@ const Checkout = () => {
             {/* Payment Method */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-medium text-gray-900 dark:text-white">Payment Method</h2>
+                <h2 className="text-xl font-medium text-gray-900 dark:text-white">{t('checkout.payment_method')}</h2>
               </div>
               <div className="p-6">
                 <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 p-4 rounded-lg">
@@ -478,9 +461,9 @@ const Checkout = () => {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-sm font-medium">Cash on Delivery</h3>
+                      <h3 className="text-sm font-medium">{t('checkout.payment_info.cash_on_delivery_title')}</h3>
                       <div className="mt-2 text-sm">
-                        <p>You'll pay in cash when your order is delivered.</p>
+                        <p>{t('checkout.payment_info.cash_on_delivery_help')}</p>
                       </div>
                     </div>
                   </div>
@@ -505,20 +488,18 @@ const Checkout = () => {
               type="submit"
               disabled={isSubmitting || !(
                 formData.firstName &&
-                formData.lastName &&
                 formData.phone &&
                 formData.address &&
                 formData.governorate &&
-                formData.delegation &&
-                formData.city
+                formData.delegation
               )}
               className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-colors ${
-                (!formData.firstName || !formData.lastName || !formData.phone || !formData.address || !formData.governorate || !formData.delegation || !formData.city || isSubmitting)
+                (!formData.firstName || !formData.phone || !formData.address || !formData.governorate || !formData.delegation || isSubmitting)
                   ? 'bg-gray-300 cursor-not-allowed dark:bg-gray-700'
                   : 'bg-green-600 hover:bg-green-700'
               }`}
             >
-              {isSubmitting ? 'Processing...' : 'Confirm Order'}
+              {isSubmitting ? t('checkout.processing') : t('checkout.confirm_order')}
             </button>
           </div>
         </form>

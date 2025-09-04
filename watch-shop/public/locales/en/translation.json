@@ -1,0 +1,19 @@
+{
+  "checkout": {
+    "selectOnMap": "Select on Map",
+    "hideMap": "Hide Map",
+    "address": "Address",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "phone": "Phone",
+    "email": "Email",
+    "governorate": "Governorate",
+    "delegation": "Delegation",
+    "city": "City",
+    "zip_code": "ZIP Code",
+    "errors": {
+      "location_data": "Error loading location data",
+      "cities": "Error loading cities"
+    }
+  }
+}

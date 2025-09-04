@@ -7,7 +7,8 @@
     "login": "Login",
     "register": "Register",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "my_cart": "My Cart"
   },
   "hero": {
     "title": "Discover Our Exclusive Collection of Luxury Watches",
@@ -19,13 +20,17 @@
   },
   "features": {
     "free_shipping": "Free Shipping",
-    "free_shipping_desc": "On all orders over $100",
+    "free_shipping_desc": "On all orders over 300 TND",
     "warranty": "2-Year Warranty",
     "warranty_desc": "Guaranteed quality",
     "secure_payment": "Secure Payment",
     "secure_payment_desc": "100% secure payment",
     "support": "24/7 Support",
     "support_desc": "Customer support"
+  },
+  "common": {
+    "back": "Back",
+    "loading": "Loading..."
   },
   "auth": {
     "login_title": "Sign in to your account",
@@ -40,6 +45,50 @@
     "sign_up": "Sign up",
     "or": "Or continue with"
   },
+  "date": {
+    "formats": {
+      "default": "MMM d, yyyy",
+      "short": "MM/dd/yyyy",
+      "long": "MMMM d, yyyy"
+    },
+    "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  },
+  "orders": {
+    "title": "My Orders",
+    "order_number": "Order #{{number}}",
+    "placed_on": "Placed on {{date}}",
+    "total_amount": "Total amount",
+    "items": "Items",
+    "quantity": "Qty: {{count}}",
+    "more_items": "+{{count}} more items",
+    "shipping_address": "Shipping Address",
+    "payment": "Payment",
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "payment_status": {
+      "pending": "Payment Pending",
+      "paid": "Paid",
+      "refunded": "Refunded",
+      "failed": "Payment Failed"
+    },
+    "payment_paid_on": "Paid on {{date}}",
+    "payment_processing": "Your payment is being processed",
+    "view_details": "View Details",
+    "empty": {
+      "title": "No orders yet",
+      "message": "You haven't placed any orders yet.",
+      "continue_shopping": "Continue Shopping"
+    },
+    "loading": {
+      "error": "Failed to load orders. Please try again later."
+    }
+  },
   "profile": {
     "title": "My Profile",
     "personal_info": "Personal Information",
@@ -48,7 +97,30 @@
     "admin_dashboard": "Admin Dashboard",
     "settings": "Settings",
     "edit_profile": "Edit Profile",
-    "save_changes": "Save Changes"
+    "save_changes": "Save Changes",
+    "member_since": "Member since",
+    "sign_out": "Sign Out",
+    "tabs": {
+      "favorites": "Favorites",
+      "favorites_count": "{{count}} favorites",
+      "no_favorites_title": "No favorites yet",
+      "no_favorites_message": "Save your favorite watches to see them here",
+      "browse_watches": "Browse Watches",
+      "orders": "My Orders",
+      "orders_count": "{{count}} orders",
+      "no_orders_title": "No orders yet",
+      "no_orders_message": "Your order history will appear here",
+      "start_shopping": "Start Shopping",
+      "view_all_orders": "View All Orders"
+    },
+    "loading": {
+      "profile": "Loading your profile...",
+      "favorites": "Loading your favorites...",
+      "orders": "Loading your orders...",
+      "error": "Error loading {{resource}}",
+      "try_again": "Try Again"
+    },
+    "not_signed_in": "Please sign in to view your profile"
   },
   "collections": {
     "title": "Our Collections",
@@ -73,6 +145,63 @@
       "subscribe": "Subscribe",
       "subscribing": "Subscribing",
       "privacy": "We respect your privacy. Unsubscribe at any time."
+    }
+  },
+  "checkout": {
+    "title": "Checkout",
+    "back_to_cart": "Back to Cart",
+    "billing_details": "Billing Details",
+    "order_summary": {
+      "title": "Order Summary",
+      "quantity": "Qty",
+      "total": "Total",
+      "proceed_to_checkout": "Proceed to Checkout",
+      "processing": "Processing..."
+    },
+    "form": {
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "email": "Email Address",
+      "email_placeholder": "example@domain.com",
+      "email_optional": "(Optional)",
+      "email_help": "We'll only use this to send you order updates",
+      "phone": "Phone Number",
+      "address": "Street Address",
+      "governorate": "Governorate",
+      "select_governorate": "Select Governorate",
+      "delegation": "Delegation",
+      "select_delegation": "Select Delegation",
+      "zip_code": "ZIP Code",
+      "save_info": "Save this information for next time",
+      "required_field": "Required field"
+    },
+    "payment_info": {
+      "cash_on_delivery_title": "Cash on Delivery",
+      "cash_on_delivery_desc": "You'll pay in cash when your order is delivered.",
+      "cash_on_delivery_help": "By placing your order, you agree to our Terms of Service and Privacy Policy."
+    },
+    "confirm_order": "Confirm Order",
+    "processing": "Processing...",
+    "order_confirmed": "Order Confirmed!",
+    "thank_you": "Thank you for your purchase. Your order has been received and is being processed.",
+    "confirmation_sent": "We've sent a confirmation email to {{email}}.",
+    "order_details": "Order Details",
+    "order_number": "Order Number",
+    "date": "Date",
+    "total": "Total",
+    "payment_method_label": "Payment Method",
+    "cash_on_delivery": "Cash on Delivery",
+    "whats_next": "What's next?",
+    "order_processing": "We're processing your order and will send you a shipping confirmation email when your items are on their way.",
+    "continue_shopping": "Continue Shopping",
+    "track_order": "Track Order",
+    "need_help": "Need help?",
+    "contact_support": "Contact our support team",
+    "errors": {
+      "location_data": "Failed to load location data. Please try again later.",
+      "delegations": "Failed to load delegations. Please try again.",
+      "order_submission": "Failed to place order. Please try again.",
+      "unknown_brand": "Unknown Brand"
     }
   },
   "contact": {

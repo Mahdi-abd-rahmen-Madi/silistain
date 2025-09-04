@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -51,6 +52,7 @@ const statusColors = {
 };
 
 export default function Orders() {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +71,7 @@ export default function Orders() {
         
         if (sessionError || !session) {
           if (isMounted) {
-            setError('Please sign in to view your orders');
+            setError(t('profile.not_signed_in'));
             setOrders([]);
           }
           return;
@@ -101,7 +103,7 @@ export default function Orders() {
       } catch (err) {
         console.error('Error fetching orders:', err);
         if (isMounted) {
-          setError('Failed to load orders. Please try again later.');
+          setError(t('orders.loading.error'));
         }
       } finally {
         if (isMounted) {
@@ -121,7 +123,7 @@ export default function Orders() {
   const getStatusBadge = (status: string) => (
     <Badge className={`${statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'} text-xs font-medium px-2.5 py-0.5 rounded-full inline-flex items-center gap-1`}>
       {statusIcons[status as keyof typeof statusIcons]}
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {t(`orders.status.${status}`, { defaultValue: status.charAt(0).toUpperCase() + status.slice(1) })}
     </Badge>
   );
 
@@ -130,7 +132,8 @@ export default function Orders() {
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent" aria-hidden="true"></div>
+            <span className="sr-only">{t('common.loading')}</span>
           </div>
         </div>
       </div>
@@ -147,9 +150,9 @@ export default function Orders() {
             onClick={() => navigate(-1)}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            {t('common.back')}
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('orders.title')}</h1>
         </div>
 
         {error ? (
@@ -166,10 +169,10 @@ export default function Orders() {
         ) : orders.length === 0 ? (
           <div className="text-center py-12">
             <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-lg font-medium text-gray-900">No orders yet</h3>
-            <p className="mt-1 text-sm text-gray-500">You haven't placed any orders yet.</p>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">{t('orders.empty.title')}</h3>
+            <p className="mt-1 text-sm text-gray-500">{t('orders.empty.message')}</p>
             <div className="mt-6">
-              <Button onClick={() => navigate('/')}>Continue Shopping</Button>
+              <Button onClick={() => navigate('/')}>{t('orders.empty.continue_shopping')}</Button>
             </div>
           </div>
         ) : (
@@ -180,23 +183,23 @@ export default function Orders() {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-4">
-                        <h2 className="text-lg font-medium">Order #{order.order_number || order.id.substring(0, 8)}</h2>
+                        <h2 className="text-lg font-medium">{t('orders.order_number', { number: order.order_number || order.id.substring(0, 8) })}</h2>
                         {getStatusBadge(order.status)}
                       </div>
                       <p className="text-sm text-gray-500 mt-1">
-                        Placed on {format(new Date(order.created_at), 'MMMM d, yyyy')}
+                        {t('orders.placed_on', { date: format(new Date(order.created_at), 'MMMM d, yyyy') })}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-500">Total amount</p>
-                      <p className="text-lg font-medium">${order.total.toFixed(2)}</p>
+                      <p className="text-sm text-gray-500">{t('orders.total_amount')}</p>
+                      <p className="text-lg font-medium">{order.total.toFixed(2)} TND</p>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-900 mb-2">Items</h3>
+                      <h3 className="text-sm font-medium text-gray-900 mb-2">{t('orders.items')}</h3>
                       <div className="space-y-4">
                         {order.items.slice(0, 3).map((item) => (
                           <div key={`${item.id}-${item.name}`} className="flex items-start">
@@ -217,13 +220,13 @@ export default function Orders() {
                               <div className="flex justify-between text-base font-medium text-gray-900">
                                 <h3>{item.name}</h3>
                                 <p className="text-sm text-gray-500">
-                                  ${item.price.toFixed(2)}
+                                  {item.price.toFixed(2)} TND
                                   {item.quantity > 1 && (
-                                    <span className="text-xs text-gray-400 ml-1">× {item.quantity} = ${(item.price * item.quantity).toFixed(2)}</span>
+                                    <span className="text-xs text-gray-400 ml-1">× {item.quantity} = {(item.price * item.quantity).toFixed(2)} TND</span>
                                   )}
                                 </p>
                               </div>
-                              <p className="mt-1 text-sm text-gray-500">Qty: {item.quantity}</p>
+                              <p className="mt-1 text-sm text-gray-500">{t('orders.quantity', { count: item.quantity })}</p>
                               {item.brand && (
                                 <p className="mt-1 text-xs text-gray-500">{item.brand}</p>
                               )}
@@ -231,12 +234,12 @@ export default function Orders() {
                           </div>
                         ))}
                         {order.items.length > 3 && (
-                          <p className="text-sm text-gray-500">+{order.items.length - 3} more items</p>
+                          <p className="text-sm text-gray-500">{t('orders.more_items', { count: order.items.length - 3 })}</p>
                         )}
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-gray-900 mb-2">Shipping Address</h3>
+                      <h3 className="text-sm font-medium text-gray-900 mb-2">{t('orders.shipping_address')}</h3>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <p className="text-sm text-gray-900">
                           {order.shipping_address.firstName} {order.shipping_address.lastName}
@@ -253,7 +256,7 @@ export default function Orders() {
                       </div>
                       
                       <div className="mt-4">
-                        <h3 className="text-sm font-medium text-gray-900 mb-2">Payment</h3>
+                        <h3 className="text-sm font-medium text-gray-900 mb-2">{t('orders.payment')}</h3>
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
                             {order.payment_status === 'paid' ? (
@@ -264,12 +267,12 @@ export default function Orders() {
                           </div>
                           <div className="ml-3">
                             <p className="text-sm font-medium text-gray-900">
-                              {order.payment_status === 'paid' ? 'Paid' : 'Payment Pending'}
+                              {order.payment_status === 'paid' ? t('orders.payment_status.paid') : t('orders.payment_status.pending')}
                             </p>
                             <p className="text-sm text-gray-500">
                               {order.payment_status === 'paid' 
-                                ? `Paid on ${format(new Date(order.created_at), 'MMMM d, yyyy')}`
-                                : 'Your payment is being processed'}
+                                ? t('orders.payment_paid_on', { date: format(new Date(order.created_at), 'MMMM d, yyyy') })
+                                : t('orders.payment_processing')}
                             </p>
                           </div>
                         </div>
@@ -282,7 +285,7 @@ export default function Orders() {
                     variant="outline"
                     onClick={() => navigate(`/account/orders/${order.id}`)}
                   >
-                    View Details
+                    {t('orders.view_details')}
                   </Button>
                 </CardFooter>
               </Card>

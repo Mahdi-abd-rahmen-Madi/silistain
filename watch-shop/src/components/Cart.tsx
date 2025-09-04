@@ -5,8 +5,10 @@ import { Button } from './ui/Button';
 import { Link } from 'react-router-dom';
 import { CartItem } from './cart/CartItem';
 import { CartSummary } from './cart/CartSummary';
+import { useTranslation } from 'react-i18next';
 
 export function Cart() {
+  const { t } = useTranslation();
   const { 
     cartItems, 
     isOpen, 
@@ -56,7 +58,7 @@ export function Cart() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 z-10 flex-shrink-0 bg-white shadow-sm p-2 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900 px-2">Your Cart</h2>
+              <h2 className="text-xl font-semibold text-gray-900 px-2">{t('cart.title')}</h2>
               <button
                 onClick={closeCart}
                 className="p-2 rounded-full bg-white hover:bg-gray-100 transition-colors"
@@ -68,7 +70,7 @@ export function Cart() {
             <div className="flex-1 overflow-y-auto bg-white">
               <div className="p-4 sm:p-6">
                 {cartCount > 0 && (
-                  <p className="text-sm text-gray-500 text-center mb-4">Review your items before checkout</p>
+                  <p className="text-sm text-gray-500 text-center mb-4">{t('cart.review_items')}</p>
                 )}
 
                 <div className="mt-2">
@@ -76,8 +78,8 @@ export function Cart() {
                     {cartCount === 0 ? (
                       <div className="text-center py-12">
                         <ShoppingCartIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">Your cart is empty</h3>
-                        <p className="mt-1 text-sm text-gray-500">Start adding some items to your cart.</p>
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">{t('cart.empty')}</h3>
+                        <p className="mt-1 text-sm text-gray-500">{t('cart.start_adding')}</p>
                         <div className="mt-6">
                           <Button
                             type="button"
@@ -85,7 +87,7 @@ export function Cart() {
                             onClick={closeCart}
                             className="text-sm"
                           >
-                            Continue Shopping
+                            {t('cart.continue_shopping')}
                           </Button>
                         </div>
                       </div>
@@ -124,14 +126,14 @@ export function Cart() {
                     className="block w-full text-center rounded-lg bg-indigo-600 px-6 py-3.5 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     onClick={closeCart}
                   >
-                    Proceed to Checkout
+                    {t('cart.checkout')}
                   </Link>
                   <button
                     type="button"
                     onClick={closeCart}
                     className="w-full text-center text-sm font-medium text-indigo-600 hover:text-indigo-500 py-2"
                   >
-                    or Continue Shopping
+                    {t('cart.or_continue_shopping')}
                   </button>
                 </div>
                 </div>

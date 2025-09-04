@@ -7,7 +7,8 @@
     "login": "تسجيل الدخول",
     "register": "إنشاء حساب",
     "profile": "الملف الشخصي",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "my_cart": "سلة المشتريات"
   },
   "hero": {
     "title": "اكتشف مجموعتنا الحصرية من الساعات الفاخرة",
@@ -27,6 +28,19 @@
     "support": "دعم فني على مدار الساعة",
     "support_desc": "خدمة العملاء"
   },
+  "common": {
+    "back": "رجوع",
+    "loading": "جاري التحميل..."
+  },
+  "date": {
+    "formats": {
+      "default": "d MMM، yyyy",
+      "short": "dd/MM/yyyy",
+      "long": "d MMMM، yyyy"
+    },
+    "days": ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
+    "months": ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
+  },
   "auth": {
     "login_title": "تسجيل الدخول إلى حسابك",
     "register_title": "إنشاء حساب جديد",
@@ -40,6 +54,41 @@
     "sign_up": "إنشاء حساب",
     "or": "أو تابع باستخدام"
   },
+  "orders": {
+    "title": "طلباتي",
+    "order_number": "طلب رقم {{number}}",
+    "placed_on": "تم الطلب في {{date}}",
+    "total_amount": "المبلغ الإجمالي",
+    "items": "العناصر",
+    "quantity": "الكمية: {{count}}",
+    "more_items": "+{{count}} عناصر إضافية",
+    "shipping_address": "عنوان الشحن",
+    "payment": "الدفع",
+    "payment_status": {
+      "paid": "تم الدفع",
+      "pending": "بانتظار الدفع",
+      "refunded": "تم الاسترداد",
+      "failed": "فشل الدفع"
+    },
+    "payment_paid_on": "تم الدفع في {{date}}",
+    "payment_processing": "جاري معالجة دفعتك",
+    "view_details": "عرض التفاصيل",
+    "status": {
+      "pending": "قيد الانتظار",
+      "processing": "قيد المعالجة",
+      "shipped": "تم الشحن",
+      "delivered": "تم التسليم",
+      "cancelled": "ملغي"
+    },
+    "empty": {
+      "title": "لا توجد طلبات بعد",
+      "message": "لم تقم بتقديم أي طلبات بعد.",
+      "continue_shopping": "مواصلة التسوق"
+    },
+    "loading": {
+      "error": "فشل تحميل الطلبات. يرجى المحاولة مرة أخرى لاحقًا."
+    }
+  },
   "profile": {
     "title": "الملف الشخصي",
     "personal_info": "المعلومات الشخصية",
@@ -48,7 +97,30 @@
     "admin_dashboard": "لوحة التحكم",
     "settings": "الإعدادات",
     "edit_profile": "تعديل الملف الشخصي",
-    "save_changes": "حفظ التغييرات"
+    "save_changes": "حفظ التغييرات",
+    "member_since": "عضو منذ",
+    "sign_out": "تسجيل الخروج",
+    "tabs": {
+      "favorites": "المفضلة",
+      "favorites_count": "{{count}} من المفضلة",
+      "no_favorites_title": "لا توجد عناصر مفضلة بعد",
+      "no_favorites_message": "احفظ الساعات المفضلة لديك لرؤيتها هنا",
+      "browse_watches": "تصفح الساعات",
+      "orders": "طلباتي",
+      "orders_count": "{{count}} طلب",
+      "no_orders_title": "لا توجد طلبات بعد",
+      "no_orders_message": "سيظهر سجل طلباتك هنا",
+      "start_shopping": "ابدأ التسوق",
+      "view_all_orders": "عرض جميع الطلبات"
+    },
+    "loading": {
+      "profile": "جاري تحميل ملفك الشخصي...",
+      "favorites": "جاري تحميل المفضلة...",
+      "orders": "جاري تحميل الطلبات...",
+      "error": "حدث خطأ في تحميل {{resource}}",
+      "try_again": "حاول مرة أخرى"
+    },
+    "not_signed_in": "يرجى تسجيل الدخول لعرض ملفك الشخصي"
   },
   "collections": {
     "title": "مجموعاتنا",
@@ -97,8 +169,86 @@
     "men": "رجالية",
     "smart": "ذكية",
     "diving": "غوص",
-    "luxury": "فاخرة"
+    "luxury": "فاخرة",
+    "sport": "رياضية"
   },
+  "cart": {
+    "title": "سلة التسوق",
+    "empty": "سلة التسوق فارغة",
+    "subtotal": "المجموع الفرعي",
+    "shipping": "الشحن",
+    "tax": "الضريبة",
+    "total": "المجموع الكلي",
+    "checkout": "إتمام الشراء",
+    "continue_shopping": "مواصلة التسوق",
+    "or_continue_shopping": "أو متابعة التسوق",
+    "review_items": "راجع مشترياتك قبل إتمام الشراء",
+    "start_adding": "ابدأ بإضافة بعض المنتجات إلى سلة التسوق",
+    "remove": "إزالة",
+    "quantity": "الكمية",
+    "item": "{{count}} منتج",
+    "item_plural": "{{count}} منتجات",
+    "add_to_cart": "أضف إلى السلة",
+    "added_to_cart": "تمت الإضافة إلى السلة",
+    "out_of_stock": "غير متوفر في المخزون"
+  },
+  "checkout": {
+    "title": "إتمام الطلب",
+    "back_to_cart": "العودة إلى السلة",
+    "billing_details": "تفاصيل الفاتورة",
+    "payment_method": "طريقة الدفع",
+    "order_summary": {
+      "title": "ملخص الطلب",
+      "quantity": "الكمية",
+      "total": "الإجمالي",
+      "proceed_to_checkout": "إتمام الشراء",
+      "processing": "جاري المعالجة..."
+    },
+    "form": {
+      "email_placeholder": "example@domain.com",
+      "first_name": "الاسم الأول",
+      "last_name": "الاسم الأخير",
+      "email": "البريد الإلكتروني",
+      "email_optional": "(اختياري)",
+      "email_help": "سنستخدم هذا البريد الإلكتروني فقط لإرسال تحديثات الطلب",
+      "phone": "رقم الهاتف",
+      "address": "العنوان",
+      "governorate": "الولاية",
+      "select_governorate": "اختر الولاية",
+      "delegation": "المعتمدية",
+      "select_delegation": "اختر المعتمدية",
+      "zip_code": "الرمز البريدي",
+      "save_info": "حفظ هذه المعلومات للمرة القادمة",
+      "required_field": "حقل مطلوب"
+    },
+    "payment_info": {
+      "cash_on_delivery_title": "الدفع عند الاستلام",
+      "cash_on_delivery_desc": "سوف تدفع نقداً عند استلام طلبك.",
+      "cash_on_delivery_help": "من خلال تقديم طلبك، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بنا."
+    },
+    "confirm_order": "تأكيد الطلب",
+    "processing": "جاري المعالجة...",
+    "order_confirmed": "تم تأكيد طلبك!",
+    "thank_you": "شكراً لشرائك. لقد تم استلام طلبك وهو قيد المعالجة الآن.",
+    "confirmation_sent": "لقد أرسلنا بريدًا إلكترونيًا للتأكيد إلى {{email}}.",
+    "order_details": "تفاصيل الطلب",
+    "order_number": "رقم الطلب",
+    "date": "التاريخ",
+    "total": "المجموع",
+    "payment_method_label": "طريقة الدفع",
+    "cash_on_delivery": "الدفع عند الاستلام",
+    "whats_next": "ما التالي؟",
+    "order_processing": "نقوم بمعالجة طلبك وسنرسل لك بريدًا إلكترونيًا لتأكيد الشحن بمجرد شحن طلبك.",
+    "continue_shopping": "مواصلة التسوق",
+    "track_order": "تتبع الطلب",
+    "need_help": "بحاجة إلى مساعدة؟",
+    "contact_support": "اتصل بفريق الدعم",
+    "errors": {
+      "location_data": "فشل تحميل بيانات الموقع. يرجى المحاولة مرة أخرى لاحقاً.",
+      "delegations": "فشل تحميل المعتمديات. يرجى المحاولة مرة أخرى.",
+      "order_submission": "فشل تقديم الطلب. يرجى المحاولة مرة أخرى.",
+      "unknown_brand": "علامة تجارية غير معروفة"
+    },
   "shop": {
     "title": "مجموعة ساعاتنا",
     "description": "اكتشف مجموعتنا المختارة بعناية من الساعات الفاخرة",
@@ -152,3 +302,6 @@
     "copyright": "© 2025 سيليستين. جميع الحقوق محفوظة."
   }
 }
+
+}
+

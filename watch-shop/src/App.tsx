@@ -26,6 +26,7 @@ import { ReactElement } from 'react';
 import { AdminProtectedRoute, ProtectedRoute } from './components/ProtectedRoute';
 import Profile from './pages/profile';
 import Orders from './pages/Orders';
+import AuthCallback from './pages/auth/callback';
 
 function AppContent() {
   const location = useLocation();
@@ -97,6 +98,7 @@ function AppContent() {
                 </AdminProtectedRoute>
               } 
             />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>

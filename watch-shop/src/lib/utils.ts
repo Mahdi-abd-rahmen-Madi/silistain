@@ -11,15 +11,15 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Formats a number as a currency string.
+ * Formats a number as a price string with TND.
  * @param price - The price to format.
- * @returns A formatted currency string (e.g., "$1,234.56").
+ * @returns A formatted price string (e.g., "1,234.56 TND").
  */
 export const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(price);
+  return `${price.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })} TND`;
 };
 
 // Type guard to check if a value is an object with a specific property

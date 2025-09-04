@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { CartItem } from '../context/CartContext';
 import { Dialog } from '@headlessui/react';
+import { formatPrice } from '../lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface OrderSummaryProps {
   cartItems: CartItem[];
@@ -10,6 +12,7 @@ interface OrderSummaryProps {
 }
 
 export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: OrderSummaryProps) => {
+  const { t } = useTranslation();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   
   const handleConfirm = () => {
@@ -28,7 +31,9 @@ export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: Order
       <div className="sticky top-8 space-y-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-medium text-gray-900 dark:text-white">Order Summary</h2>
+            <h2 className="text-xl font-medium text-gray-900 dark:text-white">
+              {t('checkout.order_summary.title')}
+            </h2>
           </div>
           <div className="p-6">
             <div className="space-y-4">
@@ -45,11 +50,13 @@ export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: Order
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Qty: {item.quantity}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {t('checkout.order_summary.quantity')}: {item.quantity}
+                      </p>
                     </div>
                   </div>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    ${(item.price * item.quantity).toFixed(2)}
+ {formatPrice(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
@@ -58,8 +65,8 @@ export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: Order
             {/* Order Total */}
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-center text-xl font-semibold">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{t('checkout.order_summary.total')}</span>
+                <span>{formatPrice(total)}</span>
               </div>
             </div>
 
@@ -88,10 +95,10 @@ export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: Order
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Processing...
+                  {t('checkout.order_summary.processing')}
                 </span>
               ) : (
-                'Proceed to Checkout'
+                t('checkout.order_summary.proceed_to_checkout')
               )}
             </button>
 
@@ -117,11 +124,11 @@ export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: Order
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-500 dark:text-gray-400">Items ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})</span>
-                          <span>${subtotal.toFixed(2)}</span>
+                          <span>{formatPrice(subtotal)}</span>
                         </div>
                         <div className="flex justify-between pt-2 mt-2 border-t border-gray-200 dark:border-gray-700 font-medium">
                           <span>Total</span>
-                          <span>${total.toFixed(2)}</span>
+                          <span>{formatPrice(total)}</span>
                         </div>
                       </div>
                     </div>

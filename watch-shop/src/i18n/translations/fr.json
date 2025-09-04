@@ -7,7 +7,8 @@
     "login": "Connexion",
     "register": "S'inscrire",
     "profile": "Profil",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "my_cart": "Mon Panier"
   },
   "hero": {
     "title": "Découvrez Notre Collection Exclusive de Montres de Luxe",
@@ -27,6 +28,54 @@
     "support": "Support 24/7",
     "support_desc": "Assistance clientèle"
   },
+  "common": {
+    "back": "Retour",
+    "loading": "Chargement..."
+  },
+  "date": {
+    "formats": {
+      "default": "d MMM yyyy",
+      "short": "dd/MM/yyyy",
+      "long": "d MMMM yyyy"
+    },
+    "days": ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+    "months": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+  },
+  "orders": {
+    "title": "Mes commandes",
+    "order_number": "Commande #{{number}}",
+    "placed_on": "Passée le {{date}}",
+    "total_amount": "Montant total",
+    "items": "Articles",
+    "quantity": "Qté : {{count}}",
+    "more_items": "+{{count}} articles supplémentaires",
+    "shipping_address": "Adresse de livraison",
+    "payment": "Paiement",
+    "status": {
+      "pending": "En attente",
+      "processing": "En cours de traitement",
+      "shipped": "Expédiée",
+      "delivered": "Livrée",
+      "cancelled": "Annulée"
+    },
+    "payment_status": {
+      "pending": "Paiement en attente",
+      "paid": "Payé",
+      "refunded": "Remboursé",
+      "failed": "Paiement échoué"
+    },
+    "payment_paid_on": "Payé le {{date}}",
+    "payment_processing": "Votre paiement est en cours de traitement",
+    "view_details": "Voir les détails",
+    "empty": {
+      "title": "Aucune commande",
+      "message": "Vous n'avez encore passé aucune commande.",
+      "continue_shopping": "Continuer vos achats"
+    },
+    "loading": {
+      "error": "Échec du chargement des commandes. Veuillez réessayer plus tard."
+    }
+  },
   "auth": {
     "login_title": "Connectez-vous à votre compte",
     "register_title": "Créez votre compte",
@@ -40,6 +89,39 @@
     "sign_up": "S'inscrire",
     "or": "Ou continuer avec"
   },
+  "order_history": {
+    "title": "Historique des commandes",
+    "order_number": "Commande #{{number}}",
+    "placed_on": "Passée le {{date}}",
+    "total_amount": "Montant total",
+    "items": "Articles",
+    "quantity": "Qté : {{count}}",
+    "more_items": "+{{count}} articles supplémentaires",
+    "shipping_address": "Adresse de livraison",
+    "payment": "Paiement",
+    "payment_status": {
+      "paid": "Payé",
+      "pending": "Paiement en attente"
+    },
+    "payment_paid_on": "Payé le {{date}}",
+    "payment_processing": "Votre paiement est en cours de traitement",
+    "view_details": "Voir les détails",
+    "status": {
+      "pending": "En attente",
+      "processing": "En traitement",
+      "shipped": "Expédiée",
+      "delivered": "Livrée",
+      "cancelled": "Annulée"
+    },
+    "empty": {
+      "title": "Aucune commande pour le moment",
+      "message": "Vous n'avez encore passé aucune commande.",
+      "continue_shopping": "Continuer vos achats"
+    },
+    "loading": {
+      "error": "Échec du chargement des commandes. Veuillez réessayer plus tard."
+    }
+  },
   "profile": {
     "title": "Mon Profil",
     "personal_info": "Informations personnelles",
@@ -48,7 +130,30 @@
     "admin_dashboard": "Tableau de bord Admin",
     "settings": "Paramètres",
     "edit_profile": "Modifier le profil",
-    "save_changes": "Enregistrer les modifications"
+    "save_changes": "Enregistrer les modifications",
+    "member_since": "Membre depuis",
+    "sign_out": "Se déconnecter",
+    "tabs": {
+      "favorites": "Favoris",
+      "favorites_count": "{{count}} favoris",
+      "no_favorites_title": "Aucun favori pour le moment",
+      "no_favorites_message": "Enregistrez vos montres préférées pour les voir ici",
+      "browse_watches": "Parcourir les montres",
+      "orders": "Mes Commandes",
+      "orders_count": "{{count}} commandes",
+      "no_orders_title": "Aucune commande pour le moment",
+      "no_orders_message": "Votre historique de commandes apparaîtra ici",
+      "start_shopping": "Commencer les achats",
+      "view_all_orders": "Voir toutes les commandes"
+    },
+    "loading": {
+      "profile": "Chargement de votre profil...",
+      "favorites": "Chargement de vos favoris...",
+      "orders": "Chargement de vos commandes...",
+      "error": "Erreur lors du chargement de {{resource}}",
+      "try_again": "Réessayer"
+    },
+    "not_signed_in": "Veuillez vous connecter pour voir votre profil"
   },
   "collections": {
     "title": "Nos Collections",
@@ -97,8 +202,87 @@
     "men": "Homme",
     "smart": "Connectées",
     "diving": "Plongée",
-    "luxury": "Luxe"
+    "luxury": "Luxe",
+    "sport": "Sport"
   },
+  "cart": {
+    "title": "Panier",
+    "empty": "Votre panier est vide",
+    "subtotal": "Sous-total",
+    "shipping": "Livraison",
+    "tax": "Taxe",
+    "total": "Total",
+    "checkout": "Valider la commande",
+    "continue_shopping": "Continuer mes achats",
+    "or_continue_shopping": "ou Continuer mes achats",
+    "review_items": "Vérifiez vos articles avant de passer à la caisse",
+    "start_adding": "Commencez à ajouter des articles à votre panier",
+    "remove": "Supprimer",
+    "quantity": "Quantité",
+    "item": "{{count}} article",
+    "item_plural": "{{count}} articles",
+    "add_to_cart": "Ajouter au panier",
+    "added_to_cart": "Ajouté au panier",
+    "out_of_stock": "Rupture de stock"
+  },
+  "checkout": {
+    "title": "Commande",
+    "back_to_cart": "Retour au panier",
+    "billing_details": "Détails de facturation",
+    "payment_method": "Moyen de paiement",
+    "order_summary": {
+      "title": "Récapitulatif de la commande",
+      "quantity": "Qté",
+      "total": "Total",
+      "proceed_to_checkout": "Procéder au paiement",
+      "processing": "Traitement en cours..."
+    },
+    "confirm_order": "Confirmer la commande",
+    "processing": "Traitement en cours...",
+    "order_confirmed": "Commande confirmée !",
+    "thank_you": "Merci pour votre achat. Votre commande a bien été reçue et est en cours de traitement.",
+    "confirmation_sent": "Nous avons envoyé un e-mail de confirmation à {{email}}.",
+    "order_details": "Détails de la commande",
+    "order_number": "Numéro de commande",
+    "date": "Date",
+    "total": "Total",
+    "payment_method_label": "Moyen de paiement",
+    "cash_on_delivery": "Paiement à la livraison",
+    "whats_next": "Et maintenant ?",
+    "order_processing": "Nous traitons votre commande et vous enverrons un e-mail de confirmation d'expédition dès que vos articles seront en route.",
+    "continue_shopping": "Continuer mes achats",
+    "track_order": "Suivre ma commande",
+    "need_help": "Besoin d'aide ?",
+    "contact_support": "Contactez notre équipe d'assistance",
+    "form": {
+      "first_name": "Prénom",
+      "last_name": "Nom de famille",
+      "email": "Adresse e-mail",
+      "email_optional": "(Optionnel)",
+      "email_help": "Nous ne l'utiliserons que pour vous envoyer des mises à jour de commande",
+      "phone": "Numéro de téléphone",
+      "address": "Adresse",
+      "governorate": "Gouvernorat",
+      "select_governorate": "Sélectionnez un gouvernorat",
+      "delegation": "Délégation",
+      "select_delegation": "Sélectionnez une délégation",
+      "zip_code": "Code postal",
+      "save_info": "Enregistrer ces informations pour la prochaine fois",
+      "required_field": "Champ obligatoire"
+    },
+    "payment_info": {
+      "cash_on_delivery_title": "Paiement à la livraison",
+      "cash_on_delivery_desc": "Vous paierez en espèces lors de la livraison de votre commande.",
+      "cash_on_delivery_help": "En passant votre commande, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité."
+    },
+    "errors": {
+      "location_data": "Échec du chargement des données de localisation. Veuillez réessayer plus tard.",
+      "delegations": "Échec du chargement des délégations. Veuillez réessayer.",
+      "order_submission": "Échec de la commande. Veuillez réessayer.",
+      "unknown_brand": "Marque inconnue"
+    }
+  },
+  "select_city": "Sélectionnez une ville",
   "shop": {
     "title": "Notre Collection de Montres",
     "description": "Découvrez notre sélection minutieuse de montres de luxe",
