@@ -67,7 +67,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
     return () => {
       isMounted = false;
     };
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, refreshProducts]);
 
   // Load orders from Supabase
   const loadOrders = useCallback(async () => {
@@ -116,6 +116,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
       console.log('Raw orders data:', ordersData);
       
       // Transform the data to match our Order type
+      // Note: We're not using subtotal anymore since it was deleted from the database
       const formattedOrders: Order[] = ordersData.map((order: any) => ({
         id: order.id,
         orderNumber: order.order_number || `ORD-${order.id.substring(0, 8).toUpperCase()}`,
@@ -124,8 +125,9 @@ export default function AdminDashboard({}: AdminDashboardProps) {
         shippingAddress: order.shipping_address || {},
         status: order.status || 'pending',
         paymentStatus: order.payment_status || 'pending',
-        subtotal: Number(order.subtotal) || 0,
-        shippingCost: Number(order.shipping_cost) || 0,
+        // Subtotal is no longer in the database, so we calculate it from items if needed
+        subtotal: order.items?.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0) || 0,
+        shippingCost: order.shipping_cost !== undefined ? Number(order.shipping_cost) : 0,
         total: Number(order.total) || 0,
         createdAt: order.created_at,
         updatedAt: order.updated_at || order.created_at
@@ -177,6 +179,55 @@ export default function AdminDashboard({}: AdminDashboardProps) {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError('Failed to update order status');
+    }
+  }, []);
+
+  // FIXED: Handle full order updates (no longer includes subtotal)
+  const handleUpdateOrder = useCallback(async (updatedOrder: Order) => {
+    try {
+      setSuccess('');
+      setError('');
+      
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
+        throw new Error('Admin client not available');
+      }
+      
+      // Prepare the data for Supabase - ONLY include columns that exist in your table
+      // Subtotal was deleted from the database, so we don't include it here
+      const orderData = {
+        status: updatedOrder.status,
+        payment_status: updatedOrder.paymentStatus,
+        shipping_address: updatedOrder.shippingAddress,
+        total: updatedOrder.total,
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('Updating order with ', orderData);
+      
+      // Update order in the database
+      const { error } = await adminClient
+        .from('orders')
+        .update(orderData)
+        .eq('id', updatedOrder.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === updatedOrder.id ? updatedOrder : order
+        )
+      );
+      
+      setSuccess(`Order ${updatedOrder.orderNumber} updated successfully`);
+      setTimeout(() => setSuccess(''), 3000);
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update order';
+      console.error('Error updating order:', err);
+      setError(errorMessage);
+      throw err; // Re-throw so OrdersTab can handle it
     }
   }, []);
 
@@ -243,6 +294,27 @@ export default function AdminDashboard({}: AdminDashboardProps) {
           </div>
         </div>
       </header>
+
+      {/* Success and Error Messages */}
+      {success && (
+        <div className="fixed top-4 right-4 bg-green-50 border-l-4 border-green-400 p-4 z-50">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-green-700">{success}</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-50 border-l-4 border-red-400 p-4 z-50">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
@@ -407,6 +479,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
                   <OrdersTab 
                     orders={orders} 
                     onUpdateOrderStatus={handleUpdateOrderStatus} 
+                    onUpdateOrder={handleUpdateOrder}
                     loading={ordersLoading}
                     error={ordersError}
                   />

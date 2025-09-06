@@ -2,19 +2,35 @@ import { useState, useEffect, ChangeEvent, FormEvent, useCallback, useMemo } fro
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { submitOrderToSheets, formatOrderData } from '../utils/api';
+import { createOrderInDatabase } from '../services/orderService';
 import { ArrowLeftIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
-import { CheckoutFormData, OrderDetails } from '../types';
 import { OrderSummary } from '../components/OrderSummary';
-import { CartItem } from '../context/CartContext';
 import { fetchMunicipalities, getGovernorates, getDelegations, getCities } from '../services/locationService';
 import type { Municipality } from '../types/order';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 
+import { CheckoutFormData } from '../types/checkout';
+import { CartItem } from '../types/cart';
+
+// Add this interface to fix the "Cannot find name 'OrderDetails'" error
+interface OrderDetails {
+  orderId: string;
+  customerName: string;
+  email: string;
+  total: number;
+  items: {
+    id: number;
+    name: string;
+    quantity: number;
+    price: number;
+  }[];
+}
 
 // Form field types
 interface FormFields {
   firstName: string;
-  lastName?: string | undefined; // Made optional with explicit undefined
+  lastName?: string | undefined;
   email?: string;
   phone: string;
   address: string;
@@ -22,7 +38,7 @@ interface FormFields {
   delegation: string;
   zipCode: string;
   saveInfo: boolean;
-  [key: string]: string | boolean | undefined; // Supports optional fields
+  [key: string]: string | boolean | undefined;
 };
 
 interface Delegation {
@@ -37,6 +53,7 @@ const Checkout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { cartItems, clearCart } = useCart();
+  const { currentUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +75,18 @@ const Checkout = () => {
     saveInfo: false,
   });
 
+  // Check if user is authenticated when component mounts
+  useEffect(() => {
+    if (!currentUser) {
+      setError(t('checkout.error.not_authenticated'));
+      // Redirect to login after a short delay to show the error
+      const timer = setTimeout(() => {
+        navigate('/login', { state: { from: '/checkout' } });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentUser, navigate, t]);
+
   // Fetch all municipalities on component mount
   const loadMunicipalities = useCallback(async () => {
     try {
@@ -66,7 +95,7 @@ const Checkout = () => {
       setMunicipalities(data);
     } catch (err) {
       console.error('Error fetching municipalities:', err);
-      setError('Failed to load location data. Please try again later.');
+      setError(t('checkout.error.location_data'));
     } finally {
       setLoading(false);
     }
@@ -107,7 +136,7 @@ const Checkout = () => {
         })
         .catch((err: Error) => {
           console.error('Error loading delegations:', err);
-          setError('Failed to load delegations. Please try again.');
+          setError(t('checkout.error.delegations'));
         });
     } else {
       setDelegations([]);
@@ -117,14 +146,10 @@ const Checkout = () => {
   // Handle delegation change
   const handleDelegationChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const { value } = e.target;
-    const selectedDelegation = delegations.find((d: Delegation) => d.delegation === value);
-
     setFormData(prev => ({
       ...prev,
       delegation: value
     }));
-
-    // City loading removed as city field is no longer used
   };
 
   // Handle form field changes
@@ -144,58 +169,99 @@ const Checkout = () => {
     setIsSubmitting(true);
     setError(null);
 
+    // Validate user is authenticated
+    if (!currentUser) {
+      setError(t('checkout.error.not_authenticated'));
+      setIsSubmitting(false);
+      navigate('/login', { state: { from: '/checkout' } });
+      return;
+    }
+
+    // Validate required fields
+    if (!formData.firstName || !formData.phone || !formData.address || 
+        !formData.governorate || !formData.delegation) {
+      setError(t('checkout.error.missing_fields'));
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      // Calculate total
-      const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.1 + 29.99;
+      // Calculate total - ONLY sum of items (NO tax or shipping)
+      const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       
-      // Ensure cart items have required brand property
+      // FIX: Ensure cart items have required brand AND name properties
       const itemsWithBrand = cartItems.map(item => ({
         ...item,
-        brand: item.brand || t('product.unknown_brand') // Provide a default brand if missing
+        brand: item.brand || t('product.unknown_brand'),
+        name: item.name || t('product.unknown_product') // Add this fallback to ensure name is always a string
       }));
       
       // Format the order data with all required fields
       const orderFormData: CheckoutFormData = {
         ...formData,
-        cardNumber: '', // Not used for cash on delivery
-        cardName: '',   // Not used for cash on delivery
-        expiryDate: '',  // Not used for cash on delivery
-        cvv: '',        // Not used for cash on delivery
-        shippingSameAsBilling: true, // Default to true for simplicity
-        total: total.toString(),
-        customerName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email as string
+        email: formData.email || currentUser.email || ''
       };
       
+      // Create order in database first (critical step - saves user_id)
+      const databaseOrder = await createOrderInDatabase(
+        orderFormData, 
+        itemsWithBrand, 
+        currentUser.id
+      );
+      
+      // Format order data for Google Sheets with database order ID
       const orderData = formatOrderData(orderFormData, itemsWithBrand);
-
-      // Submit the order
-      const response = await submitOrderToSheets(orderData, t); // Pass the translation function to submitOrderToSheets
+      
+      // Submit to Google Sheets for backup/reporting
+      const response = await submitOrderToSheets(orderData, t);
       
       // Handle success - create proper OrderDetails object
       const orderDetails: OrderDetails = {
-        orderId: response?.orderId || `order_${Date.now()}`,
-        customerName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email as string,
+        orderId: response?.orderId || databaseOrder.id,
+        customerName: `${formData.firstName} ${formData.lastName || ''}`,
+        email: formData.email || currentUser.email || '',
         total: total,
         items: cartItems.map(item => ({
           id: Number(item.id) || 0,
-          name: item.name || 'Product',
+          name: item.name || t('product.unknown_product'),
           quantity: item.quantity,
           price: item.price
         }))
       };
+      
       setOrderDetails(orderDetails);
       setIsSuccess(true);
       clearCart();
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error submitting order:', err);
-      setError('Failed to place order. Please try again.');
+      setError(err.message || t('checkout.error.submit_failed'));
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (!currentUser) {
+    return (
+      <div className="pt-24 pb-16 bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden p-8 text-center">
+          <XCircleIcon className="h-16 w-16 text-red-500 mx-auto mb-6" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            {t('checkout.error.not_authenticated_title')}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">
+            {t('checkout.error.not_authenticated_message')}
+          </p>
+          <button
+            onClick={() => navigate('/login', { state: { from: '/checkout' } })}
+            className="px-6 py-3 bg-accent text-white font-medium rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            {t('auth.sign_in')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isSuccess) {
     return (
@@ -238,13 +304,7 @@ const Checkout = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {t('checkout.total')}
                     </p>
-                    <p className="font-medium">${orderDetails.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {t('checkout.payment_method_label')}
-                    </p>
-                    <p className="font-medium">{t('checkout.cash_on_delivery')}</p>
+                    <p className="font-medium">{orderDetails.total.toFixed(2)} TND</p>
                   </div>
                 </div>
 
@@ -271,12 +331,6 @@ const Checkout = () => {
               >
                 {t('checkout.continue_shopping')}
               </button>
-              <button
-                onClick={() => navigate('/account/orders')}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex-1 sm:flex-none"
-              >
-                {t('checkout.track_order')}
-              </button>
             </div>
 
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -302,6 +356,19 @@ const Checkout = () => {
         </button>
 
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">{t('checkout.title')}</h1>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <XCircleIcon className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Billing Details */}
@@ -350,7 +417,7 @@ const Checkout = () => {
                     type="email"
                     id="email"
                     name="email"
-                    value={formData.email || ''}
+                    value={formData.email || currentUser.email || ''}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
                     placeholder={t('checkout.form.email_placeholder')}
@@ -446,30 +513,6 @@ const Checkout = () => {
                 </div>
               </div>
             </div>
-
-            {/* Payment Method */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-medium text-gray-900 dark:text-white">{t('checkout.payment_method')}</h2>
-              </div>
-              <div className="p-6">
-                <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 p-4 rounded-lg">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium">{t('checkout.payment_info.cash_on_delivery_title')}</h3>
-                      <div className="mt-2 text-sm">
-                        <p>{t('checkout.payment_info.cash_on_delivery_help')}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Order Summary */}
@@ -499,7 +542,15 @@ const Checkout = () => {
                   : 'bg-green-600 hover:bg-green-700'
               }`}
             >
-              {isSubmitting ? t('checkout.processing') : t('checkout.confirm_order')}
+              {isSubmitting ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {t('checkout.processing')}
+                </span>
+              ) : t('checkout.confirm_order')}
             </button>
           </div>
         </form>

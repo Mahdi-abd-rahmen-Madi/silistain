@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/Button';
-import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
+import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { format } from 'date-fns';
-import { ArrowLeft, ShoppingBag, Clock, CheckCircle, Truck, PackageCheck, XCircle } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Clock, Truck, PackageCheck, XCircle } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 interface OrderItem {
@@ -21,7 +21,6 @@ interface Order {
   id: string;
   order_number: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  payment_status: 'pending' | 'paid' | 'refunded' | 'failed';
   total: number;
   created_at: string;
   items: OrderItem[];
@@ -77,28 +76,18 @@ export default function Orders() {
           return;
         }
 
-        // Fetch orders for the current user
+        // FIX: Only fetch orders for the current user (NOT guest orders)
         const { data, error } = await supabase
           .from('orders')
           .select('*')
-          .or(`user_id.eq.${session.user.id},user_id.is.null`)
+          .eq('user_id', session.user.id)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
         
         if (isMounted) {
-          // Calculate total for each order based on items
-          const ordersWithCalculatedTotals = data?.map(order => {
-            if (order.items?.length > 0) {
-              const calculatedTotal = order.items.reduce((sum: number, item: { price: number; quantity?: number }) => {
-                return sum + (item.price * (item.quantity || 1));
-              }, 0);
-              return { ...order, total: calculatedTotal };
-            }
-            return order;
-          }) || [];
-          
-          setOrders(ordersWithCalculatedTotals);
+          // No need to calculate total - it's already stored correctly
+          setOrders(data || []);
         }
       } catch (err) {
         console.error('Error fetching orders:', err);
@@ -254,40 +243,9 @@ export default function Orders() {
                           {order.shipping_address.zipCode}
                         </p>
                       </div>
-                      
-                      <div className="mt-4">
-                        <h3 className="text-sm font-medium text-gray-900 mb-2">{t('orders.payment')}</h3>
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0">
-                            {order.payment_status === 'paid' ? (
-                              <CheckCircle className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <Clock className="h-5 w-5 text-amber-500" />
-                            )}
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">
-                              {order.payment_status === 'paid' ? t('orders.payment_status.paid') : t('orders.payment_status.pending')}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {order.payment_status === 'paid' 
-                                ? t('orders.payment_paid_on', { date: format(new Date(order.created_at), 'MMMM d, yyyy') })
-                                : t('orders.payment_processing')}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="bg-gray-50 px-6 py-4 border-t flex justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate(`/account/orders/${order.id}`)}
-                  >
-                    {t('orders.view_details')}
-                  </Button>
-                </CardFooter>
               </Card>
             ))}
           </div>

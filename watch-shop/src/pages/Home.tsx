@@ -9,7 +9,7 @@ import { Product } from '../types/product';
 import { ProductCard } from '../components/ProductCard';
 import { Button } from '../components/ui/Button';
 import { HeroSection } from '../components/HeroSection';
-import { ArrowRight, Truck, Shield, CheckCircle, Headset } from 'lucide-react';
+import { Send, ArrowRight, Truck, Shield, CheckCircle, Headset } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 
 // Extended product type with additional properties needed for the UI
@@ -275,21 +275,28 @@ const Home = () => {
             <p className="mt-4 text-lg text-gray-600">
               {t('collections.newsletter.description')}
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="mt-8 flex max-w-md mx-auto">
+            <form onSubmit={handleNewsletterSubmit} className="mt-8 flex max-w-md mx-auto gap-2">
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('auth.email')}
-                className="min-w-0 flex-auto rounded-l-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6"
+                className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-gray-900 shadow-sm focus:ring-2 focus:ring-accent focus:border-transparent sm:text-sm"
               />
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-none rounded-r-md bg-accent px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accent/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50"
+                className="rounded-md bg-accent hover:bg-accent/90 text-white font-bold px-5 py-2.5 text-sm sm:text-base transition-all duration-200 shadow-md hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px]"
               >
-                {isSubmitting ? `${t('collections.newsletter.subscribing')}...` : t('collections.newsletter.subscribe')}
+                {isSubmitting ? (
+                  <span className="animate-pulse">{t('collections.newsletter.subscribing')}...</span>
+                ) : (
+                  <>
+                    <span>{t('collections.newsletter.subscribe')}</span>
+                    <Send className="h-4 w-4" />
+                  </>
+                )}
               </button>
             </form>
             <p className="mt-3 text-sm text-gray-500">

@@ -62,7 +62,10 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
 
   const fetchRecentOrders = useCallback(async (limit: number = 2) => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id) {
+      setOrders([]);
+      return;
+    }
     
     setLoading(true);
     setError(null);
@@ -77,11 +80,12 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Fetch orders using the same query as in Orders.tsx
+      // CRITICAL FIX: Remove user_id.is.null from the filter
+      // We should ONLY show orders with the current user's ID
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select('*')
-        .or(`user_id.eq.${session.user.id},user_id.is.null`)
+        .eq('user_id', session.user.id)  // STRICT FILTER - ONLY CURRENT USER'S ORDERS
         .order('created_at', { ascending: false })
         .limit(limit);
 

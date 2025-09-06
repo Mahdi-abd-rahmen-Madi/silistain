@@ -7,6 +7,7 @@ interface OrdersTabProps {
   loading: boolean;
   error: string | null;
   onUpdateOrderStatus: (orderId: string, status: Order['status']) => void;
+  onUpdateOrder: (order: Order) => Promise<void>; // Made it a required function that returns a promise
 }
 
 export const OrdersTab = ({
@@ -14,10 +15,15 @@ export const OrdersTab = ({
   loading,
   error,
   onUpdateOrderStatus,
+  onUpdateOrder, // Destructure the prop
 }: OrdersTabProps) => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isViewingOrder, setIsViewingOrder] = useState(false);
   const [isEditingOrder, setIsEditingOrder] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [editedOrder, setEditedOrder] = useState<Order | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   const {
     governorates,
@@ -33,18 +39,60 @@ export const OrdersTab = ({
     setSelectedCity,
   } = useLocationSelection();
 
+  // Filter orders based on statusFilter
+  const filteredOrders = statusFilter 
+    ? orders.filter(order => order.status === statusFilter)
+    : orders;
+
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order);
     setIsViewingOrder(true);
   };
 
   const handleEditOrder = (order: Order) => {
+    // Create a deep copy to avoid direct mutation
+    const orderCopy = JSON.parse(JSON.stringify(order));
+    setEditedOrder(orderCopy);
     setSelectedOrder(order);
     setIsEditingOrder(true);
+    
+    // Initialize location selection with the order's address
+    if (order.shippingAddress.governorate) {
+      handleGovernorateChange(order.shippingAddress.governorate);
+      
+      if (order.shippingAddress.city) {
+        // Find the city object from your cities array
+        const city = cities.find(c => c.name === order.shippingAddress.city);
+        if (city) {
+          setSelectedCity(city);
+        }
+      }
+    }
   };
 
   const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
     onUpdateOrderStatus(orderId, newStatus);
+  };
+
+  const handleSaveChanges = async () => {
+    if (!editedOrder) return;
+    
+    setIsSaving(true);
+    setSaveError(null);
+    
+    try {
+      // Update the order with all changes
+      await onUpdateOrder(editedOrder);
+      
+      // Close the modal
+      setIsEditingOrder(false);
+      setEditedOrder(null);
+    } catch (error) {
+      console.error('Error saving order:', error);
+      setSaveError(error instanceof Error ? error.message : 'Failed to save order');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (loading) {
@@ -79,10 +127,8 @@ export const OrdersTab = ({
         <div className="w-full sm:w-auto">
           <select
             className="block w-full pl-3 pr-10 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
-            value=""
-            onChange={(e) => {
-              // Filter by status
-            }}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="">All Statuses</option>
             <option value="pending">Pending</option>
@@ -96,12 +142,14 @@ export const OrdersTab = ({
 
       <div className="bg-white shadow overflow-hidden rounded-md">
         <ul className="divide-y divide-gray-200">
-          {orders.length === 0 ? (
+          {filteredOrders.length === 0 ? (
             <li className="p-4 text-center text-gray-500">
-              No orders found.
+              {statusFilter 
+                ? `No ${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} orders found.` 
+                : 'No orders found.'}
             </li>
           ) : (
-            orders.map((order) => (
+            filteredOrders.map((order) => (
               <li key={order.id} className="hover:bg-gray-50">
                 <div className="p-3 sm:p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -129,7 +177,7 @@ export const OrdersTab = ({
                       {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500">
-                      ${order.subtotal.toFixed(2)}
+                      ${order.total.toFixed(2)}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 truncate col-span-2">
                       {order.shippingAddress.city}, {order.shippingAddress.governorate}
@@ -267,6 +315,9 @@ export const OrdersTab = ({
                         onClick={() => {
                           setIsViewingOrder(false);
                           setIsEditingOrder(true);
+                          // Create a deep copy for editing
+                          const orderCopy = JSON.parse(JSON.stringify(selectedOrder));
+                          setEditedOrder(orderCopy);
                         }}
                         className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                       >
@@ -289,7 +340,7 @@ export const OrdersTab = ({
       )}
 
       {/* Edit Order Modal */}
-      {selectedOrder && isEditingOrder && (
+      {editedOrder && isEditingOrder && (
         <div className="fixed inset-0 overflow-hidden z-50">
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsEditingOrder(false)}></div>
@@ -313,6 +364,21 @@ export const OrdersTab = ({
                       </div>
                     </div>
 
+                    {saveError && (
+                      <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm text-red-700">{saveError}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="mt-8">
                       <form className="space-y-6">
                         <div>
@@ -329,7 +395,14 @@ export const OrdersTab = ({
                                   name="first-name"
                                   autoComplete="given-name"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  defaultValue={selectedOrder.shippingAddress.firstName}
+                                  value={editedOrder.shippingAddress.firstName}
+                                  onChange={(e) => setEditedOrder({
+                                    ...editedOrder,
+                                    shippingAddress: {
+                                      ...editedOrder.shippingAddress,
+                                      firstName: e.target.value
+                                    }
+                                  })}
                                 />
                               </div>
                             </div>
@@ -345,7 +418,14 @@ export const OrdersTab = ({
                                   name="last-name"
                                   autoComplete="family-name"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  defaultValue={selectedOrder.shippingAddress.lastName}
+                                  value={editedOrder.shippingAddress.lastName}
+                                  onChange={(e) => setEditedOrder({
+                                    ...editedOrder,
+                                    shippingAddress: {
+                                      ...editedOrder.shippingAddress,
+                                      lastName: e.target.value
+                                    }
+                                  })}
                                 />
                               </div>
                             </div>
@@ -361,7 +441,14 @@ export const OrdersTab = ({
                                   type="email"
                                   autoComplete="email"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  defaultValue={selectedOrder.shippingAddress.email}
+                                  value={editedOrder.shippingAddress.email}
+                                  onChange={(e) => setEditedOrder({
+                                    ...editedOrder,
+                                    shippingAddress: {
+                                      ...editedOrder.shippingAddress,
+                                      email: e.target.value
+                                    }
+                                  })}
                                 />
                               </div>
                             </div>
@@ -377,7 +464,14 @@ export const OrdersTab = ({
                                   type="tel"
                                   autoComplete="tel"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  defaultValue={selectedOrder.shippingAddress.phone}
+                                  value={editedOrder.shippingAddress.phone}
+                                  onChange={(e) => setEditedOrder({
+                                    ...editedOrder,
+                                    shippingAddress: {
+                                      ...editedOrder.shippingAddress,
+                                      phone: e.target.value
+                                    }
+                                  })}
                                 />
                               </div>
                             </div>
@@ -398,7 +492,14 @@ export const OrdersTab = ({
                                   name="address"
                                   autoComplete="street-address"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  defaultValue={selectedOrder.shippingAddress.address}
+                                  value={editedOrder.shippingAddress.address}
+                                  onChange={(e) => setEditedOrder({
+                                    ...editedOrder,
+                                    shippingAddress: {
+                                      ...editedOrder.shippingAddress,
+                                      address: e.target.value
+                                    }
+                                  })}
                                 />
                               </div>
                             </div>
@@ -412,8 +513,18 @@ export const OrdersTab = ({
                                   id="governorate"
                                   name="governorate"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  value={selectedGovernorate}
-                                  onChange={(e) => handleGovernorateChange(e.target.value)}
+                                  value={editedOrder.shippingAddress.governorate}
+                                  onChange={(e) => {
+                                    // Update both local state and editedOrder
+                                    handleGovernorateChange(e.target.value);
+                                    setEditedOrder({
+                                      ...editedOrder,
+                                      shippingAddress: {
+                                        ...editedOrder.shippingAddress,
+                                        governorate: e.target.value
+                                      }
+                                    });
+                                  }}
                                 >
                                   <option value="">Select a governorate</option>
                                   {governorates.map((gov) => (
@@ -434,8 +545,18 @@ export const OrdersTab = ({
                                   id="delegation"
                                   name="delegation"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  value={selectedDelegation}
-                                  onChange={(e) => handleDelegationChange(e.target.value)}
+                                  value={editedOrder.shippingAddress.delegation || ''}
+                                  onChange={(e) => {
+                                    // Update both local state and editedOrder
+                                    handleDelegationChange(e.target.value);
+                                    setEditedOrder({
+                                      ...editedOrder,
+                                      shippingAddress: {
+                                        ...editedOrder.shippingAddress,
+                                        delegation: e.target.value
+                                      }
+                                    });
+                                  }}
                                   disabled={!selectedGovernorate}
                                 >
                                   <option value="">Select a delegation</option>
@@ -457,10 +578,19 @@ export const OrdersTab = ({
                                   id="city"
                                   name="city"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  value={selectedCity?.id || ''}
+                                  value={editedOrder.shippingAddress.city}
                                   onChange={(e) => {
                                     const city = cities.find(c => c.id === e.target.value);
-                                    setSelectedCity(city || null);
+                                    if (city) {
+                                      setSelectedCity(city);
+                                      setEditedOrder({
+                                        ...editedOrder,
+                                        shippingAddress: {
+                                          ...editedOrder.shippingAddress,
+                                          city: city.name
+                                        }
+                                      });
+                                    }
                                   }}
                                   disabled={!selectedDelegation}
                                 >
@@ -485,7 +615,14 @@ export const OrdersTab = ({
                                   name="postal-code"
                                   autoComplete="postal-code"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  defaultValue={selectedOrder.shippingAddress.postalCode}
+                                  value={editedOrder.shippingAddress.postalCode}
+                                  onChange={(e) => setEditedOrder({
+                                    ...editedOrder,
+                                    shippingAddress: {
+                                      ...editedOrder.shippingAddress,
+                                      postalCode: e.target.value
+                                    }
+                                  })}
                                 />
                               </div>
                             </div>
@@ -504,10 +641,10 @@ export const OrdersTab = ({
                                   id="order-status"
                                   name="order-status"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  value={selectedOrder.status}
+                                  value={editedOrder.status}
                                   onChange={(e) => {
-                                    setSelectedOrder({
-                                      ...selectedOrder,
+                                    setEditedOrder({
+                                      ...editedOrder,
                                       status: e.target.value as Order['status']
                                     });
                                   }}
@@ -530,10 +667,10 @@ export const OrdersTab = ({
                                   id="payment-status"
                                   name="payment-status"
                                   className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                  value={selectedOrder.paymentStatus}
+                                  value={editedOrder.paymentStatus}
                                   onChange={(e) => {
-                                    setSelectedOrder({
-                                      ...selectedOrder,
+                                    setEditedOrder({
+                                      ...editedOrder,
                                       paymentStatus: e.target.value as Order['paymentStatus']
                                     });
                                   }}
@@ -557,18 +694,19 @@ export const OrdersTab = ({
                         type="button"
                         className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         onClick={() => setIsEditingOrder(false)}
+                        disabled={isSaving}
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
-                        className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        onClick={() => {
-                          // Handle save changes
-                          setIsEditingOrder(false);
-                        }}
+                        className={`ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                          isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        onClick={handleSaveChanges}
+                        disabled={isSaving}
                       >
-                        Save changes
+                        {isSaving ? 'Saving...' : 'Save changes'}
                       </button>
                     </div>
                   </div>

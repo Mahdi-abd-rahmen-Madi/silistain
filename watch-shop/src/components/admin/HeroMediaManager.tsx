@@ -24,18 +24,16 @@ type HeroMedia = {
   user_id?: string;
   title?: string;
   subtitle?: string;
-  cta_text?: string;
-  cta_link?: string;
+  cta_link?: string; // Only link remains — text is now hardcoded
   product_id?: string | null;
 };
 
 export const HeroMediaManager = () => {
-  // Initialize with default values
+  // Initialize with default values — cta_text removed
   const defaultHeroMedia: HeroMedia = {
     type: 'image',
     url: '',
-    cta_text: 'Shop Now',
-    cta_link: '/shop'
+    cta_link: '/shop' // Only link remains
   };
 
   const [heroMedia, setHeroMedia] = useState<HeroMedia | null>(null);
@@ -187,14 +185,14 @@ export const HeroMediaManager = () => {
       // Get the current user ID
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Prepare the data to be saved
+      // Prepare the data to be saved — cta_text REMOVED
       const now = new Date().toISOString();
-      // Only include fields that exist in the database
       const dataToSave: any = {
         type: currentMedia.type,
         url: currentMedia.url,
         thumbnail_url: currentMedia.thumbnail_url,
-        cta_text: currentMedia.cta_text,
+        // cta_text is REMOVED — no longer saved
+        cta_link: currentMedia.cta_link, // Still saved if needed for routing
         product_id: currentMedia.product_id || null,
         updated_at: now,
         created_by: user?.id || null,
@@ -346,17 +344,8 @@ export const HeroMediaManager = () => {
       <form onSubmit={handleSubmit}>
         <h2 className="text-lg font-medium mb-4">Hero Content</h2>
         <div className="space-y-4">
-          <div>
-            <Label htmlFor="cta_text">Button Text</Label>
-            <Input
-              id="cta_text"
-              name="cta_text"
-              value={heroMedia?.cta_text || ''}
-              onChange={handleInputChange}
-              placeholder="e.g. Shop Now"
-              className="mt-1"
-            />
-          </div>
+          {/* ❌ REMOVED: CTA Text Input Field */}
+
           <div>
             <Label htmlFor="product_id">Link to Product (Optional)</Label>
             <select

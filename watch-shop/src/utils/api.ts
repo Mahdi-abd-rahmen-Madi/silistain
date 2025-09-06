@@ -1,19 +1,15 @@
 import { toast } from 'react-hot-toast';
-import { CheckoutFormData } from '../types';
-import { CartItem } from '../context/CartContext';
-import { createOrder } from '../services/orderService';
-
-// Extended interface for items with brand (used in this file only)
-interface CartItemWithBrand extends CartItem {
-  brand: string;
-}
+import { CheckoutFormData } from '../types/checkout';
+import { OrderItem, OrderAddress } from '../types/order';
+import { CartItem } from '../types/cart'; 
+import { createOrderInDatabase } from '../services/orderService';
 
 interface ApiResponse {
   success: boolean;
   orderId: string;
   message: string;
   timestamp: string;
-  data: any;
+  data?: any;
 }
 
 interface FormattedOrderData {
@@ -25,141 +21,132 @@ interface FormattedOrderData {
   'Shipping Address': string;
   'Billing Address': string;
   'Items': string;
-  'Subtotal': string;
-  'Tax': string;
-  'Shipping': string;
   'Total': string;
-  'Payment Method': string;
-  'Payment Status': string;
   'Order Status': string;
-  'Notes'?: string;
   'Timestamp': string;
 }
 
-interface OrderItem {
-  productId: string;
-  name: string;
-  brand: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-/**
- * Submits order data to Supabase
- * @param {Object} orderData - The order data to submit
- * @param {Function} t - Translation function (optional)
- * @returns {Promise<Object>} - The response from the API
- */
-export const submitOrderToSheets = async (orderData: FormattedOrderData, t: (key: string) => string = (key) => key): Promise<ApiResponse> => {
+export const submitOrderToSheets = async (
+  orderData: FormattedOrderData, 
+  t: (key: string) => string = (key) => key,
+  userId: string | null = null // ADDED userId parameter
+): Promise<ApiResponse> => {
   try {
-    // Calculate totals
-    const subtotal = parseFloat(orderData.Subtotal.replace('$', ''));
-    const shipping = parseFloat(orderData.Shipping.replace('$', ''));
-    const total = parseFloat(orderData.Total.replace('$', ''));
-    
-    // Parse items from the formatted string (this is a simple example, adjust as needed)
+    // Parse items from the formatted string
     const items = orderData.Items.split('\n').map(item => {
-      const match = item.match(/(\d+)x\s+(.+?)\s+\(?(.+?)\)?\s+-\s+\$(\d+\.\d+)/);
+      const match = item.match(/(\d+)x\s+(.+?)\s+-\s+\$(\d+\.\d+)/);
       if (!match) return null;
       
       return {
-        productId: '', // You'll need to map this from your products
+        id: '',
+        productId: '',
         name: match[2].trim(),
-        brand: match[3]?.trim() || t('product.unknown_brand'),
-        price: parseFloat(match[4]),
+        price: parseFloat(match[3]),
         quantity: parseInt(match[1]),
-        image: '' // Add image URL if available
-      };
-    }).filter(Boolean) as OrderItem[];
+        image: ''
+      } as CartItem;
+    }).filter(Boolean) as CartItem[];
 
-    // Create order data for Supabase
-    const orderDataForSupabase = {
-      userId: null, // Null for guest users
-      items,
-      shippingAddress: {
-        firstName: orderData['Customer Name'].split(' ')[0],
-        lastName: orderData['Customer Name'].split(' ').slice(1).join(' '),
-        email: orderData.Email,
-        phone: orderData.Phone,
-        address: orderData['Shipping Address'].split('\n')[0],
-        city: orderData['Shipping Address'].split('\n')[1]?.split(',')[0]?.trim() || '',
-        governorate: '', // Extract from address if needed
-        delegation: '',  // Extract from address if needed
-        zipCode: orderData['Shipping Address'].match(/\b\d{4}\b/)?.[0] || '',
-        postalCode: orderData['Shipping Address'].match(/\b\d{4}\b/)?.[0] || '', // Same as zipCode
-        notes: orderData.Notes || ''
-      },
-      status: 'pending' as const,
-      paymentStatus: 'pending' as const,
-      subtotal,
-      shippingCost: shipping,
-      total,
-      notes: orderData.Notes
+    // Extract customer name parts
+    const customerNameParts = orderData['Customer Name'].split(' ');
+    const firstName = customerNameParts[0];
+    const lastName = customerNameParts.slice(1).join(' ') || '';
+
+    // Parse shipping address
+    const addressLines = orderData['Shipping Address'].split('\n');
+    const addressLine1 = addressLines[0] || '';
+    const addressLine2 = addressLines[1] || '';
+    
+    // Extract governorate and delegation from addressLine2
+    let governorate = '';
+    let delegation = '';
+    if (addressLine2) {
+      const addressParts = addressLine2.split(',');
+      if (addressParts.length > 0) {
+        delegation = addressParts[0].trim();
+      }
+      if (addressParts.length > 1) {
+        governorate = addressParts[1].trim();
+      }
+    }
+
+    // Create shipping address (without notes)
+    const shippingAddress: OrderAddress = {
+      firstName,
+      lastName,
+      email: orderData.Email,
+      phone: orderData.Phone,
+      address: addressLine1,
+      city: delegation,
+      governorate,
+      delegation,
+      postalCode: orderData['Shipping Address'].match(/\b\d{4}\b/)?.[0] || '',
+      notes: ''
     };
 
-    // Submit to Supabase
-    const { data: order, error } = await createOrder(orderDataForSupabase);
-    
-    if (error) throw error;
+    // Create order data for database (without notes)
+    const orderForDatabase: CheckoutFormData = {
+      firstName,
+      lastName,
+      email: orderData.Email,
+      phone: orderData.Phone,
+      address: addressLine1,
+      governorate,
+      delegation,
+      zipCode: shippingAddress.postalCode,
+      saveInfo: false,
+      notes: ''
+    };
+
+    // Submit to Supabase - PASS userId CORRECTLY
+    const order = await createOrderInDatabase(
+      orderForDatabase,
+      items,
+      userId // Now properly handles NULL for guest orders
+    );
     
     return {
       success: true,
-      orderId: order?.id || `ORD-${Date.now()}`,
-      message: 'Order submitted successfully',
+      orderId: order.id,
+      message: t('checkout.order_submitted'),
       timestamp: new Date().toISOString(),
-      data: orderData
+      data: order
     };
   } catch (error) {
     console.error('Error submitting order:', error);
-    toast.error('Failed to submit order. Please try again.');
+    toast.error(t('checkout.error.submit_failed'));
     throw error;
   }
 };
 
-/**
- * Formats order data for submission to Google Sheets
- * @param {Object} order - The order data
- * @param {Array} items - The cart items
- * @returns {Object} - The formatted order data
- */
-export const formatOrderData = (order: CheckoutFormData, items: CartItemWithBrand[]): FormattedOrderData => {
+export const formatOrderData = (
+  order: CheckoutFormData, 
+  items: CartItem[]
+): FormattedOrderData => {
   // Format items as a string for the spreadsheet
   const itemsString = items
-    .map(item => `${item.quantity}x ${item.name}${'brand' in item ? ` (${item.brand})` : ''} - $${item.price.toFixed(2)} each`)
+    .map(item => `${item.quantity}x ${item.name}${item.brand ? ` (${item.brand})` : ''} - $${item.price.toFixed(2)} each`)
     .join('\n');
     
-  // Calculate totals
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.1; // 10% tax
-  const shipping = 0; // Free shipping
-  const total = subtotal + tax; // No shipping cost added
+  // Calculate ONLY total (simplified - no shipping/tax/subtotal)
+  const total = items.reduce((sum, item) => 
+    sum + (item.price * item.quantity), 0
+  );
   
   return {
     'Order Date': new Date().toISOString(),
     'Order ID': `ORD-${Math.floor(100000 + Math.random() * 900000)}`,
-    'Customer Name': `${order.firstName} ${order.lastName}`,
-    'Email': order.email,
+    'Customer Name': `${order.firstName} ${order.lastName || ''}`,
+    'Email': order.email || '',
     'Phone': order.phone,
     'Shipping Address': [
       order.address,
-      `${order.city}, ${order.country} ${order.zipCode}`
-    ].join('\n'),
-    'Billing Address': order.shippingSameAsBilling 
-      ? 'Same as shipping address'
-      : [
-          order.address,
-          `${order.city}, ${order.country} ${order.zipCode}`
-        ].filter(Boolean).join('\n'),
+      `${order.delegation || ''}, ${order.governorate || ''} ${order.zipCode || ''}`
+    ].filter(Boolean).join('\n'),
+    'Billing Address': 'Same as shipping address',
     'Items': itemsString,
-    'Subtotal': `$${subtotal.toFixed(2)}`,
-    'Tax': `$${tax.toFixed(2)}`,
-    'Shipping': '$0.00', // Free shipping
     'Total': `$${total.toFixed(2)}`,
-    'Payment Method': 'Credit Card',
-    'Payment Status': 'Paid',
-    'Order Status': 'Processing',
-    'Notes': typeof order.notes === 'string' ? order.notes : 'No additional notes',
+    'Order Status': 'Pending',
     'Timestamp': new Date().toISOString()
   };
 };

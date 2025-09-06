@@ -1,64 +1,89 @@
-import { Order, OrderItem, OrderAddress } from '../types/order';
 import { supabase } from '../lib/supabaseClient';
+import { CheckoutFormData } from '../types/checkout';
+import { CartItem } from '../types/cart';
+import { Order, OrderItem, OrderAddress } from '../types/order';
 
-interface CreateOrderData {
-  userId?: string | null;  // Make userId optional and nullable
-  items: OrderItem[];
-  shippingAddress: OrderAddress;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentStatus: 'pending' | 'paid' | 'refunded' | 'failed';
-  subtotal: number;
-  shippingCost?: number; // Optional with default 0 for free shipping
-  total: number; // Should be subtotal + tax (no shipping cost)
-  notes?: string;
-}
-
-export const createOrder = async (orderData: CreateOrderData): Promise<{ data: Order | null; error: Error | null }> => {
+/**
+ * Creates a new order in the database with proper user association
+ * @param formData - Checkout form data
+ * @param cartItems - Items in the shopping cart
+ * @param userId - Current user's ID (can be null for guests)
+ * @returns Promise resolving to the created order
+ */
+export const createOrderInDatabase = async (
+  formData: CheckoutFormData, 
+  cartItems: CartItem[], 
+  userId: string | null
+): Promise<Order> => {
   try {
+    // Calculate total directly without intermediate steps
+    const total = cartItems.reduce((sum, item) => 
+      sum + (item.price * item.quantity), 0
+    );
+    
+    // Format items for storage
+    const formattedItems: OrderItem[] = cartItems.map(item => ({
+      productId: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image || ''
+    }));
+    
+    // Handle user ID safely (convert empty string to null)
+    const safeUserId = userId && userId.trim() !== '' ? userId : null;
+
+    // Create order record
     const { data, error } = await supabase
       .from('orders')
       .insert([{
-        user_id: orderData.userId || null,
-        status: orderData.status,
-        payment_status: orderData.paymentStatus,
-        subtotal: orderData.subtotal,
-        shipping_cost: 0, // Free shipping
-        total: orderData.total,
-        shipping_address: orderData.shippingAddress,
-        notes: orderData.notes || null,
-        items: orderData.items.map(item => ({
-          product_id: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-          brand: 'brand' in item ? item.brand : undefined
-        })),
+        user_id: safeUserId,  // Critical fix for UUID error
+        status: 'pending',
+        total: total,         // Only total is stored
+        items: formattedItems,
+        shipping_address: {
+          firstName: formData.firstName,
+          lastName: formData.lastName || '',
+          email: formData.email || '',
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.delegation,
+          governorate: formData.governorate,
+          delegation: formData.delegation,
+          zipCode: formData.zipCode,
+          postalCode: formData.zipCode,
+          notes: formData.notes || ''
+        }
       }])
-      .select('*')
+      .select()
       .single();
-
-    if (error) throw error;
+      
+    if (error) {
+      console.error('Supabase error:', error);
+      throw new Error(`Failed to save order: ${error.message}`);
+    }
     
-    // Transform the response to match our Order type
-    const order: Order = {
+    if (!data) {
+      throw new Error('Order created but no data returned');
+    }
+    
+    // Convert to Order type with ALL required properties
+    return {
       id: data.id,
-      orderNumber: `ORD-${String(data.id).padStart(6, '0')}`,
+      orderNumber: data.order_number || `ORD-${Date.now()}`,
       userId: data.user_id,
       items: data.items,
       shippingAddress: data.shipping_address,
       status: data.status,
-      paymentStatus: data.payment_status,
-      subtotal: data.subtotal,
-      shippingCost: data.shipping_cost,
-      total: data.total,
+      paymentStatus: 'pending', // REQUIRED by Order interface
+      subtotal: total,         // REQUIRED by Order interface (same as total)
+      shippingCost: 0,         // REQUIRED by Order interface (no shipping cost)
+      total: total,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };
-
-    return { data: order, error: null };
-  } catch (error) {
-    console.error('Error creating order:', error);
-    return { data: null, error: error as Error };
+  } catch (err) {
+    console.error('Error creating order in database:', err);
+    throw err;
   }
 };
