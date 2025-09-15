@@ -22,6 +22,22 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const cartButtonRef = useRef<HTMLButtonElement>(null);
   const { toast } = useToast();
   
+  // Improved brand detection logic
+  const getBrandDisplay = () => {
+    if (!product.brand) return t('shop.product.unknown_brand');
+    
+    const normalized = product.brand.trim().toLowerCase();
+    if (
+      normalized === '' || 
+      normalized === 'unknown brand' || 
+      normalized === 'product.unknown_brand'
+    ) {
+      return t('shop.product.unknown_brand');
+    }
+    
+    return product.brand;
+  };
+
   const handleProductClick = () => {
     navigate(`/product/${product.id}`);
   };
@@ -38,8 +54,8 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     
     // Show toast
     toast({
-      title: 'Added to cart',
-      description: `"${product.name}" has been added to your cart.`,
+      title: t('shop.product.added_to_cart', { productName: product.name }),
+      description: t('shop.product.added_to_cart_description', { productName: product.name }),
     });
     
     // Reset confirmation after delay
@@ -47,10 +63,6 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       setIsAddedToCart(false);
     }, 2000);
   };
-
-
-
-  // Removed toggleWishlist in favor of FavoriteButton's built-in functionality
 
   // Check if product is featured
   const isFeatured = product.isFeatured || product.featured;
@@ -231,10 +243,12 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               variant="ghost"
               onToggle={(isFavorited) => {
                 toast({
-                  title: isFavorited ? 'Added to favorites' : 'Removed from favorites',
+                  title: isFavorited 
+                    ? t('shop.product.added_to_favorites', { brand: product.brand, name: product.name })
+                    : t('shop.product.removed_from_favorites', { brand: product.brand, name: product.name }),
                   description: isFavorited
-                    ? `${product.brand} ${product.name} has been added to your favorites.`
-                    : `${product.brand} ${product.name} has been removed from your favorites.`,
+                    ? t('shop.product.added_to_favorites_description', { brand: product.brand, name: product.name })
+                    : t('shop.product.removed_from_favorites_description', { brand: product.brand, name: product.name }),
                 });
               }}
               className="bg-white shadow-md hover:shadow-lg"
@@ -270,13 +284,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             }`}>
               {product.name}
             </h3>
-            {product.brand && (
-              <p className="text-xs text-gray-500">
-                {product.brand === 'product.unknown_brand' || product.brand === 'Unknown Brand' 
-                  ? t('product.unknown_brand') 
-                  : product.brand}
-              </p>
-            )}
+            {/* Always show brand line with improved detection */}
+            <p className="text-xs text-gray-500">
+              {getBrandDisplay()}
+            </p>
           </div>
           <div className="text-right">
             {product.price && product.price > 0 ? (
@@ -299,10 +310,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             )}
           </div>
         </div>
-
       </div>
-      
-
     </motion.div>
   );
 }

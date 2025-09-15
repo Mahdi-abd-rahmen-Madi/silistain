@@ -11,6 +11,7 @@ import { Button } from '../components/ui/Button';
 import { HeroSection } from '../components/HeroSection';
 import { Send, ArrowRight, Truck, Shield, CheckCircle, Headset } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
+import '../styles/home.css'; // Import the CSS file
 
 // Extended product type with additional properties needed for the UI
 type MappedProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
@@ -161,59 +162,47 @@ const Home = () => {
   };
 
   return (
-    <div className="pt-16 md:pt-20">
-      {/* Hero Section */}
+    <div className="home-container">
+      {/* Hero Section - Fixed by removing the shopNowText prop */}
       <HeroSection />
 
       {/* Featured Collections */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="featured-collections">
+        <div className="collections-header">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">{t('collections.title')}</h2>
-            <p className="mt-4 text-lg text-gray-600">{t('collections.subtitle')}</p>
+            <h2 className="collections-title">{t('collections.title')}</h2>
+            <p className="collections-subtitle">{t('collections.subtitle')}</p>
           </div>
           
           <Tabs.Root 
             value={activeTab}
             onValueChange={(value) => setActiveTab(value)}
-            className="w-full"
+            className="collections-tabs"
           >
             <div className="flex justify-center mb-8">
-              <Tabs.List className="inline-flex space-x-1 rounded-lg bg-gray-100 p-1">
+              <Tabs.List className="tabs-list">
                 <Tabs.Trigger 
                   value="featured" 
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    activeTab === 'featured' 
-                      ? 'bg-white text-accent shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={`tab-trigger ${activeTab === 'featured' ? 'tab-trigger-active' : 'tab-trigger-inactive'}`}
                 >
                   {t('collections.filters.featured')}
                 </Tabs.Trigger>
                 <Tabs.Trigger 
                   value="new" 
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    activeTab === 'new' 
-                      ? 'bg-white text-accent shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={`tab-trigger ${activeTab === 'new' ? 'tab-trigger-active' : 'tab-trigger-inactive'}`}
                 >
                   {t('collections.filters.new_arrivals')}
                 </Tabs.Trigger>
                 <Tabs.Trigger 
                   value="bestsellers" 
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    activeTab === 'bestsellers' 
-                      ? 'bg-white text-accent shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={`tab-trigger ${activeTab === 'bestsellers' ? 'tab-trigger-active' : 'tab-trigger-inactive'}`}
                 >
                   {t('collections.filters.bestsellers')}
                 </Tabs.Trigger>
               </Tabs.List>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="product-grid">
               {renderProducts().map((product) => (
                 <div key={product.id} className="w-full">
                   <ProductCard 
@@ -225,7 +214,7 @@ const Home = () => {
             </div>
           </Tabs.Root>
           
-          <div className="mt-10 text-center">
+          <div className="view-all-button">
             <Button variant="outline" size="lg" asChild>
               <Link to="/shop">
                 <Button variant="outline" className="mt-8">
@@ -239,55 +228,53 @@ const Home = () => {
       </section>
 
       {/* Features */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-gray-50 p-6 rounded-lg text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-accent/10 text-accent mb-4">
-                <Truck className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('collections.features.free_shipping')}</h3>
-              <p className="text-gray-600">{t('collections.features.free_shipping_desc')}</p>
+      <section className="features-section">
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon">
+              <Truck className="h-6 w-6" />
             </div>
-            <div className="bg-gray-50 p-6 rounded-lg text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-accent/10 text-accent mb-4">
-                <Shield className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('collections.features.warranty')}</h3>
-              <p className="text-gray-600">{t('collections.features.warranty_desc')}</p>
+            <h3 className="feature-title">{t('collections.features.free_shipping')}</h3>
+            <p className="feature-description">{t('collections.features.free_shipping_desc')}</p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">
+              <Shield className="h-6 w-6" />
             </div>
-            <div className="bg-gray-50 p-6 rounded-lg text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-accent/10 text-accent mb-4">
-                <CheckCircle className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('collections.features.authentic')}</h3>
-              <p className="text-gray-600">{t('collections.features.authentic_desc')}</p>
+            <h3 className="feature-title">{t('collections.features.warranty')}</h3>
+            <p className="feature-description">{t('collections.features.warranty_desc')}</p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">
+              <CheckCircle className="h-6 w-6" />
             </div>
+            <h3 className="feature-title">{t('collections.features.authentic')}</h3>
+            <p className="feature-description">{t('collections.features.authentic_desc')}</p>
           </div>
         </div>
       </section>
 
       {/* Newsletter */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="max-w-2xl mx-auto text-center mt-16">
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">{t('collections.newsletter.title')}</h2>
-            <p className="mt-4 text-lg text-gray-600">
+      <section className="newsletter-section">
+        <div className="newsletter-container">
+          <div className="newsletter-content">
+            <h2 className="newsletter-title">{t('collections.newsletter.title')}</h2>
+            <p className="newsletter-description">
               {t('collections.newsletter.description')}
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="mt-8 flex max-w-md mx-auto gap-2">
+            <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('auth.email')}
-                className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-gray-900 shadow-sm focus:ring-2 focus:ring-accent focus:border-transparent sm:text-sm"
+                className="newsletter-input"
               />
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-md bg-accent hover:bg-accent/90 text-white font-bold px-5 py-2.5 text-sm sm:text-base transition-all duration-200 shadow-md hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[120px]"
+                className="newsletter-button"
               >
                 {isSubmitting ? (
                   <span className="animate-pulse">{t('collections.newsletter.subscribing')}...</span>
@@ -299,7 +286,7 @@ const Home = () => {
                 )}
               </button>
             </form>
-            <p className="mt-3 text-sm text-gray-500">
+            <p className="newsletter-privacy">
               {t('collections.newsletter.privacy')}
             </p>
           </div>

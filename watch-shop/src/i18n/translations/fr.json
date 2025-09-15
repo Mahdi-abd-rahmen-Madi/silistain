@@ -14,6 +14,7 @@
     "title": "Découvrez Notre Collection Exclusive de Montres de Luxe",
     "subtitle": "Des pièces uniques qui allient élégance et précision",
     "cta": "Découvrir la Collection",
+    "shop_now": "Acheter maintenant",
     "new_collection": "Nouvelle Collection",
     "limited_offer": "Offre limitée : 20% de réduction",
     "learn_more": "En savoir plus"
@@ -30,7 +31,9 @@
   },
   "common": {
     "back": "Retour",
-    "loading": "Chargement..."
+    "loading": "Chargement...",
+    "shop_now": "Acheter maintenant"
+
   },
   "date": {
     "formats": {
@@ -178,13 +181,6 @@
       "warranty_desc": "Chaque montre est garantie 2 ans",
       "authentic": "Produits authentiques",
       "authentic_desc": "Montres 100% authentiques des meilleures marques"
-    },
-    "newsletter": {
-      "title": "Restez informé",
-      "description": "Abonnez-vous à notre newsletter pour recevoir des mises à jour sur les nouvelles arrivées, les offres spéciales et les offres exclusives.",
-      "subscribe": "S'abonner",
-      "subscribing": "Inscription en cours",
-      "privacy": "Nous respectons votre vie privée. Désabonnez-vous à tout moment."
     }
   },
   "contact": {

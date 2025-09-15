@@ -14,6 +14,7 @@
     "title": "Discover Our Exclusive Collection of Luxury Watches",
     "subtitle": "Unique pieces that combine elegance and precision",
     "cta": "Discover the Collection",
+    "shop_now": "Shop Now",
     "new_collection": "New Collection",
     "limited_offer": "Limited Time 20% OFF",
     "learn_more": "Learn More"
@@ -30,7 +31,8 @@
   },
   "common": {
     "back": "Back",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "shop_now": "Shop Now"
   },
   "auth": {
     "login_title": "Sign in to your account",

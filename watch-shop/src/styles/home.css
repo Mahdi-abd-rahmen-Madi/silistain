@@ -1,0 +1,315 @@
+/* src/styles/home.css */
+.home-container {
+  padding-top: 4rem;
+}
+
+@media (min-width: 768px) {
+  .home-container {
+      padding-top: 5rem;
+  }
+}
+
+.featured-collections {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  background-color: #fff;
+}
+
+.collections-header {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .collections-header {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .collections-header {
+      padding-left: 2rem;
+      padding-right: 2rem;
+  }
+}
+
+.collections-title {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+@media (min-width: 640px) {
+  .collections-title {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+  }
+}
+
+.collections-subtitle {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: #6b7280;
+}
+
+.collections-tabs {
+  width: 100%;
+}
+
+.tabs-list {
+  display: inline-flex;
+  gap: 0.25rem;
+  border-radius: 0.5rem;
+  background-color: #f3f4f6;
+  padding: 0.25rem;
+}
+
+.tab-trigger {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.tab-trigger-active {
+  background-color: #fff;
+  color: #3b82f6; /* Changed from #d97706 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.tab-trigger-inactive {
+  color: #6b7280;
+}
+
+.tab-trigger-inactive:hover {
+  color: #1f2937;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .product-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .product-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.view-all-button {
+  margin-top: 2.5rem;
+  text-align: center;
+}
+
+.features-section {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  background-color: #f9fafb;
+}
+
+.features-grid {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .features-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.feature-card {
+  background-color: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.feature-icon {
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3rem;
+  width: 3rem;
+  border-radius: 9999px;
+  background-color: rgba(59, 130, 246, 0.1); /* Changed from rgba(217, 119, 6, 0.1) */
+  color: #3b82f6; /* Changed from #d97706 */
+  margin-bottom: 1rem;
+}
+
+.feature-title {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.feature-description {
+  color: #6b7280;
+}
+
+.newsletter-section {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  background-color: #fff;
+}
+
+.newsletter-container {
+  max-width: 60rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  text-align: center;
+}
+
+.newsletter-content {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  margin-top: 4rem;
+}
+
+.newsletter-title {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+@media (min-width: 640px) {
+  .newsletter-title {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+  }
+}
+
+.newsletter-description {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: #6b7280;
+}
+
+.newsletter-form {
+  margin-top: 2rem;
+  display: flex;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 0.5rem;
+}
+
+.newsletter-input {
+  flex: 1 1 0%;
+  border-radius: 0.375rem;
+  border-width: 1px;
+  border-color: #d1d5db;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  color: #1f2937;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.newsletter-input:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Changed from rgba(217, 119, 6, 0.5) */
+  border-color: #3b82f6; /* Changed from #d97706 */
+}
+
+@media (min-width: 640px) {
+  .newsletter-input {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+  }
+}
+
+.newsletter-button {
+  border-radius: 0.375rem;
+  background-color: #3b82f6; /* Changed from #d97706 */
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  color: #000;
+  font-weight: 700;
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.newsletter-button:hover {
+  background-color: rgba(59, 130, 246, 0.9); /* Changed from rgba(217, 119, 6, 0.9) */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+.newsletter-button:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Changed from rgba(217, 119, 6, 0.5) */
+}
+
+.newsletter-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (min-width: 640px) {
+  .newsletter-button {
+      font-size: 1rem;
+      line-height: 1.5rem;
+  }
+}
+
+.newsletter-privacy {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #6b7280;
+}
