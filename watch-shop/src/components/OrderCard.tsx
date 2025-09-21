@@ -5,6 +5,7 @@ import { Order } from '../context/OrdersContext';
 import { useState, useMemo } from 'react';
 import { ProductImage } from '../types/product';
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '../lib/utils';
 
 interface OrderCardProps {
   order: Order;
@@ -141,10 +142,10 @@ export function OrderCard({ order }: OrderCardProps) {
                 {item.name || 'Product'}
               </h4>
                 {item.brand && <p className="text-xs text-gray-500">{item.brand}</p>}
-                <p className="text-sm text-gray-500">Qty: {item.quantity || 1}</p>
+                <p className="text-gray-500">{formatPrice(item.price * item.quantity)}</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {(item.price || 0).toFixed(2)} TND
-                  {item.quantity > 1 && ` × ${item.quantity} = ${((item.price || 0) * item.quantity).toFixed(2)} TND`}
+                  {formatPrice(item.price)}
+                  {item.quantity > 1 && ` × ${item.quantity} = ${formatPrice(item.price * item.quantity)}`}
                 </p>
               </div>
             </div>
@@ -157,7 +158,7 @@ export function OrderCard({ order }: OrderCardProps) {
           <div className="pt-4 border-t">
             <div className="text-right">
               <p className="text-sm text-gray-500">Total</p>
-              <p className="text-lg font-bold">{(order.total || 0).toFixed(2)} TND</p>
+              <p className="text-2xl font-bold">{formatPrice(order.total)}</p>
             </div>
           </div>
         </div>

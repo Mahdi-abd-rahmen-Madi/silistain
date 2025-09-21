@@ -13,6 +13,7 @@ import ProductDetailsPage from './pages/ProductDetailsPage';
 import CartPage from './pages/CartPage';
 import FavoritesPage from './pages/FavoritesPage';
 import Checkout from './pages/Checkout';
+import ThankYou from './pages/ThankYou';
 import Login from './pages/Login';
 import Contact from './pages/Contact';
 import AdminSignup from './pages/AdminSignup';
@@ -27,6 +28,7 @@ import { AdminProtectedRoute, ProtectedRoute } from './components/ProtectedRoute
 import Profile from './pages/profile';
 import Orders from './pages/Orders';
 import AuthCallback from './pages/auth/callback';
+import VerifyEmail from './pages/auth/VerifyEmail';
 
 function AppContent() {
   const location = useLocation();
@@ -35,7 +37,32 @@ function AppContent() {
   return (
     <div className="flex flex-col min-h-screen">
       {!isAdminRoute && <Navbar />}
-      <Toaster />
+      <Toaster
+        position="top-center"
+        containerStyle={{
+          top: '1rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'auto',
+          maxWidth: 'calc(100% - 2rem)',
+        }}
+        toastOptions={{
+          style: {
+            margin: '0',
+            padding: '0.75rem 1rem',
+            color: '#1f2937',
+            maxWidth: '100%',
+            width: 'auto',
+            textAlign: 'center',
+          },
+          success: {
+            duration: 3000,
+          },
+          error: {
+            duration: 4000,
+          },
+        }}
+      />
       <main className={`flex-grow ${isAdminRoute ? 'pt-0' : ''}`}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
@@ -44,6 +71,7 @@ function AppContent() {
             <Route path="/product/:id" element={<ProductDetailsPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/login" element={<Login />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
@@ -99,6 +127,7 @@ function AppContent() {
               } 
             />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>

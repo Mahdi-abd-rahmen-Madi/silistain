@@ -4,6 +4,7 @@ import { X, Heart, ShoppingCart, Star } from 'lucide-react';
 import { Button } from './ui/Button';
 import { toast } from '../hooks/use-toast';
 import { Product } from '../types/product';
+import { formatPrice } from '../lib/utils';
 
 interface QuickViewProps {
   product: Product & {
@@ -132,7 +133,7 @@ export function QuickView({ product, onAddToCart }: QuickViewProps) {
                     )}
                   </div>
                   <p className="text-2xl font-bold text-accent">
-                    ${product.price.toFixed(2)}
+                    {formatPrice(product.price)}
                   </p>
                 </div>
 

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
 import { PencilIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Product } from '../../types/product';
+import { formatPrice } from '../../lib/utils';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -107,7 +108,7 @@ export default function ProductDetail() {
           </div>
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Price</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${product.price.toFixed(2)}</dd>
+            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{formatPrice(product.price)}</dd>
           </div>
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Category</dt>

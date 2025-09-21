@@ -1,6 +1,7 @@
 import { ShoppingCart } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useToast } from '../hooks/use-toast';
+import { formatPrice } from '../lib/utils';
 
 interface Product {
   id: string;
@@ -33,7 +34,7 @@ export function StickyAddToCart({ product, onAddToCart }: StickyAddToCartProps) 
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-900">{product.brand} {product.name}</p>
-            <p className="text-lg font-bold text-accent">${product.price.toLocaleString()}</p>
+            <p className="text-lg font-bold text-accent">{formatPrice(product.price)}</p>
           </div>
           <Button 
             size="lg" 

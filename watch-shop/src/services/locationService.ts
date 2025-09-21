@@ -64,7 +64,7 @@ export const fetchMunicipalities = async (filters?: { name?: string; delegation?
  * Fetches unique governorates from the municipalities data
  * @returns {Promise<string[]>} Sorted array of unique governorate names
  */
-export const getGovernorates = async (): Promise<string[]> => {
+export const getGovernorates = async (municipalities: { governorate: string; delegation: string; name: string; nameEn?: string | undefined; postalCode?: string | undefined; latitude?: number | undefined; longitude?: number | undefined; }[]): Promise<string[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}/municipalities`);
     if (!response.ok) {

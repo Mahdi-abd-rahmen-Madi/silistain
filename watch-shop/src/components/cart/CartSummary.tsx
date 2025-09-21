@@ -1,4 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
+import { formatPrice } from '../../lib/utils';
 
 interface CartSummaryProps {
   subtotal: number;
@@ -19,15 +21,19 @@ export function CartSummary({
   checkoutLabel = 'Proceed to Checkout',
   showTaxAndShipping = true,
 }: CartSummaryProps) {
+  const { t } = useTranslation();
+  
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
       <div className="p-6">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Order Summary</h2>
+        <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
+          {t('cart.order_summary')}
+        </h2>
         
         <div className="space-y-4">
           <div className="flex justify-between font-semibold text-lg">
-            <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+            <span>{t('cart.total')}</span>
+            <span>{formatPrice(total)}</span>
           </div>
           
           {onCheckout && (

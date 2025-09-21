@@ -17,6 +17,8 @@
     "shop_now": "Shop Now",
     "new_collection": "New Collection",
     "limited_offer": "Limited Time 20% OFF",
+    "limited_time": "Limited Time",
+    "twenty_percent_off": "20% OFF",
     "learn_more": "Learn More"
   },
   "features": {
@@ -32,7 +34,9 @@
   "common": {
     "back": "Back",
     "loading": "Loading...",
-    "shop_now": "Shop Now"
+    "shop_now": "Shop Now",
+    "close": "Close",
+    "saving": "Saving..."
   },
   "auth": {
     "login_title": "Sign in to your account",
@@ -149,10 +153,68 @@
       "privacy": "We respect your privacy. Unsubscribe at any time."
     }
   },
+  "coupon": {
+    "title": "Your Reward Coupon",
+    "congratulations": "Congratulations!",
+    "reward_message": "As a thank you for your purchase, here's a {{value}} TND coupon for your next order!",
+    "code": "Coupon Code",
+    "value": "Value",
+    "expiry": "Expires on",
+    "expires_on": "Expires on",
+    "download_pdf": "Download PDF",
+    "how_to_use": "How to use your coupon:",
+    "usage_1": "Copy the coupon code above",
+    "usage_2": "Apply it at checkout on your next order",
+    "usage_3": "Valid for one-time use only",
+    "terms": "This coupon is valid for 3 months from the issue date. One coupon per customer. Not valid on sale items. Cannot be combined with other offers. Terms and conditions apply.",
+    "thank_you": "Thank you for your purchase!",
+    "coupon_description": "Your exclusive coupon details",
+    "coupon_code_label": "Coupon Code",
+    "coupon_value_label": "Coupon Value",
+    "coupon_expiry_label": "Coupon Expiry Date"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "order_summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "tax": "Tax",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "continue_shopping": "Continue Shopping",
+    "or_continue_shopping": "or Continue Shopping",
+    "review_items": "Review your items before checking out",
+    "start_adding": "Start adding some items to your cart",
+    "remove": "Remove",
+    "quantity": "Quantity",
+    "item": "{{count}} item",
+    "item_plural": "{{count}} items",
+    "add_to_cart": "Add to Cart",
+    "added_to_cart": "Added to Cart",
+    "out_of_stock": "Out of Stock"
+  },
   "checkout": {
     "title": "Checkout",
     "back_to_cart": "Back to Cart",
     "billing_details": "Billing Details",
+    "selectOnMap": "Select on Map",
+    "hideMap": "Hide Map",
+    "address": "Address",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "phone": "Phone",
+    "email": "Email",
+    "governorate": "Governorate",
+    "delegation": "Delegation",
+    "city": "City",
+    "zip_code": "ZIP Code",
+    "guest_checkout_notice": "You're checking out as a guest.",
+    "for_faster_checkout": "for faster checkout next time.",
+    "use_coupon": "Use coupon {{code}} ({{amount}})",
+    "toggle_coupon": "Toggle to use coupon {{code}}",
+    "coupon_applied": "Coupon applied successfully",
+    "coupon_disabled": "Coupon will not be applied to this order",
     "order_summary": {
       "title": "Order Summary",
       "quantity": "Qty",
@@ -230,9 +292,19 @@
     "diving": "Diving",
     "luxury": "Luxury"
   },
+  "thankYou": {
+    "title": "Thank you for your order!",
+    "message": "Your order has been received and is being processed. You will receive a confirmation email with your order details shortly.",
+    "viewOrders": "View My Orders",
+    "continueShopping": "Continue Shopping",
+    "needHelp": "Need help with your order?",
+    "contactSupport": "Contact our customer service team at "
+  },
   "shop": {
     "title": "Our Watch Collection",
     "description": "Discover our handpicked selection of premium timepieces",
+    "new_arrival": "New Arrival",
+    "featured_product": "Featured Product",
     "filters": "Filters",
     "sort_by": "Sort by",
     "sort_options": {

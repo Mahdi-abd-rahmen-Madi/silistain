@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageDirection } from '../hooks/useLanguageDirection';
 import { useNewsletterSubscription } from '../hooks/useNewsletterSubscription';
 import { toast } from 'react-hot-toast';
 
 const Footer: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const dir = useLanguageDirection();
   const { email, setEmail, subscribe, isLoading, isSuccess, error } = useNewsletterSubscription();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,7 +30,11 @@ const Footer: React.FC = () => {
     }
   };
   return (
-    <footer className="bg-gray-800 text-white py-8">
+    <footer 
+      className="bg-gray-800 text-white py-8"
+      dir={dir}
+      lang={i18n.language}
+    >
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
@@ -44,20 +50,20 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">{t('footer.newsletter')}</h3>
             <p className="text-gray-300 mb-4">{t('footer.newsletter_description')}</p>
             <form onSubmit={handleSubmit} className="space-y-2">
-              <div className="flex">
+              <div className={`flex ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
                 <input 
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('footer.email_placeholder')} 
-                  className="px-4 py-2 w-full rounded-l-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent"
+className={`px-4 py-2 w-full ${dir === 'rtl' ? 'rounded-r-md' : 'rounded-l-md'} text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent`}
                   required
                   disabled={isLoading || isSubmitting}
                 />
                 <button 
                   type="submit"
                   disabled={isLoading || isSubmitting}
-                  className={`bg-accent hover:bg-accent-dark text-white px-4 py-2 rounded-r-md transition-colors ${
+                  className={`bg-accent hover:bg-accent-dark text-white px-4 py-2 ${dir === 'rtl' ? 'rounded-l-md' : 'rounded-r-md'} transition-colors ${
                     (isLoading || isSubmitting) ? 'opacity-70 cursor-not-allowed' : ''
                   }`}
                 >
@@ -75,7 +81,7 @@ const Footer: React.FC = () => {
           <p className="text-gray-400 text-sm mb-4 md:mb-0">
             {t('footer.copyright', { year: new Date().getFullYear() })}
           </p>
-          <div className="flex space-x-4">
+          <div className={`flex ${dir === 'rtl' ? 'space-x-reverse' : ''} space-x-4`}>
             <a href="https://www.tiktok.com/@silistain" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
               <span className="sr-only">TikTok</span>
               <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

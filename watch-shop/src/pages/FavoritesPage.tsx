@@ -4,6 +4,7 @@ import { useFavorites } from '@/context/FavoritesContext';
 import { HeartIcon } from '@heroicons/react/24/outline';
 import { Button } from '../components/ui/Button';
 import FavoriteButton from '../components/FavoriteButton';
+import { formatPrice } from '../lib/utils';
 import type { Product } from '@/types/product';
 
 const FavoritesPage = () => {
@@ -124,7 +125,7 @@ const FavoritesPage = () => {
                 </p>
                 <div className="flex items-center justify-between mt-4">
                   <span className="text-lg font-bold text-gray-900 dark:text-white">
-                    ${product.price?.toFixed(2) || '0.00'}
+                    {formatPrice(product.price || 0)}
                   </span>
                   <Button 
                     variant="outline" 

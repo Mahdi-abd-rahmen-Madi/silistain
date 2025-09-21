@@ -9,9 +9,11 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
 const Shop = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
+  
   // Use products from ProductContext
-  const { products, loading, error } = useProducts();
+  const { products, loading, error, refreshProducts } = useProducts();
   const [initialLoad, setInitialLoad] = useState(true);
   
   // Set initial load to false when products are loaded
@@ -25,6 +27,11 @@ const Shop = () => {
     }
   }, [loading, products, initialLoad]);
   
+  // Refresh products when language changes
+  useEffect(() => {
+    refreshProducts();
+  }, [i18n.language, refreshProducts]);
+  
   // Map products to Watch type for compatibility with the existing code
   const watches = useMemo(() => {
     if (!products || products.length === 0) {
@@ -32,7 +39,7 @@ const Shop = () => {
       return [];
     }
     
-    console.log('Mapping products to watches:', products);
+    console.log(`Mapping products to watches (${i18n.language}):`, products);
     const mapped = products.map(product => {
       // Ensure we have at least one image URL
       const primaryImage = product.images?.find(img => img.isPrimary) || 
@@ -99,7 +106,7 @@ const Shop = () => {
     
     console.log(`Finished mapping ${mapped.length} valid watches`);
     return mapped;
-  }, [products]);
+  }, [products, t, i18n.language]);
   
   // Log watches array changes
   useEffect(() => {
@@ -217,8 +224,6 @@ const Shop = () => {
     setSortBy('featured');
   };
 
-
-
   const filteredWatches = useMemo(() => {
     console.log('Filtering watches with filters:', filters);
     console.log('Total watches to filter:', watches.length);
@@ -335,17 +340,11 @@ const Shop = () => {
     });
   }, [watches, filters, sortBy, t]);
 
-// ...
-
-  // Loading and error states are now handled in the main return statement
-
-// ...
-
   const handleAddToCart = (product: any) => {
     addToCart(product);
     toast.success(`${product.name} added to cart`, {
       duration: 3000,
-      position: 'bottom-right',
+      position: isRtl ? 'bottom-left' : 'bottom-right',
     });
   };
 
@@ -373,6 +372,7 @@ const Shop = () => {
                 <label
                   htmlFor={`category-${category}`}
                   className="ml-3 text-sm text-gray-600 dark:text-gray-300"
+                  style={isRtl ? { marginRight: '0.75rem', marginLeft: '0' } : {}}
                 >
                   {translatedCategory}
                 </label>
@@ -401,6 +401,7 @@ const Shop = () => {
               <label
                 htmlFor={`brand-${brand}`}
                 className="ml-3 text-sm text-gray-600 dark:text-gray-300"
+                style={isRtl ? { marginRight: '0.75rem', marginLeft: '0' } : {}}
               >
                 {brand}
               </label>
@@ -474,17 +475,29 @@ const Shop = () => {
   );
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen pt-24">
+    <div 
+      className="bg-gray-50 dark:bg-gray-900 min-h-screen pt-24"
+      dir={isRtl ? 'rtl' : 'ltr'}
+    >
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Mobile filter dialog */}
         <div className="lg:hidden">
           <AnimatePresence>
             {mobileFiltersOpen && (
               <div className="fixed inset-0 z-40 flex">
-                <div className="fixed inset-0 bg-black bg-opacity-25" onClick={() => setMobileFiltersOpen(false)} />
-                <div className="relative ml-auto flex h-full w-full max-w-xs flex-col overflow-y-auto bg-white dark:bg-gray-800 py-4 pb-12 shadow-xl">
+                <div 
+                  className="fixed inset-0 bg-black bg-opacity-25" 
+                  onClick={() => setMobileFiltersOpen(false)} 
+                />
+                <div 
+                  className={`relative flex h-full w-full max-w-xs flex-col overflow-y-auto bg-white dark:bg-gray-800 py-4 pb-12 shadow-xl ${
+                    isRtl ? 'mr-auto' : 'ml-auto'
+                  }`}
+                >
                   <div className="flex items-center justify-between px-4">
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">{t('shop.filters')}</h2>
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                      {t('shop.filters')}
+                    </h2>
                     <button
                       type="button"
                       className="-mr-2 flex h-10 w-10 items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent"
@@ -513,117 +526,123 @@ const Shop = () => {
 
           {/* Product grid */}
           <div className="lg:col-span-3">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-          <div className="mb-4 md:mb-0">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{t('shop.title')}</h1>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{t('shop.description')}</p>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <button
-              type="button"
-              onClick={() => setMobileFiltersOpen(true)}
-              className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-            >
-              <FunnelIcon className="mr-2 h-5 w-5" />
-              {t('shop.filters')}
-            </button>
-          </div>
-        </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+              <div className="mb-4 md:mb-0">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  {t('shop.title')}
+                </h1>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  {t('shop.description')}
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-4" style={isRtl ? { flexDirection: 'row-reverse' } : {}}>
+                <button
+                  type="button"
+                  onClick={() => setMobileFiltersOpen(true)}
+                  className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  style={isRtl ? { flexDirection: 'row-reverse' } : {}}
+                >
+                  <FunnelIcon className={`mr-2 h-5 w-5 ${isRtl ? 'ml-2 mr-0' : ''}`} />
+                  {t('shop.filters')}
+                </button>
+              </div>
+            </div>
 
-        <div className="pt-4">
-          {loading || initialLoad ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-red-500">{t('shop.error_loading')}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                {t('common.retry')}
-              </button>
-            </div>
-          ) : filteredWatches.length === 0 ? (
-            <div className="text-center py-12">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                {t('shop.no_products')}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t('shop.try_adjusting_filters')}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {filteredWatches.map((watch) => {
-                // Find the original product to get the isBestSeller and isNew flags
-                const originalProduct = products.find(p => p.id === watch.id);
-                
-                // Convert Watch type to Product type for ProductCard
-                const product = {
-                  ...watch,
-                  imageUrl: watch.image,
-                  images: watch.images || [],
-                  isNew: originalProduct?.isNew || watch.isNew || false,
-                  isBestSeller: originalProduct?.isBestSeller || watch.isBestSeller || false,
-                  discount: watch.discount || 0,
-                  rating: watch.rating || 0,
-                  reviewCount: watch.reviewCount || 0,
-                  stock: watch.inStock || 0,
-                  // Ensure all required Product fields are included
-                  brand: watch.brand === 'product.unknown_brand' ? t('product.unknown_brand') : (watch.brand || ''),
-                  description: watch.description || '',
-                  category: watch.category || 'watches',
-                  featured: watch.featured || false,
-                  specifications: watch.specifications || {},
-                  createdAt: watch.createdAt || new Date(),
-                  updatedAt: watch.updatedAt || new Date()
-                };
-                
-                return (
-                  <motion.div
-                    key={watch.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="w-full"
+            <div className="pt-4">
+              {loading || initialLoad ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+                </div>
+              ) : error ? (
+                <div className="text-center py-12">
+                  <p className="text-red-500">{t('shop.error_loading')}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   >
-                    <ProductCard 
-                      product={product} 
-                      onAddToCart={() => handleAddToCart(product)}
+                    {t('common.retry')}
+                  </button>
+                </div>
+              ) : filteredWatches.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-          {filteredWatches.length === 0 && (
-            <div className="mt-6">
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex items-center rounded-md border border-transparent bg-accent px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
-              >
-                {t('shop.filter_options.reset_filters')}
-              </button>
-            </div>
-          )}
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                    {t('shop.no_products')}
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {t('shop.try_adjusting_filters')}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6" style={{ direction: 'ltr' }}>
+                  {filteredWatches.map((watch) => {
+                    // Find the original product to get the isBestSeller and isNew flags
+                    const originalProduct = products.find(p => p.id === watch.id);
+                    
+                    // Convert Watch type to Product type for ProductCard
+                    const product = {
+                      ...watch,
+                      imageUrl: watch.image,
+                      images: watch.images || [],
+                      isNew: originalProduct?.isNew || watch.isNew || false,
+                      isBestSeller: originalProduct?.isBestSeller || watch.isBestSeller || false,
+                      discount: watch.discount || 0,
+                      rating: watch.rating || 0,
+                      reviewCount: watch.reviewCount || 0,
+                      stock: watch.inStock || 0,
+                      // Ensure all required Product fields are included
+                      brand: watch.brand === 'product.unknown_brand' ? t('product.unknown_brand') : (watch.brand || ''),
+                      description: watch.description || '',
+                      category: watch.category || 'watches',
+                      featured: watch.featured || false,
+                      specifications: watch.specifications || {},
+                      createdAt: watch.createdAt || new Date(),
+                      updatedAt: watch.updatedAt || new Date()
+                    };
+                    
+                    return (
+                      <motion.div
+                        key={watch.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full"
+                      >
+                        <ProductCard
+                          key={`${watch.id}-${i18n.language}`}
+                          product={product}
+                          onAddToCart={() => handleAddToCart(product)}
+                        />
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+              {filteredWatches.length === 0 && (
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="inline-flex items-center rounded-md border border-transparent bg-accent px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  >
+                    {t('shop.filter_options.reset_filters')}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

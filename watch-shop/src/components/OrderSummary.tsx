@@ -6,25 +6,43 @@ import { useTranslation } from 'react-i18next';
 
 interface OrderSummaryProps {
   cartItems: CartItem[];
-  isSubmitting: boolean;
-  error: string | null;
-  onSubmit: () => void;
+  isSubmitting?: boolean;
+  error?: string | null;
+  onSubmit?: () => void;
+  appliedCoupon?: {
+    code: string;
+    amount: number;
+  } | null;
+  onRemoveCoupon?: () => void;
 }
 
-export const OrderSummary = ({ cartItems, isSubmitting, error, onSubmit }: OrderSummaryProps) => {
+export const OrderSummary = ({ 
+  cartItems, 
+  isSubmitting = false, 
+  error = null, 
+  onSubmit,
+  appliedCoupon = null,
+  onRemoveCoupon
+}: OrderSummaryProps) => {
   const { t } = useTranslation();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   
   const handleConfirm = () => {
-    setIsConfirmOpen(true);
+    if (onSubmit) {
+      setIsConfirmOpen(true);
+    }
   };
   
   const handleSubmitOrder = () => {
     setIsConfirmOpen(false);
-    onSubmit();
+    if (onSubmit) {
+      onSubmit();
+    }
   };
+  
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const total = subtotal; // Total is just the subtotal (no shipping or tax)
+  const discount = appliedCoupon?.amount || 0;
+  const total = Math.max(0, subtotal - discount);
 
   return (
     <div className="lg:col-span-1">

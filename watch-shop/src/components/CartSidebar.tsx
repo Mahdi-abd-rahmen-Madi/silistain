@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
+import { formatPrice } from '../lib/utils';
 
 export default function CartSidebar() {
   const { 
@@ -102,7 +103,7 @@ export default function CartSidebar() {
                                             {item.name}
                                           </Link>
                                         </h3>
-                                        <p className="ml-4">${item.price.toFixed(2)}</p>
+                                        <p className="text-gray-500">{formatPrice(item.price * item.quantity)}</p>
                                       </div>
                                       <p className="mt-1 text-sm text-gray-500">{item.brand}</p>
                                     </div>
@@ -149,23 +150,23 @@ export default function CartSidebar() {
                       <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
                         <div className="flex justify-between text-base font-medium text-gray-900">
                           <p>Subtotal</p>
-                          <p>${subtotal.toFixed(2)}</p>
+                          <p>{formatPrice(subtotal)}</p>
                         </div>
                         {shipping > 0 && (
                           <div className="flex justify-between text-sm text-gray-500 mt-2">
                             <p>Shipping</p>
-                            <p>${shipping.toFixed(2)}</p>
+                            <p>{formatPrice(shipping)}</p>
                           </div>
                         )}
                         {tax > 0 && (
                           <div className="flex justify-between text-sm text-gray-500 mt-1">
                             <p>Tax</p>
-                            <p>${tax.toFixed(2)}</p>
+                            <p>{formatPrice(tax)}</p>
                           </div>
                         )}
                         <div className="flex justify-between text-lg font-bold text-gray-900 mt-4 pt-4 border-t border-gray-200">
                           <p>Total</p>
-                          <p>${total.toFixed(2)}</p>
+                          <p>{formatPrice(total)}</p>
                         </div>
                         <div className="mt-6">
                           <Link

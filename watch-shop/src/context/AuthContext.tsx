@@ -209,11 +209,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     try {
       const siteUrl = import.meta.env.VITE_SITE_URL || 'http://localhost:3000';
+      const redirectTo = `${siteUrl}/verify-email`;
+      
+      console.log('Initiating magic link sign in with redirect:', redirectTo);
+      
+      // Use the signInWithOtp method with email configuration
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${siteUrl}/auth/callback`,
+          emailRedirectTo: redirectTo,
+          shouldCreateUser: true,
+          // This will be included in the email template
+          data: {
+            email: email,
+            site_url: siteUrl,
+            verification_url: redirectTo
+          }
         },
+      });
+      
+      // Also update the email template URL in the auth config
+      await supabase.auth.updateUser({
+        email,
+        data: {
+          email_redirect_to: redirectTo
+        }
       });
 
       if (error) throw error;
@@ -221,8 +241,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { user: currentUser, error: null };
     } catch (error) {
       console.error('Magic link error:', error);
-      setError(error);
-      return { user: null, error };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send magic link';
+      setError(errorMessage);
+      return { user: null, error: errorMessage };
     } finally {
       setLoading(false);
     }

@@ -33,28 +33,31 @@ export const createOrderInDatabase = async (
     // Handle user ID safely (convert empty string to null)
     const safeUserId = userId && userId.trim() !== '' ? userId : null;
 
-    // Create order record
+    // Create order record with minimal required fields
+    const orderData = {
+      user_id: safeUserId,
+      status: 'pending',
+      total: total,
+      items: formattedItems,
+      shipping_address: {
+        firstName: formData.firstName,
+        lastName: formData.lastName || '',
+        email: formData.email || '',
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.delegation,
+        governorate: formData.governorate,
+        delegation: formData.delegation,
+        notes: formData.notes || ''
+      },
+      order_number: `ORD-${Date.now()}`,
+    };
+
+    console.log('Creating order with data:', JSON.stringify(orderData, null, 2));
+    
     const { data, error } = await supabase
       .from('orders')
-      .insert([{
-        user_id: safeUserId,  // Critical fix for UUID error
-        status: 'pending',
-        total: total,         // Only total is stored
-        items: formattedItems,
-        shipping_address: {
-          firstName: formData.firstName,
-          lastName: formData.lastName || '',
-          email: formData.email || '',
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.delegation,
-          governorate: formData.governorate,
-          delegation: formData.delegation,
-          zipCode: formData.zipCode,
-          postalCode: formData.zipCode,
-          notes: formData.notes || ''
-        }
-      }])
+      .insert([orderData])
       .select()
       .single();
       

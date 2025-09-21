@@ -11,16 +11,23 @@ export default function AuthCallback() {
       try {
         // Check for OAuth callback with hash
         const hash = window.location.hash;
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const type = urlParams.get('type');
+
+        // Handle magic link verification
+        if (token && type === 'magiclink') {
+          // Redirect to the verification page with the token
+          navigate(`/verify-email?token=${encodeURIComponent(token)}&type=magiclink`);
+          return;
+        }
+        
         if (hash) {
-          // Handle OAuth callback with hash
+          // Handle OAuth callback with hash (Google, GitHub, etc.)
           const params = new URLSearchParams(hash.substring(1));
           const accessToken = params.get('access_token');
           const refreshToken = params.get('refresh_token');
-          const expiresIn = params.get('expires_in');
-          const tokenType = params.get('token_type');
-          const type = params.get('type');
           
-          // Handle OAuth with hash parameters (Google, GitHub, etc.)
           if (accessToken && refreshToken) {
             const { error } = await supabase.auth.setSession({
               access_token: accessToken,
@@ -39,17 +46,16 @@ export default function AuthCallback() {
           }
         }
         
-        // Check for magic link or other auth methods
-        const { data, error } = await supabase.auth.getSession();
-        if (data.session) {
-          // If we have a valid session, redirect to the dashboard
+        // If we have a valid session, redirect to the dashboard
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionData.session) {
           const redirectTo = searchParams.get('redirect_to') || '/shop';
           navigate(redirectTo);
           return;
         }
         
         // If we get here, something went wrong with the auth flow
-        console.error('Auth callback error:', error);
+        console.error('Auth callback error: No valid session found');
         navigate('/login?error=invalid_auth');
       } catch (error) {
         console.error('Error in auth callback:', error);

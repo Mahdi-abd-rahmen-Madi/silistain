@@ -21,7 +21,7 @@
   },
   "features": {
     "free_shipping": "Livraison gratuite",
-    "free_shipping_desc": "Sur toutes les commandes de plus de 100€",
+    "free_shipping_desc": "Sur toutes les commandes de plus de 300 dinars",
     "warranty": "Garantie 2 ans",
     "warranty_desc": "Qualité garantie",
     "secure_payment": "Paiement sécurisé",
@@ -32,8 +32,8 @@
   "common": {
     "back": "Retour",
     "loading": "Chargement...",
-    "shop_now": "Acheter maintenant"
-
+    "shop_now": "Acheter maintenant",
+    "close": "Fermer"
   },
   "date": {
     "formats": {
@@ -208,9 +208,22 @@
     "luxury": "Luxe",
     "sport": "Sport"
   },
+  "coupon": {
+    "title": "Votre Bon de Réduction",
+    "congratulations": "Félicitations !",
+    "reward_message": "En remerciement de votre achat, voici un bon de réduction de {{value}} TND pour votre prochaine commande !",
+    "code": "Code promo",
+    "value": "Valeur",
+    "expiry": "Date d'expiration",
+    "expires_on": "Expire le",
+    "download_pdf": "Télécharger le bon",
+    "terms": "Ce bon est valable 3 mois à partir de la date d'émission. Un bon par client. Non valable sur les articles en promotion. Non cumulable avec d'autres offres. Conditions générales d'utilisation applicables.",
+    "thank_you": "Merci pour votre achat !"
+  },
   "cart": {
     "title": "Panier",
     "empty": "Votre panier est vide",
+    "order_summary": "Récapitulatif de la commande",
     "subtotal": "Sous-total",
     "shipping": "Livraison",
     "tax": "Taxe",
@@ -233,6 +246,33 @@
     "back_to_cart": "Retour au panier",
     "billing_details": "Détails de facturation",
     "payment_method": "Moyen de paiement",
+    "selectOnMap": "Sélectionner sur la carte",
+    "hideMap": "Masquer la carte",
+    "address": "Adresse",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "phone": "Téléphone",
+    "email": "E-mail",
+    "governorate": "Gouvernorat",
+    "delegation": "Délégation",
+    "city": "Ville",
+    "zip_code": "Code postal",
+    "guest_checkout_notice": "Vous passez la commande en tant qu'invité.",
+    "for_faster_checkout": "pour un paiement plus rapide la prochaine fois.",
+    "use_coupon": "Utiliser le code promo {{code}} ({{amount}})",
+    "toggle_coupon": "Activer pour utiliser le code promo {{code}}",
+    "coupon_applied": "Code promo appliqué avec succès",
+    "coupon_disabled": "Le code promo ne sera pas appliqué à cette commande",
+    "errors": {
+      "location_data": "Erreur lors du chargement des données de localisation",
+      "cities": "Erreur lors du chargement des villes",
+      "missing_email": "L'e-mail est requis pour le paiement en tant qu'invité",
+      "invalid_email": "Veuillez saisir une adresse e-mail valide",
+      "coupon_apply_failed": "Échec de l'application du code promo. Veuillez réessayer.",
+      "delegations": "Échec du chargement des délégations. Veuillez réessayer.",
+      "order_submission": "Échec de la commande. Veuillez réessayer.",
+      "unknown_brand": "Marque inconnue"
+    },
     "order_summary": {
       "title": "Récapitulatif de la commande",
       "quantity": "Qté",
@@ -277,18 +317,22 @@
       "cash_on_delivery_title": "Paiement à la livraison",
       "cash_on_delivery_desc": "Vous paierez en espèces lors de la livraison de votre commande.",
       "cash_on_delivery_help": "En passant votre commande, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité."
-    },
-    "errors": {
-      "location_data": "Échec du chargement des données de localisation. Veuillez réessayer plus tard.",
-      "delegations": "Échec du chargement des délégations. Veuillez réessayer.",
-      "order_submission": "Échec de la commande. Veuillez réessayer.",
-      "unknown_brand": "Marque inconnue"
     }
   },
   "select_city": "Sélectionnez une ville",
+  "thankYou": {
+    "title": "Merci pour votre commande !",
+    "message": "Votre commande a été reçue et est en cours de traitement. Vous recevrez un e-mail de confirmation avec les détails de votre commande sous peu.",
+    "viewOrders": "Voir mes commandes",
+    "continueShopping": "Continuer les achats",
+    "needHelp": "Besoin d'aide avec votre commande ?",
+    "contactSupport": "Contactez notre équipe d'assistance à "
+  },
   "shop": {
     "title": "Notre Collection de Montres",
     "description": "Découvrez notre sélection minutieuse de montres de luxe",
+    "new_arrival": "Nouveauté",
+    "featured_product": "Produit en Vedette",
     "filters": "Filtres",
     "sort_by": "Trier par",
     "sort_options": {

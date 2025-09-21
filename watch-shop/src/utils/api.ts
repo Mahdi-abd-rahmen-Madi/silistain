@@ -3,6 +3,7 @@ import { CheckoutFormData } from '../types/checkout';
 import { OrderItem, OrderAddress } from '../types/order';
 import { CartItem } from '../types/cart'; 
 import { createOrderInDatabase } from '../services/orderService';
+import { formatPrice } from '../lib/utils';
 
 interface ApiResponse {
   success: boolean;
@@ -34,14 +35,18 @@ export const submitOrderToSheets = async (
   try {
     // Parse items from the formatted string
     const items = orderData.Items.split('\n').map(item => {
-      const match = item.match(/(\d+)x\s+(.+?)\s+-\s+\$(\d+\.\d+)/);
+      // Match format like "1x Product Name - 123.45 TND each"
+      const match = item.match(/(\d+)x\s+(.+?)\s+-\s+([\d,.]+)\s+TND/);
       if (!match) return null;
+      
+      // Remove commas and convert to float
+      const price = parseFloat(match[3].replace(/,/g, ''));
       
       return {
         id: '',
         productId: '',
         name: match[2].trim(),
-        price: parseFloat(match[3]),
+        price: price,
         quantity: parseInt(match[1]),
         image: ''
       } as CartItem;
@@ -93,7 +98,6 @@ export const submitOrderToSheets = async (
       address: addressLine1,
       governorate,
       delegation,
-      zipCode: shippingAddress.postalCode,
       saveInfo: false,
       notes: ''
     };
@@ -125,7 +129,7 @@ export const formatOrderData = (
 ): FormattedOrderData => {
   // Format items as a string for the spreadsheet
   const itemsString = items
-    .map(item => `${item.quantity}x ${item.name}${item.brand ? ` (${item.brand})` : ''} - $${item.price.toFixed(2)} each`)
+    .map(item => `${item.quantity}x ${item.name}${item.brand ? ` (${item.brand})` : ''} - ${formatPrice(item.price)} each`)
     .join('\n');
     
   // Calculate ONLY total (simplified - no shipping/tax/subtotal)
@@ -141,11 +145,11 @@ export const formatOrderData = (
     'Phone': order.phone,
     'Shipping Address': [
       order.address,
-      `${order.delegation || ''}, ${order.governorate || ''} ${order.zipCode || ''}`
+      `${order.delegation || ''}, ${order.governorate || ''}`
     ].filter(Boolean).join('\n'),
     'Billing Address': 'Same as shipping address',
     'Items': itemsString,
-    'Total': `$${total.toFixed(2)}`,
+    'Total': formatPrice(total),
     'Order Status': 'Pending',
     'Timestamp': new Date().toISOString()
   };

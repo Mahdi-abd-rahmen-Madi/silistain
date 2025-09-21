@@ -7,6 +7,7 @@ import { Product } from '../types/product';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
 import FavoriteButton from '../components/FavoriteButton';
+import { formatPrice } from '../lib/utils';
 
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -139,7 +140,7 @@ const ProductDetailsPage: React.FC = () => {
             <div>
               <h1 className="text-3xl font-bold">{currentProduct.name}</h1>
               <p className="text-2xl font-semibold text-primary mt-2">
-                ${currentProduct.price?.toFixed(2)}
+                {formatPrice(currentProduct.price || 0)}
               </p>
             </div>
             <FavoriteButton 
@@ -197,7 +198,7 @@ const ProductDetailsPage: React.FC = () => {
                 className="w-full py-6 text-lg flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
               >
                 <ShoppingCart className="w-5 h-5" />
-                Add to Cart - ${currentProduct.price?.toFixed(2)}
+                Add to Cart - {formatPrice(currentProduct.price || 0)}
               </Button>
               <Button 
                 variant="outline"
@@ -205,7 +206,7 @@ const ProductDetailsPage: React.FC = () => {
                 className="w-full py-6 text-lg flex items-center justify-center gap-2 border-primary text-primary hover:bg-primary/10 transition-colors"
               >
                 <ShoppingCart className="w-5 h-5" />
-                Buy Now - ${currentProduct.price?.toFixed(2)}
+                Buy Now - {formatPrice(currentProduct.price || 0)}
               </Button>
             </div>
           </div>

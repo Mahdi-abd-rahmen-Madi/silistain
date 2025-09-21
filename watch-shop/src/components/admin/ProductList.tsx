@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { formatPrice } from '../../lib/utils';
 
 export default function ProductList() {
   const { products, deleteProduct, loading } = useProducts();
@@ -101,7 +102,7 @@ export default function ProductList() {
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start">
                   <h4 className="text-sm font-medium text-gray-900 truncate">{product.name}</h4>
-                  <div className="text-sm font-medium text-gray-900">${product.price.toFixed(2)}</div>
+                  <div className="text-sm font-medium text-gray-900">{formatPrice(product.price)}</div>
                 </div>
                 <p className="text-xs text-gray-500 line-clamp-1">{product.description}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
@@ -189,7 +190,7 @@ export default function ProductList() {
                   <div className="text-sm text-gray-900 capitalize">{product.category || '-'}</div>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="text-sm text-gray-900">${product.price.toFixed(2)}</div>
+                  <div className="text-sm text-gray-900">{formatPrice(product.price)}</div>
                 </td>
                 <td className="px-4 py-3">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${(product.stock || 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>

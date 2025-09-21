@@ -1,5 +1,6 @@
 import { XMarkIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { CartItem as CartItemType } from '../../context/CartContext';
+import { formatPrice } from '../../lib/utils';
 
 interface CartItemProps {
   item: CartItemType;
@@ -23,7 +24,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove, variant = 'page' }:
         <div>
           <div className="flex justify-between text-base font-medium text-gray-900">
             <h3>{item.name}</h3>
-            <p className="ml-4">${item.price.toFixed(2)}</p>
+            <p className="ml-4">{formatPrice(item.price)}</p>
           </div>
         </div>
         

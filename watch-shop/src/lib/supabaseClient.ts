@@ -16,20 +16,24 @@ const createSupabaseClient = (): SupabaseClient => {
   if (!supabaseInstance) {
     console.log('Initializing Supabase client with site URL:', siteUrl);
     
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    const authOptions: any = {
       auth: {
-        persistSession: true,
         autoRefreshToken: true,
+        persistSession: true,
         detectSessionInUrl: true,
-        flowType: 'pkce',
+        flowType: 'pkce' as const,
         debug: true,
+        storage: window.localStorage,
+        storageKey: 'sb-auth-token',
       },
       global: {
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
         },
       },
-    });
+    };
+
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, authOptions);
     
     // Override the redirectTo URL for all auth methods
     supabaseInstance.auth.onAuthStateChange((event, session) => {

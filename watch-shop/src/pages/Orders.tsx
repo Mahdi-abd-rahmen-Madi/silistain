@@ -7,6 +7,7 @@ import { Badge } from '../components/ui/Badge';
 import { format } from 'date-fns';
 import { ArrowLeft, ShoppingBag, Clock, Truck, PackageCheck, XCircle } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { formatPrice } from '../lib/utils';
 
 interface OrderItem {
   id: string;
@@ -181,7 +182,7 @@ export default function Orders() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-500">{t('orders.total_amount')}</p>
-                      <p className="text-lg font-medium">{order.total.toFixed(2)} TND</p>
+                      <p className="text-lg font-medium">{formatPrice(order.total)}</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -209,9 +210,9 @@ export default function Orders() {
                               <div className="flex justify-between text-base font-medium text-gray-900">
                                 <h3>{item.name}</h3>
                                 <p className="text-sm text-gray-500">
-                                  {item.price.toFixed(2)} TND
+                                  {formatPrice(item.price)}
                                   {item.quantity > 1 && (
-                                    <span className="text-xs text-gray-400 ml-1">× {item.quantity} = {(item.price * item.quantity).toFixed(2)} TND</span>
+                                    <span className="text-xs text-gray-400 ml-1">× {item.quantity} = {formatPrice(item.price * item.quantity)}</span>
                                   )}
                                 </p>
                               </div>

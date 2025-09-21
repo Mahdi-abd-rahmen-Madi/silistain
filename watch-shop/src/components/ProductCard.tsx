@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/Button';
 import { motion } from 'framer-motion';
@@ -21,6 +21,28 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const cartButtonRef = useRef<HTMLButtonElement>(null);
   const { toast } = useToast();
+  
+  // Generate a random discount percentage (10%, 15%, 20%, or 50%)
+  const discountPercentage = useMemo(() => {
+    const discounts = [10, 15, 20, 50];
+    return discounts[Math.floor(Math.random() * discounts.length)];
+  }, []);
+  
+  // Calculate fake original price
+  const fakeOriginalPrice = useMemo(() => {
+    if (!product.price) return 0;
+    const price = typeof product.price === 'number' ? product.price : parseFloat(product.price);
+    return Math.round(price / (1 - (discountPercentage / 100)));
+  }, [product.price, discountPercentage]);
+  
+  // Format price with currency
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-TN', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
+  };
   
   // Improved brand detection logic
   const getBrandDisplay = () => {
@@ -82,7 +104,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             <svg className="-ml-0.5 mr-1.5 h-2 w-2 text-white" fill="currentColor" viewBox="0 0 8 8">
               <circle cx={4} cy={4} r={3} />
             </svg>
-            Featured
+            {t('shop.featured_product')}
           </span>
         </div>
       )}
@@ -157,7 +179,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
               </span>
-              New Arrival
+              {t('shop.new_arrival')}
             </motion.span>
           ) : product.isBestSeller ? (
             <motion.span 
@@ -277,38 +299,42 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
       {/* Product Info - Always visible */}
       <div className="p-4">
-        <div className="flex justify-between items-start">
-          <div className={`${isFeatured ? 'pr-2' : ''}`}>
-            <h3 className={`text-sm font-medium text-gray-900 line-clamp-2 ${
-              isFeatured ? 'font-semibold' : ''
-            }`}>
-              {product.name}
-            </h3>
-            {/* Always show brand line with improved detection */}
-            <p className="text-xs text-gray-500">
-              {getBrandDisplay()}
-            </p>
-          </div>
-          <div className="text-right">
-            {product.price && product.price > 0 ? (
-              product.discount && product.discount > 0 ? (
-                <>
-                  <p className="text-sm font-medium text-gray-900">
-                    {Math.round(product.price * (1 - product.discount / 100))} TND
-                  </p>
-                  <p className="text-xs text-gray-500 line-through">
-                    {Math.round(product.price)} TND
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm font-medium text-gray-900">
-                  {Math.round(product.price)} TND
-                </p>
-              )
-            ) : (
-              <p className="text-sm font-medium text-gray-500">Contact for Price</p>
-            )}
-          </div>
+        {/* Title */}
+        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-3">
+          {product.name}
+        </h3>
+        <div className="w-full">
+          {product.price && product.price > 0 ? (
+            <div>
+              {/* Price and Discount Badge */}
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-[22px] font-bold text-gray-900">
+                  {formatPrice(Number(product.price))} TND
+                </div>
+                {discountPercentage > 0 && (
+                  <div className="bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                    -{discountPercentage}%
+                  </div>
+                )}
+              </div>
+              
+              {/* Original Price and Save Amount */}
+              <div className="flex items-center gap-2">
+                {discountPercentage > 0 && (
+                  <>
+                    <span className="text-xs text-gray-500 line-through">
+                      {formatPrice(fakeOriginalPrice)} TND
+                    </span>
+                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                      Save {formatPrice(fakeOriginalPrice - Number(product.price))} TND
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm font-medium text-gray-500">Contact for Price</p>
+          )}
         </div>
       </div>
     </motion.div>

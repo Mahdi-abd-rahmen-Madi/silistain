@@ -73,21 +73,21 @@ export const HeroSection = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.215.33-.35.677-.35 1.005 0 .325.13.673.35 1.005.208.322.477.65.822.88a1 1 0 001.45-.385c.22-.396.13-.913-.18-1.3.43-.36.72-.89.72-1.5 0-.61-.29-1.14-.72-1.5.31-.387.4-.904.18-1.3zM8.5 1.5a1 1 0 01.894.553c.22.396.13.913-.18 1.3-.43.36-.72.89-.72 1.5 0 .61.29 1.14.72 1.5.31.387.4.904.18 1.3a1 1 0 11-1.788.894c-.345-.23-.614-.558-.822-.88-.215-.33-.35-.68-.35-1.005 0-.325.13-.673.35-1.005.208-.322.477-.65.822-.88a1 1 0 01.894-.553zM4.5 7.5a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
               </svg>
-              {t('hero.new_collection')}
+              {t('hero.new_collection') || 'New Collection'}
             </span>
             
             <h1 className="mt-4 sm:mt-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl md:text-5xl lg:text-6xl">
-              {heroMedia.title || t('hero.title')}
+              {heroMedia?.title || t('hero.title')}
             </h1>
             
             <p className="mt-4 sm:mt-6 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto lg:mx-0">
-              {heroMedia.subtitle || t('hero.subtitle')}
+              {heroMedia?.subtitle || t('hero.subtitle')}
             </p>
             <div className="mt-4 sm:mt-6 inline-flex items-center px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              {t('hero.limited_offer')}
+              {t('hero.limited_offer') || 'Limited Time Offer'}
             </div>
             
             <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
@@ -95,7 +95,7 @@ export const HeroSection = () => {
                 href={heroMedia.product_id ? `/product/${heroMedia.product_id}` : '/shop'}
                 className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
-                {heroMedia.cta_text || t('hero.cta')}
+                {t('hero.shop_now')}
                 <svg className="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
@@ -242,8 +242,8 @@ export const HeroSection = () => {
                           </svg>
                         </div>
                         <div className="ml-1 md:ml-2">
-                          <p className="text-xs md:text-sm font-medium text-gray-900 leading-tight">Limited Time</p>
-                          <p className="text-xs font-bold text-accent leading-none">20% OFF</p>
+                          <p className="text-xs md:text-sm font-medium text-gray-900 leading-tight">{t('hero.limited_time') || 'Limited Time'}</p>
+                          <p className="text-xs font-bold text-accent leading-none">{t('hero.twenty_percent_off') || '20% OFF'}</p>
                         </div>
                       </div>
                     </div>

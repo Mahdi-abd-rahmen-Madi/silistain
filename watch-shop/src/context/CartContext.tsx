@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
+import { formatPrice } from '../lib/utils';
 
 // Types
 export interface CartItem {
@@ -8,6 +9,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   brand?: string;
+  image: string;
   [key: string]: unknown; // Allow for additional properties with unknown type
 }
 
@@ -53,7 +55,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   
   // Cart calculations
   const calculateSubtotal = useCallback((): number => {
-    return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return parseFloat(cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2));
   }, [cartItems]);
   
   const calculateTax = useCallback((): number => {
@@ -65,7 +67,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, []);
   
   const calculateTotal = useCallback((): number => {
-    return calculateSubtotal() + calculateTax() + calculateShipping();
+    const total = calculateSubtotal() + calculateTax() + calculateShipping();
+    return parseFloat(total.toFixed(2));
   }, [calculateSubtotal, calculateTax, calculateShipping]);
   
   // Derived state
@@ -116,7 +119,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       return [...prevItems, { ...watch, quantity } as CartItem];
     });
 
-    toast.success(`${quantity} ${watch.name} added to cart`);
   }, []);
 
   const removeFromCart = useCallback((watchId: string) => {

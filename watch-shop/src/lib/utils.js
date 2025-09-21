@@ -8,6 +8,6 @@ export function cn(...inputs) {
 export const formatPrice = (price) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'TND',
   }).format(price);
 };

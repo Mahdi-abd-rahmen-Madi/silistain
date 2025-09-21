@@ -6,8 +6,10 @@ import { Product } from '../../types/product';
 import { Order } from '../../types/order';
 import { OrdersTab } from '../../components/admin/OrdersTab';
 import { HeroMediaManager } from '../../components/admin/HeroMediaManager';
+import UsersTab from '../../components/admin/UsersTab';
 import { fetchMunicipalities } from '../../services/locationService';
 import { supabase, getAdminClient } from '../../lib/supabaseClient';
+import { formatPrice } from '../../lib/utils';
 
 interface AdminDashboardProps {}
 
@@ -431,7 +433,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              ${product.price.toFixed(2)}
+                              {formatPrice(product.price)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -489,9 +491,11 @@ export default function AdminDashboard({}: AdminDashboardProps) {
           )}
           
           {activeTab === 'users' && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-medium text-gray-900">Users</h2>
-              <p className="mt-2 text-sm text-gray-500">User management coming soon.</p>
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="p-6">
+                <h2 className="text-lg font-medium text-gray-900 mb-6">Users</h2>
+                <UsersTab />
+              </div>
             </div>
           )}
           

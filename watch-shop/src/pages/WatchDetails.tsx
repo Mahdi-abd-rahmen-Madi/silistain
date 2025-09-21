@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useCart } from '../context/CartContext';
+import { formatPrice } from '../lib/utils';
 import { ArrowLeftIcon, ShoppingCartIcon, TruckIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import watches from '../data/watches';
 import { Watch } from '../types';
@@ -121,14 +123,14 @@ const WatchDetails = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">{watch.brand} {watch.name}</h1>
-                  <p className="text-2xl text-gray-900 mt-2">${watch.price.toFixed(2)}</p>
+                  <p className="text-2xl text-gray-900 mt-2">{formatPrice(watch.price)}</p>
                 </div>
                 <FavoriteButton productId={watch.id.toString()} className="mt-1" />
               </div>
 
               {/* Price */}
               <div className="mt-4">
-                <span className="text-2xl font-bold text-accent">${watch.price.toLocaleString()}</span>
+                <span className="text-2xl font-bold text-accent">{formatPrice(watch.price)}</span>
                 {watch.inStock > 0 ? (
                   <span className="ml-3 text-sm text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
                     In Stock ({watch.inStock} available)
@@ -211,7 +213,7 @@ const WatchDetails = () => {
                       className="flex-1 bg-accent hover:bg-accent-dark text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center"
                     >
                       <ShoppingCartIcon className="h-5 w-5 mr-2" />
-                      Add to Cart - ${(watch.price * quantity).toLocaleString()}
+                      {t('add_to_cart')} - {formatPrice(watch.price * quantity)}
                     </button>
                   </div>
                 ) : (
@@ -360,7 +362,7 @@ const WatchDetails = () => {
                       </h3>
                       <p className="text-gray-600 dark:text-gray-300">{relatedWatch.name}</p>
                       <p className="text-accent font-bold mt-2">
-                        ${relatedWatch.price.toLocaleString()}
+                        {formatPrice(relatedWatch.price)}
                       </p>
                     </div>
                   </Link>

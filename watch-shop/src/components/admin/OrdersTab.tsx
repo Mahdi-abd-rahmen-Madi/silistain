@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Order } from '../../types/order';
 import { useLocationSelection } from '../../hooks/useLocationSelection';
+import { formatPrice } from '../../lib/utils';
 
 interface OrdersTabProps {
   orders: Order[];
@@ -177,7 +178,7 @@ export const OrdersTab = ({
                       {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500">
-                      ${order.total.toFixed(2)}
+                      {formatPrice(order.total)}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500 truncate col-span-2">
                       {order.shippingAddress.city}, {order.shippingAddress.governorate}
@@ -271,12 +272,12 @@ export const OrdersTab = ({
                                   <div>
                                     <div className="flex justify-between text-base font-medium text-gray-900">
                                       <h3>{item.name}</h3>
-                                      <p className="ml-4">${item.price.toFixed(2)}</p>
+                                      <p className="ml-4">{formatPrice(item.price)}</p>
                                     </div>
                                     <p className="mt-1 text-sm text-gray-500">Qty: {item.quantity}</p>
                                   </div>
                                   <div className="flex-1 flex items-end justify-between text-sm">
-                                    <p className="text-gray-500">${(item.price * item.quantity).toFixed(2)}</p>
+                                    <p className="text-gray-500">{formatPrice(item.price * item.quantity)}</p>
                                   </div>
                                 </div>
                               </li>
@@ -301,7 +302,7 @@ export const OrdersTab = ({
                         <div className="mt-6">
                           <h4 className="font-medium text-gray-900">Order Total</h4>
                           <div className="mt-2 text-2xl font-bold text-gray-900">
-                            ${selectedOrder.total.toFixed(2)}
+                            {formatPrice(selectedOrder.total)}
                           </div>
                         </div>
                       </div>

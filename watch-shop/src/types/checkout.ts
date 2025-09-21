@@ -6,7 +6,6 @@ export interface CheckoutFormData {
     address: string;
     governorate: string;
     delegation: string;
-    zipCode: string;
     saveInfo: boolean;
     notes?: string;
     // Add any other checkout form fields
