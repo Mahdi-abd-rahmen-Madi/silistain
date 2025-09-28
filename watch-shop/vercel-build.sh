@@ -1,10 +1,15 @@
 #!/bin/bash
+set -e
 
 # Install dependencies
-npm install
+echo "Installing dependencies..."
+npm ci --prefer-offline
 
 # Build the project
-npm run build
+echo "Building project..."
+NODE_ENV=production npm run build
+
+echo "Build completed successfully!"
 
 # Create a .vercel directory if it doesn't exist
 mkdir -p .vercel

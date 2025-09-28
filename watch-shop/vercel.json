@@ -1,12 +1,11 @@
 {
-  "version": 2,
+  "version": 3,
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist",
-        "maxLambdaSize": "15mb"
+        "distDir": "dist"
       }
     },
     {
@@ -21,47 +20,10 @@
     { "src": "/upload-test.html", "dest": "/upload-test.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
+  "framework": "vite",
   "build": {
     "env": {
       "NODE_ENV": "production"
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
-      ]
-    },
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    }
-  ]
+  }
 }

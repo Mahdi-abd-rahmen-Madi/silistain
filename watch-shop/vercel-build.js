@@ -17,7 +17,7 @@ if (!fs.existsSync(envPath) && fs.existsSync(envExamplePath)) {
 // Install dependencies
 console.log('\n🔧 Installing dependencies...');
 try {
-  execSync('npm install --prefer-offline', { 
+  execSync('npm ci --prefer-offline', { 
     stdio: 'inherit',
     env: { ...process.env, NODE_ENV: 'production' }
   });
@@ -30,14 +30,37 @@ try {
 // Build the project
 console.log('\n🏗️  Building project...');
 try {
-  execSync('npm run build', { 
+  execSync('vite build --mode production', { 
     stdio: 'inherit',
     env: { 
       ...process.env, 
       NODE_ENV: 'production',
-      VITE_VERCEL: 'true' 
+      VERCEL: '1',
+      VITE_VERCEL: 'true',
+      CI: '1'
     }
   });
+  
+  // Create output directory if it doesn't exist
+  const outputDir = path.join(__dirname, '.vercel', 'output');
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+  
+  // Create config.json for Vercel
+  const config = {
+    version: 3,
+    framework: 'vite',
+    buildCommand: 'vite build',
+    installCommand: 'npm ci',
+    outputDirectory: 'dist',
+    framework: {
+      version: '4.0.0'
+    }
+  };
+  
+  fs.writeFileSync(path.join(outputDir, 'config.json'), JSON.stringify(config, null, 2));
+  
   console.log('🚀 Build completed successfully!');
 } catch (error) {
   console.error('❌ Build failed:', error);
