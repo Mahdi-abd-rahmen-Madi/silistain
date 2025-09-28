@@ -72,22 +72,46 @@ export const validateCoupon = async (code: string, userId: string): Promise<{ va
   };
 };
 
-export const applyCoupon = async (couponId: string, orderId: string, amountToUse: number): Promise<{ success: boolean; error?: string }> => {
-  const { data, error } = await supabase.rpc('use_coupon', {
-    p_coupon_id: couponId,
-    p_order_id: orderId,
-    p_amount: amountToUse
-  });
+export const applyCoupon = async (couponId: string, orderId: string, amountToUse: number): Promise<{ success: boolean; error?: string; data?: any }> => {
+  try {
+    // Ensure amount is properly formatted as a decimal with 2 decimal places
+    const formattedAmount = parseFloat(amountToUse.toFixed(2));
+    
+    const { data, error } = await supabase.rpc('use_coupon', {
+      p_coupon_id: couponId,
+      p_order_id: orderId,
+      p_amount: formattedAmount
+    });
 
-  if (error) {
-    console.error('Error applying coupon:', error);
+    if (error) {
+      console.error('Error applying coupon:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+
+    // If data is not an object, it means the function didn't return the expected JSONB
+    if (data === null || typeof data !== 'object') {
+      return {
+        success: false,
+        error: 'Invalid response from coupon service'
+      };
+    }
+
+    // Return the data from the database function
+    return {
+      success: data.success === true,
+      error: data.message,
+      data: data
+    };
+  } catch (err) {
+    console.error('Unexpected error in applyCoupon:', err);
     return {
       success: false,
-      error: error.message
+      error: 'An unexpected error occurred while applying the coupon'
     };
   }
-
-  return { success: true };
 };
 
 // Get coupon history for a user

@@ -215,7 +215,7 @@ const Home = () => {
           </Tabs.Root>
           
           <div className="view-all-button">
-            <Button variant="outline" size="lg" asChild>
+            <Button>
               <Link to="/shop">
                 <Button variant="outline" className="mt-8">
                   {t('collections.view_all')}

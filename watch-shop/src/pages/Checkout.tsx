@@ -260,15 +260,24 @@ const Checkout = () => {
         
         // Update the coupon in the database
         try {
-          const { success, error: couponError } = await applyCoupon(
+          const { success, error: couponError, data: couponData } = await applyCoupon(
             appliedCoupon.id,
             'order_id_will_be_set_after_creation', // Will be updated after order creation
             discountAmount
           );
           
           if (!success) {
-            console.error('Failed to apply coupon:', couponError);
-            throw new Error(t('checkout.error.coupon_apply_failed'));
+            console.error('Failed to apply coupon:', couponError || 'Unknown error');
+            throw new Error(couponError || t('checkout.error.coupon_apply_failed'));
+          }
+          
+          // Update the applied coupon with the latest data from the database
+          if (couponData) {
+            setAppliedCoupon(prev => ({
+              ...prev!,
+              remaining_amount: couponData.remaining_balance || 0,
+              is_used: couponData.success === true && couponData.remaining_balance <= 0
+            }));
           }
         } catch (err) {
           console.error('Error applying coupon:', err);

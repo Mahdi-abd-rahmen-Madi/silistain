@@ -39,6 +39,7 @@
     "saving": "Saving..."
   },
   "auth": {
+    "login_required": "You need to be logged in to use a coupon",
     "login_title": "Sign in to your account",
     "register_title": "Create your account",
     "email": "Email",
@@ -158,6 +159,11 @@
     "congratulations": "Congratulations!",
     "reward_message": "As a thank you for your purchase, here's a {{value}} TND coupon for your next order!",
     "code": "Coupon Code",
+    "enter_code": "Enter coupon code",
+    "apply": "Apply",
+    "applied": "Coupon applied successfully!",
+    "invalid": "Invalid coupon code",
+    "apply_error": "Failed to apply coupon. Please try again.",
     "value": "Value",
     "expiry": "Expires on",
     "expires_on": "Expires on",

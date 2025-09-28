@@ -9,7 +9,8 @@ DECLARE
   v_coupon RECORD;
   v_remaining_amount DECIMAL(10, 2);
   v_discount_applied DECIMAL(10, 2) := 0;
-  v_result JSONB;
+  v_order_id UUID;
+  v_result JSONB := jsonb_build_object('success', false, 'message', 'An unknown error occurred');
 BEGIN
   -- Start a transaction
   BEGIN
@@ -21,19 +22,23 @@ BEGIN
     
     -- Check if coupon exists and is valid
     IF v_coupon IS NULL THEN
-      RETURN jsonb_build_object('success', false, 'message', 'Coupon not found');
+      v_result := jsonb_build_object('success', false, 'message', 'Coupon not found');
+      RETURN v_result;
     END IF;
     
     IF v_coupon.is_used THEN
-      RETURN jsonb_build_object('success', false, 'message', 'Coupon has already been used');
+      v_result := jsonb_build_object('success', false, 'message', 'Coupon has already been used');
+      RETURN v_result;
     END IF;
     
     IF v_coupon.expires_at < NOW() THEN
-      RETURN jsonb_build_object('success', false, 'message', 'Coupon has expired');
+      v_result := jsonb_build_object('success', false, 'message', 'Coupon has expired');
+      RETURN v_result;
     END IF;
     
     IF v_coupon.remaining_amount <= 0 THEN
-      RETURN jsonb_build_object('success', false, 'message', 'No remaining balance on this coupon');
+      v_result := jsonb_build_object('success', false, 'message', 'No remaining balance on this coupon');
+      RETURN v_result;
     END IF;
     
     -- Calculate how much of the coupon to use
@@ -64,18 +69,30 @@ BEGIN
     SET 
       discount_amount = COALESCE(discount_amount, 0) + v_discount_applied,
       total = total - v_discount_applied
-    WHERE id = p_order_id;
+    WHERE id = p_order_id
+    RETURNING id INTO v_order_id;
     
-    -- Return success with the discount amount
-    RETURN jsonb_build_object(
+    -- Check if order was found and updated
+    IF v_order_id IS NULL THEN
+      v_result := jsonb_build_object('success', false, 'message', 'Order not found');
+      RETURN v_result;
+    END IF;
+    
+    -- Set success result
+    v_result := jsonb_build_object(
       'success', true,
       'discount_applied', v_discount_applied,
       'remaining_balance', v_remaining_amount
     );
+    RETURN v_result;
     
   EXCEPTION WHEN OTHERS THEN
-    -- Rollback the transaction on error
-    RAISE EXCEPTION 'Error applying coupon: %', SQLERRM;
+    -- Set error result
+    v_result := jsonb_build_object(
+      'success', false,
+      'message', 'Error applying coupon: ' || SQLERRM
+    );
+    RETURN v_result;
   END;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -80,6 +80,7 @@
     }
   },
   "auth": {
+    "login_required": "Vous devez être connecté pour utiliser un code promo",
     "login_title": "Connectez-vous à votre compte",
     "register_title": "Créez votre compte",
     "email": "Email",
@@ -213,6 +214,11 @@
     "congratulations": "Félicitations !",
     "reward_message": "En remerciement de votre achat, voici un bon de réduction de {{value}} TND pour votre prochaine commande !",
     "code": "Code promo",
+    "enter_code": "Entrez le code promo",
+    "apply": "Appliquer",
+    "applied": "Code promo appliqué avec succès !",
+    "invalid": "Code promo invalide",
+    "apply_error": "Échec de l'application du code promo. Veuillez réessayer.",
     "value": "Valeur",
     "expiry": "Date d'expiration",
     "expires_on": "Expire le",
@@ -330,9 +336,11 @@
   },
   "shop": {
     "title": "Notre Collection de Montres",
-    "description": "Découvrez notre sélection minutieuse de montres de luxe",
+    "featured": "En Vedette",
     "new_arrival": "Nouveauté",
+    "description": "Découvrez notre sélection minutieuse de montres de luxe",
     "featured_product": "Produit en Vedette",
+    "best_seller": "Meilleure Vente",
     "filters": "Filtres",
     "sort_by": "Trier par",
     "sort_options": {
