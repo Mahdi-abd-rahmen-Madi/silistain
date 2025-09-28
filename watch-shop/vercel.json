@@ -1,11 +1,12 @@
 {
-  "version": 3,
+  "version": 2,
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "outputDirectory": "dist"
       }
     },
     {
@@ -20,10 +21,5 @@
     { "src": "/upload-test.html", "dest": "/upload-test.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
-  "framework": "vite",
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
-  }
+  "outputDirectory": "dist"
 }

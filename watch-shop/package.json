@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "vercel-build": "NODE_ENV=production vite build"
+    "vercel-build": "./vercel-build.sh"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
@@ -74,6 +74,7 @@
     "stylelint": "^16.23.0",
     "stylelint-config-standard": "^39.0.0",
     "tailwindcss": "^4.1.11",
+    "terser": "^5.44.0",
     "typescript": "^5.9.2",
     "vite": "^7.0.4"
   }

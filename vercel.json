@@ -5,7 +5,7 @@
       "src": "watch-shop/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "watch-shop/dist"
+        "distDir": "dist"
       }
     },
     {
@@ -14,10 +14,10 @@
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/watch-shop/api/$1" },
-    { "src": "/assets/(.*)", "dest": "/watch-shop/assets/$1" },
-    { "src": "/favicon.ico", "dest": "/watch-shop/favicon.ico" },
-    { "src": "/upload-test.html", "dest": "/watch-shop/upload-test.html" },
-    { "src": "/(.*)", "dest": "/watch-shop/index.html" }
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/favicon.ico", "dest": "/favicon.ico" },
+    { "src": "/upload-test.html", "dest": "/upload-test.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
