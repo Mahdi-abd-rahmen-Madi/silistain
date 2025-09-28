@@ -42,8 +42,17 @@ export const CouponToggle = ({
           onChange={(e) => onToggle(e.target.checked)}
           className="sr-only peer"
           aria-label={t('checkout.toggle_coupon', { code: coupon.code })}
+          aria-checked={isChecked}
+          role="switch"
         />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+        <div className={`w-14 h-8 ${isChecked ? 'bg-blue-600' : 'bg-gray-300'} peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500/30 rounded-full transition-colors duration-200 ease-in-out`}>
+          <div 
+            className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transform transition-all duration-200 ease-in-out ${
+              isChecked ? 'translate-x-6' : 'translate-x-1'
+            }`}
+            aria-hidden="true"
+          />
+        </div>
         <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
           {t('checkout.use_coupon', { 
             code: coupon.code, 

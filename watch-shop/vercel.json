@@ -5,7 +5,8 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "maxLambdaSize": "15mb"
       }
     },
     {
@@ -15,9 +16,52 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "^/assets/(.*)", "dest": "/assets/$1" },
-    { "src": "^/favicon.ico$", "dest": "/favicon.ico" },
-    { "src": "^/upload-test.html$", "dest": "/upload-test.html" },
-    { "src": "^(?!/api).*", "dest": "/index.html" }
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/favicon.ico", "dest": "/favicon.ico" },
+    { "src": "/upload-test.html", "dest": "/upload-test.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
   ]
 }

@@ -49,27 +49,77 @@ export const getAvailableCoupons = async (userId: string): Promise<Coupon[]> => 
 };
 
 export const validateCoupon = async (code: string, userId: string): Promise<{ valid: boolean; coupon?: Coupon; error?: string }> => {
-  const { data, error } = await supabase
-    .from('coupons')
-    .select('*')
-    .eq('code', code.toUpperCase())
-    .eq('user_id', userId)
-    .eq('is_used', false)
-    .gt('remaining_amount', 0)
-    .gt('expires_at', new Date().toISOString())
-    .single();
+  try {
+    const trimmedCode = code.trim().toUpperCase();
+    console.log('Validating coupon:', { code, trimmedCode, userId });
+    
+    // First try with direct query
+    const { data: couponData, error: queryError } = await supabase
+      .from('coupons')
+      .select('*')
+      .eq('code', trimmedCode)
+      .single();
+      
+    console.log('Direct query result:', { couponData, queryError });
+    
+    // If direct query fails, try with RPC
+    if (queryError) {
+      console.log('Direct query failed, trying RPC...');
+      const { data, error: rpcError } = await supabase.rpc('validate_coupon', {
+        p_code: trimmedCode,
+        p_user_id: userId
+      });
+      
+      console.log('RPC result:', { data, rpcError });
+      
+      if (rpcError || !data?.valid) {
+        throw new Error(rpcError?.message || 'Invalid coupon code');
+      }
+      
+      return {
+        valid: true,
+        coupon: data.coupon
+      };
+    }
+    
+    // Validate coupon data from direct query
+    if (!couponData) {
+      throw new Error('Coupon not found');
+    }
+    
+    if (couponData.is_used) {
+      return {
+        valid: false,
+        error: 'This coupon has already been used.'
+      };
+    }
 
-  if (error || !data) {
+    if (new Date(couponData.expires_at) < new Date()) {
+      return {
+        valid: false,
+        error: 'This coupon has expired.'
+      };
+    }
+
+    if (couponData.remaining_amount <= 0) {
+      return {
+        valid: false,
+        error: 'No remaining balance on this coupon.'
+      };
+    }
+
+    return {
+      valid: true,
+      coupon: couponData as Coupon
+    };
+
+  } catch (error) {
+    console.error('Error validating coupon:', error);
     return {
       valid: false,
-      error: error?.message || 'Invalid or expired coupon code.'
+      error: 'An error occurred while validating the coupon.'
     };
   }
-
-  return {
-    valid: true,
-    coupon: data as Coupon
-  };
 };
 
 export const applyCoupon = async (couponId: string, orderId: string, amountToUse: number): Promise<{ success: boolean; error?: string; data?: any }> => {

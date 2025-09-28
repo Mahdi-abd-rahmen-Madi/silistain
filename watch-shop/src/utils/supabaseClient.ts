@@ -1,9 +1,9 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY;
+const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Check for required environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -65,7 +65,7 @@ let adminClientPromise: Promise<SupabaseClient | null> | null = null;
 const getSupabaseAdmin = async (): Promise<SupabaseClient | null> => {
   if (!supabaseServiceKey) {
     if (typeof window !== 'undefined') {
-      console.warn('VITE_SUPABASE_SERVICE_ROLE_KEY is not defined. Admin features are not available.');
+      console.warn('SUPABASE_SERVICE_ROLE_KEY is not defined. Admin features are not available.');
     }
     return null;
   }

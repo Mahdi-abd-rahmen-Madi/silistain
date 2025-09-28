@@ -41,7 +41,7 @@ export const CouponInput = ({ onApplyCoupon, disabled }: CouponInputProps) => {
 
       onApplyCoupon(coupon);
       setSuccess(t('coupon.applied'));
-      setCouponCode('');
+      setCouponCode(couponCode);
     } catch (err) {
       console.error('Error applying coupon:', err);
       setError(t('coupon.apply_error'));
@@ -55,24 +55,25 @@ export const CouponInput = ({ onApplyCoupon, disabled }: CouponInputProps) => {
       <label htmlFor="coupon-code" className="block text-sm font-medium text-gray-700">
         {t('coupon.code')}
       </label>
-      <div className="mt-1 flex rounded-md shadow-sm">
-        <div className="relative flex-grow focus-within:z-10">
+      <div className="mt-1 flex items-stretch rounded-md shadow-sm">
+        <div className="relative flex-1">
           <input
             type="text"
             name="coupon-code"
             id="coupon-code"
-            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full rounded-none rounded-l-md pl-3 sm:text-sm border-gray-300"
+            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full h-full rounded-none rounded-l-md pl-3 sm:text-sm border-gray-300"
             placeholder={t('coupon.enter_code')}
             value={couponCode}
             onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
             disabled={disabled || isLoading}
+            aria-label={t('coupon.enter_code')}
           />
         </div>
         <button
           type="button"
           onClick={handleApplyCoupon}
           disabled={disabled || isLoading || !couponCode.trim()}
-          className={`-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md ${
+          className={`relative inline-flex items-center justify-center px-4 py-0 border border-l-0 border-gray-300 text-sm font-medium rounded-r-md ${
             disabled || isLoading || !couponCode.trim()
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-gray-50 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500'

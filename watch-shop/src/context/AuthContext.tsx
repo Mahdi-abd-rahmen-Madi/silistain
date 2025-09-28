@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkSession = async () => {
       try {
         console.log('Checking for existing session...');
-        console.log('VITE_ADMIN_EMAIL from env:', import.meta.env.VITE_ADMIN_EMAIL);
+        console.log('ADMIN_EMAIL from env:', import.meta.env.ADMIN_EMAIL);
         
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -74,13 +74,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('Session user email:', userEmail);
           
           // Check if user is admin by email or has admin role in app_metadata
-          const isAdminByEmail = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+          const isAdminByEmail = userEmail === import.meta.env.ADMIN_EMAIL;
           const isAdminByRole = session.user.app_metadata?.role === 'admin';
           const isAdmin = isAdminByEmail || isAdminByRole;
           
           console.log('Admin check:', { 
             userEmail, 
-            adminEmail: import.meta.env.VITE_ADMIN_EMAIL, 
+            adminEmail: import.meta.env.ADMIN_EMAIL, 
             isAdminByEmail,
             isAdminByRole,
             app_metadata: session.user.app_metadata,
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userEmail = session.user.email || null;
           
           // Use the same admin check logic as above
-          const isAdminByEmail = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+          const isAdminByEmail = userEmail === import.meta.env.ADMIN_EMAIL;
           const isAdminByRole = session.user.app_metadata?.role === 'admin';
           const isAdmin = isAdminByEmail || isAdminByRole;
           
@@ -179,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async (): Promise<AuthResponse> => {
     try {
       setError(null);
-      const siteUrl = import.meta.env.VITE_SITE_URL || 'http://localhost:3000';
+      const siteUrl = import.meta.env.SITE_URL || 'http://localhost:3000';
       console.log('Using site URL for OAuth:', siteUrl);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -208,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const siteUrl = import.meta.env.VITE_SITE_URL || 'http://localhost:3000';
+      const siteUrl = import.meta.env.SITE_URL || 'http://localhost:3000';
       const redirectTo = `${siteUrl}/verify-email`;
       
       console.log('Initiating magic link sign in with redirect:', redirectTo);

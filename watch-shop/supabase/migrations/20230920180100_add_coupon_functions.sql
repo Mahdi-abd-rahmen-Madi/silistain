@@ -10,6 +10,7 @@ DECLARE
   v_remaining_amount DECIMAL(10, 2);
   v_discount_applied DECIMAL(10, 2) := 0;
   v_order_id UUID;
+  v_user_id UUID;
   v_result JSONB := jsonb_build_object('success', false, 'message', 'An unknown error occurred');
 BEGIN
   -- Start a transaction
@@ -45,6 +46,11 @@ BEGIN
     v_discount_applied := LEAST(v_coupon.remaining_amount, p_amount);
     v_remaining_amount := v_coupon.remaining_amount - v_discount_applied;
     
+    -- Get the user_id from the order
+    SELECT user_id INTO v_user_id
+    FROM public.orders
+    WHERE id = p_order_id;
+    
     -- Update the coupon
     IF v_remaining_amount <= 0 THEN
       -- Mark as fully used
@@ -53,14 +59,16 @@ BEGIN
         remaining_amount = 0,
         is_used = true,
         used_at = NOW(),
-        order_id_used = p_order_id
+        order_id_used = p_order_id,
+        user_id = v_user_id  -- Save the user_id when used
       WHERE id = p_coupon_id;
     ELSE
       -- Partial use
       UPDATE public.coupons
       SET 
         remaining_amount = v_remaining_amount,
-        order_id_used = p_order_id
+        order_id_used = p_order_id,
+        user_id = v_user_id  -- Save the user_id when used
       WHERE id = p_coupon_id;
     END IF;
     
@@ -97,5 +105,69 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Grant execute permission to authenticated users
+-- Function to validate a coupon
+CREATE OR REPLACE FUNCTION public.validate_coupon(
+  p_code TEXT,
+  p_user_id UUID DEFAULT NULL
+)
+RETURNS JSONB AS $$
+DECLARE
+  v_coupon RECORD;
+  v_result JSONB;
+BEGIN
+  -- Find the coupon by code (case-insensitive)
+  SELECT * INTO v_coupon
+  FROM public.coupons
+  WHERE code = UPPER(TRIM(p_code))
+  LIMIT 1;
+  
+  -- Check if coupon exists
+  IF v_coupon IS NULL THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'Invalid coupon code.'
+    );
+  END IF;
+  
+  -- Check if coupon is already used
+  IF v_coupon.is_used THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'This coupon has already been used.'
+    );
+  END IF;
+  
+  -- Check if coupon is expired
+  IF v_coupon.expires_at < NOW() THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'This coupon has expired.'
+    );
+  END IF;
+  
+  -- Check if coupon has remaining balance
+  IF v_coupon.remaining_amount <= 0 THEN
+    RETURN jsonb_build_object(
+      'valid', false,
+      'message', 'No remaining balance on this coupon.'
+    );
+  END IF;
+  
+  -- If we get here, the coupon is valid
+  RETURN jsonb_build_object(
+    'valid', true,
+    'coupon', to_jsonb(v_coupon) - 'created_at' - 'updated_at',
+    'message', 'Coupon is valid.'
+  );
+  
+EXCEPTION WHEN OTHERS THEN
+  RETURN jsonb_build_object(
+    'valid', false,
+    'message', 'Error validating coupon: ' || SQLERRM
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permissions
 GRANT EXECUTE ON FUNCTION public.use_coupon(UUID, UUID, DECIMAL) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.validate_coupon(TEXT, UUID) TO authenticated;

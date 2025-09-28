@@ -2,9 +2,9 @@ import { supabase } from '../lib/supabaseClient';
 import { validateContactForm } from '../utils/formValidation';
 
 // Environment variables from .env file
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL = import.meta.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.SUPABASE_ANON_KEY;
+const SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export interface ContactFormData {
   name: string;

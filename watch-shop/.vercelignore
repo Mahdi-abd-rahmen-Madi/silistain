@@ -1,0 +1,45 @@
+# Dependency directories
+node_modules/
+
+# Build output
+.svelte-kit
+.output
+
+# Environment files (handled by Vercel)
+.env
+.env.*
+!.env.example
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Test files
+**/*.test.*
+**/*.spec.*
+
+# Local development
+.local
+
+# Build files (already in dist/)
+dist/
+
+# Supabase local development
+supabase/
+
+# Vercel specific
+.vercel
+
+# Other
+.DS_Store
+*.pem

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { submitOrderToSheets, formatOrderData } from '../utils/api';
 import { createOrderInDatabase } from '../services/orderService';
+import { supabase } from '../lib/supabaseClient';
 import { ArrowLeftIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { OrderSummary } from '../components/OrderSummary';
 import { fetchMunicipalities, getGovernorates, getDelegations } from '../services/locationService';
@@ -20,13 +21,14 @@ import { CheckoutFormData } from '../types/checkout';
 import { CartItem } from '../types/cart';
 
 // Add this interface to fix the "Cannot find name 'OrderDetails'" error
+// Changed id from number to string to match cart item id type
 interface OrderDetails {
   orderId: string;
   customerName: string;
   email: string;
   total: number;
   items: {
-    id: number;
+    id: string; // Changed from number to string
     name: string;
     quantity: number;
     price: number;
@@ -249,97 +251,122 @@ const Checkout = () => {
       // Calculate subtotal - sum of all items
       const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       
-          // Apply coupon discount if available and toggled on
-      let discountAmount = 0;
-      let total = subtotal;
+      // Calculate potential discount amount but don't apply yet
+      const potentialDiscount = (appliedCoupon && useCoupon) 
+        ? Math.min(appliedCoupon.remaining_amount, subtotal) 
+        : 0;
       
-      if (appliedCoupon && useCoupon) {
-        // Calculate maximum discount that can be applied (not exceeding subtotal)
-        discountAmount = Math.min(appliedCoupon.remaining_amount, subtotal);
-        total = Math.max(0, subtotal - discountAmount);
-        
-        // Update the coupon in the database
+      // Initialize final discount amount
+      let finalDiscount = 0;
+      
+      // Format cart items with required properties
+      const formattedCartItems = cartItems.map(item => ({
+        ...item,
+        name: item.name || t('product.unknown_product'),
+        brand: item.brand || t('product.unknown_brand'),
+        // Ensure all required CartItem properties are present
+        id: item.id,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image || ''
+      }));
+      
+      // Prepare order data for database
+      const orderFormData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName || '',
+        email: formData.email || '',
+        phone: formData.phone,
+        address: formData.address,
+        governorate: formData.governorate,
+        delegation: formData.delegation,
+        saveInfo: formData.saveInfo,
+        items: formattedCartItems,
+        total: subtotal,
+        discount: 0, // Will be updated after coupon application
+        couponCode: appliedCoupon?.code || undefined
+      };
+
+      // Create the order in the database first (without coupon applied)
+      const order = await createOrderInDatabase(
+        orderFormData,
+        orderFormData.items,
+        currentUser?.id || null
+      );
+      
+      if (!order) {
+        throw new Error('Failed to create order');
+      }
+      
+      // Apply coupon after order is created if applicable
+      if (appliedCoupon && useCoupon && potentialDiscount > 0) {
         try {
-          const { success, error: couponError, data: couponData } = await applyCoupon(
+          const couponResult = await applyCoupon(
             appliedCoupon.id,
-            'order_id_will_be_set_after_creation', // Will be updated after order creation
-            discountAmount
+            order.id,
+            potentialDiscount
           );
           
-          if (!success) {
-            console.error('Failed to apply coupon:', couponError || 'Unknown error');
-            throw new Error(couponError || t('checkout.error.coupon_apply_failed'));
-          }
-          
-          // Update the applied coupon with the latest data from the database
-          if (couponData) {
+          if (couponResult.success && couponResult.data) {
+            finalDiscount = potentialDiscount;
+            
+            // Update the order with coupon details using the supabase client
+            const { error: updateError } = await supabase
+              .from('orders')
+              .update({
+                discount_amount: finalDiscount,
+                total_amount: subtotal - finalDiscount,
+                coupon_id: appliedCoupon.id,
+                coupon_code: appliedCoupon.code,
+                coupon_discount: finalDiscount,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', order.id);
+            
+            if (updateError) {
+              console.error('Error updating order with coupon details:', updateError);
+            }
+            
+            // Update the applied coupon in state
             setAppliedCoupon(prev => ({
               ...prev!,
-              remaining_amount: couponData.remaining_balance || 0,
-              is_used: couponData.success === true && couponData.remaining_balance <= 0
+              remaining_amount: couponResult.data.remaining_balance || 0,
+              is_used: couponResult.data.success === true && couponResult.data.remaining_balance <= 0
             }));
+          } else if (couponResult.error) {
+            console.error('Failed to apply coupon:', couponResult.error);
+            // Continue with the order even if coupon application fails
           }
         } catch (err) {
           console.error('Error applying coupon:', err);
-          throw err; // Re-throw to be caught by the outer try-catch
+          // Continue with the order even if coupon application fails
         }
       }
       
-      // FIX: Ensure cart items have required brand AND name properties
-      const itemsWithBrand = cartItems.map(item => ({
-        ...item,
-        brand: item.brand || t('product.unknown_brand'),
-        name: item.name || t('product.unknown_product') // Add this fallback to ensure name is always a string
-      }));
+      // Prepare order data for sheets submission
+      const finalTotal = subtotal - finalDiscount;
+      const itemsWithBrand = formattedCartItems;
       
-      // Format the order data with all required fields
-      const orderFormData: CheckoutFormData = {
-        ...formData,
-        // Only include email if provided or if user is logged in
-        email: formData.email || currentUser?.email || undefined
-      };
+      // Set order details for success screen
+      setOrderDetails({
+        orderId: order.id,
+        customerName: `${formData.firstName} ${formData.lastName || ''}`,
+        email: formData.email || '',
+        total: finalTotal,
+        items: itemsWithBrand.map(item => ({
+          id: item.id, // This is now string, matching the interface
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      });
       
-      // Create order in database with or without user ID
-      const databaseOrder = await createOrderInDatabase(
-        orderFormData,
-        itemsWithBrand,
-        currentUser?.id || null
-      );
-
-      // Format order data for Google Sheets with database order ID
-      const orderData = formatOrderData(orderFormData, itemsWithBrand);
-      
-      // Submit to Google Sheets for backup/reporting
-      const response = await submitOrderToSheets(orderData, t);
-      
-      // Check if order total is above 120 TND to show coupon reward
-      const orderTotal = cartItems.reduce(
-        (total, item) => total + (item.price * item.quantity), 0
-      );
-      
-      if (orderTotal >= 120) {
-        setShowCouponReward(true);
-      } else {
-        // If no coupon reward, clear cart and show success
-        clearCart();
-        setIsSuccess(true);
-        setOrderDetails({
-          orderId: response?.orderId || databaseOrder.id,
-          customerName: `${formData.firstName} ${formData.lastName || ''}`,
-          email: formData.email || (currentUser?.email || ''),
-          total: total,
-          items: cartItems.map(item => ({
-            id: Number(item.id) || 0,
-            name: item.name || t('product.unknown_product'),
-            quantity: item.quantity,
-            price: item.price
-          }))
-        });
-      }
-      
-    } catch (err: any) {
-      console.error('Error submitting order:', err);
-      setError(err.message || t('checkout.error.submit_failed'));
+      // Clear cart and show success
+      clearCart();
+      setIsSuccess(true);
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      setError(error instanceof Error ? error.message : t('checkout.error.submission_failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -528,7 +555,7 @@ const Checkout = () => {
                   <p className="mt-1 text-xs text-gray-500">{t('checkout.form.email_help')}</p>
                 </div>
 
-<div>
+                <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {t('checkout.form.phone')} <span className="text-red-500">*</span>
                   </label>

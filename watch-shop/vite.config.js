@@ -33,8 +33,8 @@ export default defineConfig(({ mode }) => {
             proxy.on('proxyReq', (proxyReq, req) => {
               console.log('Proxying request:', req.method, req.url);
               // Ensure we're always sending the correct headers
-              proxyReq.setHeader('apikey', env.VITE_SUPABASE_ANON_KEY);
-              proxyReq.setHeader('Authorization', `Bearer ${env.VITE_SUPABASE_ANON_KEY}`);
+              proxyReq.setHeader('apikey', env.SUPABASE_ANON_KEY);
+              proxyReq.setHeader('Authorization', `Bearer ${env.SUPABASE_ANON_KEY}`);
               
               // For auth requests, we need to include credentials
               if (req.url.includes('/auth/')) {
@@ -57,7 +57,7 @@ export default defineConfig(({ mode }) => {
           secure: false,
           configure: (proxy) => {
             proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.setHeader('apikey', env.VITE_SUPABASE_ANON_KEY);
+              proxyReq.setHeader('apikey', env.SUPABASE_ANON_KEY);
             });
           },
         },
@@ -85,13 +85,21 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
-      assetsDir: 'assets',
       sourcemap: true,
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+      },
+      assetsDir: 'assets',
       rollupOptions: {
         output: {
           manualChunks: {
             react: ['react', 'react-dom', 'react-router-dom'],
-            vendor: ['@heroicons/react', 'react-hot-toast'],
+            supabase: ['@supabase/supabase-js', '@supabase/auth-helpers-react'],
+            ui: ['@heroicons/react', 'react-hot-toast', '@headlessui/react', 'framer-motion'],
           },
         },
       },
