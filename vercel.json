@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 2,
   "builds": [
     {
       "src": "watch-shop/package.json",
@@ -19,14 +19,5 @@
     { "src": "/favicon.ico", "dest": "/watch-shop/favicon.ico" },
     { "src": "/upload-test.html", "dest": "/watch-shop/upload-test.html" },
     { "src": "/(.*)", "dest": "/watch-shop/index.html" }
-  ],
-  "framework": "vite",
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
-  },
-  "rewrites": [
-    { "source": "/watch-shop/(.*)", "destination": "/watch-shop/index.html" }
   ]
 }
