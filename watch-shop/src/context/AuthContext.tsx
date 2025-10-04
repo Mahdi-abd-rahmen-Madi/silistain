@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkSession = async () => {
       try {
         console.log('Checking for existing session...');
-        console.log('ADMIN_EMAIL from env:', import.meta.env.ADMIN_EMAIL);
+        console.log('ADMIN_EMAIL from env:', import.meta.env.VITE_ADMIN_EMAIL);
         
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -74,13 +74,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('Session user email:', userEmail);
           
           // Check if user is admin by email or has admin role in app_metadata
-          const isAdminByEmail = userEmail === import.meta.env.ADMIN_EMAIL;
+          const isAdminByEmail = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
           const isAdminByRole = session.user.app_metadata?.role === 'admin';
           const isAdmin = isAdminByEmail || isAdminByRole;
           
           console.log('Admin check:', { 
             userEmail, 
-            adminEmail: import.meta.env.ADMIN_EMAIL, 
+            adminEmail: import.meta.env.VITE_ADMIN_EMAIL, 
             isAdminByEmail,
             isAdminByRole,
             app_metadata: session.user.app_metadata,
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userEmail = session.user.email || null;
           
           // Use the same admin check logic as above
-          const isAdminByEmail = userEmail === import.meta.env.ADMIN_EMAIL;
+          const isAdminByEmail = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
           const isAdminByRole = session.user.app_metadata?.role === 'admin';
           const isAdmin = isAdminByEmail || isAdminByRole;
           
