@@ -85,26 +85,28 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
-      chunkSizeWarningLimit: 1000, // Increase chunk size warning limit (in kB)
-      sourcemap: true, // Enable sourcemaps for production
-      minify: 'terser', // Minify output
+      chunkSizeWarningLimit: 1000,
+      sourcemap: true,
+      minify: 'terser',
       assetsDir: 'assets',
+      emptyOutDir: true,
       rollupOptions: {
+        input: {
+          main: './index.html'
+        },
         output: {
           manualChunks: {
-            // Group common dependencies
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
             'vendor-supabase': ['@supabase/supabase-js', '@supabase/auth-helpers-react'],
             'vendor-ui': ['@headlessui/react', '@heroicons/react', 'react-hot-toast', 'framer-motion'],
-            // Split large dependencies
             'html2canvas': ['html2canvas']
           },
-          // Optimize chunk filenames for better caching
           chunkFileNames: 'assets/[name]-[hash].js',
           entryFileNames: 'assets/[name]-[hash].js',
           assetFileNames: 'assets/[name]-[hash][extname]'
         }
       },
+      base: '/',
       terserOptions: {
         compress: {
           drop_console: true,
