@@ -29,6 +29,7 @@ const Shop = () => {
   
   // Refresh products when language changes
   useEffect(() => {
+    setInitialLoad(true);
     refreshProducts();
   }, [i18n.language, refreshProducts]);
   
@@ -49,9 +50,9 @@ const Shop = () => {
       // Create the watch object with proper typing
       const watch: Watch = {
         id: product.id,
-        name: product.name || t('product.unnamed_product'),
+        name: product.name || 'Inconnu',
         // Store the brand as is, we'll handle translation in the component
-        brand: product.brand || t('shop.product.unknown_brand'),
+        brand: product.brand || 'Inconnu',
         price: Number(product.price) || 0,
         image: primaryImage.url || '',
         images: (product.images || []).map(img => ({
@@ -588,7 +589,7 @@ const Shop = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6" style={{ direction: 'ltr' }}>
+                <div key={i18n.language} className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6" style={{ direction: 'ltr' }}>
                   {filteredWatches.map((watch) => {
                     // Find the original product to get the isBestSeller and isNew flags
                     const originalProduct = products.find(p => p.id === watch.id);
