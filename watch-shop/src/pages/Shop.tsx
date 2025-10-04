@@ -3,10 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FunnelIcon, XMarkIcon, ShoppingCartIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
-import { Watch, Filters, SortOption, ProductImage } from '../types';
+import { Watch,SortOption, ProductImage } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+
+type Filters = {
+  category: string | null;   // null means "All Categories"
+  brand: string | null;      // null means "All Brands"
+  priceRange: [number, number];
+  searchQuery: string;
+};
 
 const Shop = () => {
   const { t, i18n } = useTranslation();
@@ -172,8 +179,8 @@ const Shop = () => {
   
   // Initialize filters with translated 'all' values
   const [filters, setFilters] = useState<Filters>(() => ({
-    category: t('shop.filter_options.all_categories'),
-    brand: t('shop.filter_options.all_brands'),
+    category: null,
+    brand: null,
     priceRange: [0, 50000],
     searchQuery: ''
   }));
@@ -259,15 +266,13 @@ const Shop = () => {
         
         // Category filter - match if 'all' or category matches (case insensitive)
         const categoryMatch = 
-          filters.category.toLowerCase() === t('shop.filter_options.all_categories').toLowerCase() || 
-          (watch.category && 
-           watch.category.toLowerCase() === filters.category?.toLowerCase());
+          filters.category === null || 
+          (watch.category && watch.category === filters.category);
         
-        // Brand filter - match if 'all' or brand matches (case insensitive)
+        // ✅ Brand: null means "All", so always match
         const brandMatch = 
-          filters.brand.toLowerCase() === t('shop.filter_options.all_brands').toLowerCase() || 
-          (watch.brand && 
-           watch.brand.toLowerCase() === filters.brand?.toLowerCase());
+          filters.brand === null || 
+          (watch.brand && watch.brand === filters.brand);
         
         // Price filter - ensure price is within range
         const price = Number(watch.price) || 0;
