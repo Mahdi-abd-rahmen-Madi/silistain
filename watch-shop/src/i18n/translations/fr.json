@@ -304,8 +304,7 @@
     "need_help": "Besoin d'aide ?",
     "contact_support": "Contactez notre équipe d'assistance",
     "form": {
-      "first_name": "Prénom",
-      "last_name": "Nom de famille",
+      "name": "Nom complet",
       "email": "Adresse e-mail",
       "email_optional": "(Optionnel)",
       "email_help": "Nous ne l'utiliserons que pour vous envoyer des mises à jour de commande",

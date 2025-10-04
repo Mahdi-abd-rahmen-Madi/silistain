@@ -37,8 +37,7 @@ interface OrderDetails {
 
 // Form field types
 interface FormFields {
-  firstName: string;
-  lastName?: string | undefined;
+  name: string;
   email?: string;
   phone: string;
   address: string;
@@ -80,8 +79,7 @@ const Checkout = () => {
 
   // Form state
   const [formData, setFormData] = useState<FormFields>({
-    firstName: '',
-    lastName: '',
+    name: '',
     email: currentUser?.email || '',
     phone: '',
     address: '',
@@ -96,8 +94,7 @@ const Checkout = () => {
       setFormData(prev => ({
         ...prev,
         email: currentUser.email || '',
-        firstName: currentUser.user_metadata?.full_name?.split(' ')[0] || '',
-        lastName: currentUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+        name: currentUser.user_metadata?.full_name || ''
       }));
     }
   }, [currentUser]);
@@ -215,13 +212,13 @@ const Checkout = () => {
   const handleSubmit = async (e?: FormEvent<HTMLFormElement>) => {
     const validateForm = () => {
       const requiredFields: (keyof FormFields)[] = [
-        'firstName', 'phone', 'address', 'governorate', 'delegation'
+        'name', 'phone', 'address', 'governorate', 'delegation'
       ];
 
       // Check required fields
       for (const field of requiredFields) {
         if (!formData[field]) {
-          setError(t(`checkout.error.missing_${field}`));
+          setError(t(`checkout.error.missing_${field === 'name' ? 'name' : field}`));
           return false;
         }
       }
@@ -273,8 +270,7 @@ const Checkout = () => {
       
       // Prepare order data for database
       const orderFormData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName || '',
+        name: formData.name,
         email: formData.email || '',
         phone: formData.phone,
         address: formData.address,
@@ -350,7 +346,7 @@ const Checkout = () => {
       // Set order details for success screen
       setOrderDetails({
         orderId: order.id,
-        customerName: `${formData.firstName} ${formData.lastName || ''}`,
+        customerName: formData.name.trim(),
         email: formData.email || '',
         total: finalTotal,
         items: itemsWithBrand.map(item => ({
@@ -508,35 +504,19 @@ const Checkout = () => {
                 <h2 className="text-xl font-medium text-gray-900 dark:text-white">{t('checkout.billing_details')}</h2>
               </div>
               <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {t('checkout.form.first_name')} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      name="firstName"
-                      required
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {t('checkout.form.last_name')} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      required
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                    />
-                  </div>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {t('checkout.form.name')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                  />
                 </div>
 
                 <div>
@@ -700,14 +680,14 @@ const Checkout = () => {
             <button
               type="submit"
               disabled={isSubmitting || !(
-                formData.firstName &&
+                formData.name &&
                 formData.phone &&
                 formData.address &&
                 formData.governorate &&
                 formData.delegation
               )}
               className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-colors ${
-                (!formData.firstName || !formData.phone || !formData.address || !formData.governorate || !formData.delegation || isSubmitting)
+                (!formData.name || !formData.phone || !formData.address || !formData.governorate || !formData.delegation || isSubmitting)
                   ? 'bg-gray-300 cursor-not-allowed dark:bg-gray-700'
                   : 'bg-green-600 hover:bg-green-700'
               }`}

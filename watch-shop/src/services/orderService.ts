@@ -40,15 +40,13 @@ export const createOrderInDatabase = async (
       total: total,
       items: formattedItems,
       shipping_address: {
-        firstName: formData.firstName,
-        lastName: formData.lastName || '',
+        name: formData.name,
         email: formData.email || '',
         phone: formData.phone,
         address: formData.address,
         city: formData.delegation,
         governorate: formData.governorate,
-        delegation: formData.delegation,
-        notes: formData.notes || ''
+        delegation: formData.delegation
       },
       order_number: `ORD-${Date.now()}`,
     };

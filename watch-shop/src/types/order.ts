@@ -28,7 +28,6 @@ export interface OrderAddress {
   governorate: string;
   delegation: string;
   postalCode: string;
-  notes?: string;
 }
 
 export interface Order {

@@ -207,8 +207,6 @@
     "selectOnMap": "Select on Map",
     "hideMap": "Hide Map",
     "address": "Address",
-    "first_name": "First Name",
-    "last_name": "Last Name",
     "phone": "Phone",
     "email": "Email",
     "governorate": "Governorate",
@@ -229,8 +227,7 @@
       "processing": "Processing..."
     },
     "form": {
-      "first_name": "First Name",
-      "last_name": "Last Name",
+      "name": "Full Name",
       "email": "Email Address",
       "email_placeholder": "example@domain.com",
       "email_optional": "(Optional)",
