@@ -14,6 +14,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/tn-municipalities/(.*)",
+      "destination": "https://tn-municipality-api.vercel.app/api/$1"
+    },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/favicon.ico", "destination": "/favicon.ico" },
