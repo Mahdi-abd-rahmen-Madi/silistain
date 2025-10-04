@@ -74,7 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('Session user email:', userEmail);
           
           // Check if user is admin by email or has admin role in app_metadata
-          const isAdminByEmail = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+          const adminEmails = import.meta.env.VITE_ADMIN_EMAIL?.split(',').map((email: string) => email.trim().toLowerCase()) || [];
+          const normalizedUserEmail = userEmail?.toLowerCase();
+          const isAdminByEmail = normalizedUserEmail ? adminEmails.includes(normalizedUserEmail) : false;
           const isAdminByRole = session.user.app_metadata?.role === 'admin';
           const isAdmin = isAdminByEmail || isAdminByRole;
           
@@ -122,7 +124,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userEmail = session.user.email || null;
           
           // Use the same admin check logic as above
-          const isAdminByEmail = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+          const adminEmails = import.meta.env.VITE_ADMIN_EMAIL?.split(',').map((email: string) => email.trim().toLowerCase()) || [];
+          const normalizedUserEmail = userEmail?.toLowerCase();
+          const isAdminByEmail = normalizedUserEmail ? adminEmails.includes(normalizedUserEmail) : false;
           const isAdminByRole = session.user.app_metadata?.role === 'admin';
           const isAdmin = isAdminByEmail || isAdminByRole;
           

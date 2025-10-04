@@ -65,7 +65,9 @@ export function AdminProtectedRoute({ children }: { children: React.JSX.Element 
 
   // Check admin status using the same logic as in AuthContext
   const userEmail = currentUser.email || null;
-  const isAdminByEmail = userEmail === import.meta.env.VITE_ADMIN_EMAIL;
+  const adminEmails = import.meta.env.VITE_ADMIN_EMAIL?.split(',').map((email: string) => email.trim().toLowerCase()) || [];
+  const normalizedUserEmail = userEmail?.toLowerCase();
+  const isAdminByEmail = normalizedUserEmail ? adminEmails.includes(normalizedUserEmail) : false;
   const isAdminByRole = currentUser.app_metadata?.role === 'admin' || 
                        currentUser.user_metadata?.role === 'admin';
   const isAdmin = isAdminByEmail || isAdminByRole || currentUser.isAdmin;
