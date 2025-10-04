@@ -179,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async (): Promise<AuthResponse> => {
     try {
       setError(null);
-      const siteUrl = import.meta.env.SITE_URL || 'http://localhost:3000';
+      const siteUrl = import.meta.env.VITE_SITE_URL;
       console.log('Using site URL for OAuth:', siteUrl);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
