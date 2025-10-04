@@ -21,8 +21,8 @@ export default async function handler(req: { method: string; body: Json }) {
 
   try {
     const supabaseClient = createClient(
-      process.env.SUPABASE_URL || '',
-      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+      process.env.VITE_SUPABASE_URL || '',
+      process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || ''
     );
 
     const { orderTotal, email, userId } = req.body as { 

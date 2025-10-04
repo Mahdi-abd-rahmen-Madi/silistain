@@ -1,9 +1,9 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Create a single supabase client for interacting with your database
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY;
-const siteUrl = import.meta.env.SITE_URL || 'http://localhost:3000';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const siteUrl = import.meta.env.VITE_SITE_URL || 'http://localhost:3000';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
@@ -52,7 +52,7 @@ export const getAdminClient = (): SupabaseClient | null => {
     return adminClientInstance;
   }
 
-  const adminKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+  const adminKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
   if (!adminKey) {
     console.error('Missing Supabase service role key');
     return null;

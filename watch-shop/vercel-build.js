@@ -30,15 +30,38 @@ try {
 // Build the project
 console.log('\n🏗️  Building project...');
 try {
+  // Load environment variables from .env file if it exists
+  const envConfig = {};
+  if (fs.existsSync(envPath)) {
+    const envFile = fs.readFileSync(envPath, 'utf8');
+    envFile.split('\n').forEach(line => {
+      const match = line.match(/^([^=]+)=(.*)$/);
+      if (match) {
+        const key = match[1].trim();
+        const value = match[2].trim().replace(/['"]/g, '');
+        // Only include VITE_ prefixed variables and required ones
+        if (key.startsWith('VITE_') || ['NODE_ENV', 'VERCEL', 'CI'].includes(key)) {
+          envConfig[key] = value;
+        }
+      }
+    });
+  }
+
+  // Merge with process.env and ensure required variables are set
+  const buildEnv = {
+    ...process.env,
+    ...envConfig,
+    NODE_ENV: 'production',
+    VERCEL: '1',
+    VITE_VERCEL: 'true',
+    CI: '1'
+  };
+
+  console.log('Building with environment variables:', Object.keys(buildEnv).filter(k => k.startsWith('VITE_')));
+
   execSync('vite build --mode production', { 
     stdio: 'inherit',
-    env: { 
-      ...process.env, 
-      NODE_ENV: 'production',
-      VERCEL: '1',
-      VITE_VERCEL: 'true',
-      CI: '1'
-    }
+    env: buildEnv
   });
   
   // Create output directory if it doesn't exist
