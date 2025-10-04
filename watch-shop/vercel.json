@@ -21,6 +21,8 @@
     { "src": "/assets/(.*)", "dest": "/assets/$1" },
     { "src": "/favicon.ico", "dest": "/favicon.ico" },
     { "src": "/upload-test.html", "dest": "/upload-test.html" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "^/static/(.*)", "dest": "/static/$1" },
+    { "src": "^/(.*)\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$", "dest": "/$1.$2" },
+    { "src": "^/(.*)", "dest": "/index.html" }
   ]
 }
