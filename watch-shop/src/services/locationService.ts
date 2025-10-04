@@ -9,49 +9,53 @@ export const fetchMunicipalities = async (filters?: { name?: string; delegation?
     if (filters?.name) params.append('name', filters.name);
     if (filters?.delegation) params.append('delegation', filters.delegation);
     
-    console.log('Fetching municipalities from:', `${API_BASE_URL}/municipalities?${params.toString()}`);
-    const response = await fetch(`${API_BASE_URL}/municipalities?${params.toString()}`, {
+    const apiUrl = `${import.meta.env.VITE_API_BASE_URL || ''}/municipalities`;
+    console.log('Fetching municipalities from:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
     });
     
-    const responseText = await response.text();
-    console.log('Raw response:', responseText.substring(0, 200)); // Log first 200 chars of response
-    
     if (!response.ok) {
-      console.error('Error response status:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('Error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        error: errorText
+      });
       throw new Error(`Failed to fetch municipalities: ${response.status} ${response.statusText}`);
     }
     
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      console.error('Failed to parse JSON response:', e);
-      console.error('Response content type:', response.headers.get('content-type'));
-      throw new Error('Invalid JSON response from server');
-    }
+    const data = await response.json();
+    console.log('API Response:', JSON.stringify(data, null, 2));
     
     // Transform the API response to match our Municipality type
     const municipalities: Municipality[] = [];
     
-    data.forEach((gov: any) => {
-      gov.Delegations.forEach((delegation: any) => {
-        municipalities.push({
-          id: delegation.PostalCode,
-          name: delegation.NameAr, // Using Arabic name as the default
-          nameEn: delegation.Name,
-          delegation: delegation.Value,
-          governorate: gov.Name,
-          postalCode: delegation.PostalCode,
-          latitude: delegation.Latitude,
-          longitude: delegation.Longitude,
-          created_at: new Date().toISOString()
-        });
+    // Handle the actual API response format
+    if (Array.isArray(data)) {
+      data.forEach((gov: any) => {
+        if (gov.Delegations && Array.isArray(gov.Delegations)) {
+          gov.Delegations.forEach((delegation: any) => {
+            municipalities.push({
+              id: delegation.PostalCode || `${gov.Name}-${delegation.Name}`,
+              name: delegation.NameAr || delegation.Name,
+              nameEn: delegation.Name,
+              delegation: delegation.Value || delegation.Name,
+              governorate: gov.Name,
+              postalCode: delegation.PostalCode,
+              latitude: delegation.Latitude,
+              longitude: delegation.Longitude,
+              created_at: new Date().toISOString()
+            });
+          });
+        }
       });
-    });
+    }
     
     return municipalities;
   } catch (error) {
@@ -64,17 +68,36 @@ export const fetchMunicipalities = async (filters?: { name?: string; delegation?
  * Fetches unique governorates from the municipalities data
  * @returns {Promise<string[]>} Sorted array of unique governorate names
  */
-export const getGovernorates = async (municipalities: { governorate: string; delegation: string; name: string; nameEn?: string | undefined; postalCode?: string | undefined; latitude?: number | undefined; longitude?: number | undefined; }[]): Promise<string[]> => {
+export const getGovernorates = async (): Promise<string[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/municipalities`);
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/municipalities`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
     if (!response.ok) {
-      throw new Error(`Failed to fetch governorates: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Error fetching governorates:', {
+        status: response.status,
+        error: errorText
+      });
+      throw new Error(`Failed to fetch governorates: ${response.status} ${response.statusText}`);
     }
+    
     const data = await response.json();
-    const governorates = data.map((g: any) => g.Name);
-    return governorates.sort();
+    
+    if (!Array.isArray(data)) {
+      console.error('Unexpected API response format:', data);
+      throw new Error('Invalid response format from server');
+    }
+    
+    // Extract and sort unique governorate names
+    const governorates = [...new Set(data.map((g: any) => g.Name))].sort();
+    return governorates;
   } catch (error) {
-    console.error('Error getting governorates:', error);
+    console.error('Error in getGovernorates:', error);
     throw error;
   }
 };
@@ -86,17 +109,42 @@ export const getGovernorates = async (municipalities: { governorate: string; del
  */
 export const getDelegations = async (governorate: string): Promise<string[]> => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/municipalities?name=${encodeURIComponent(governorate)}`);
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/municipalities?name=${encodeURIComponent(governorate)}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
     if (!response.ok) {
-      throw new Error(`Failed to fetch delegations: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Error fetching delegations:', {
+        status: response.status,
+        governorate,
+        error: errorText
+      });
+      throw new Error(`Failed to fetch delegations: ${response.status} ${response.statusText}`);
     }
+    
     const data = await response.json();
+    
+    if (!Array.isArray(data) || data.length === 0) {
+      console.warn('No data found for governorate:', governorate);
+      return [];
+    }
     
     // Find the governorate and get its delegations
     const gov = data.find((g: any) => g.Name === governorate);
-    if (!gov) return [];
+    if (!gov || !Array.isArray(gov.Delegations)) {
+      console.warn('No delegations found for governorate:', governorate);
+      return [];
+    }
     
-    return gov.Delegations.map((d: any) => d.Name).sort();
+    // Sort and return delegation names
+    return gov.Delegations
+      .map((d: any) => d.Name)
+      .filter((name: string | null) => name != null)
+      .sort();
   } catch (error) {
     console.error('Error getting delegations:', error);
     throw error;
