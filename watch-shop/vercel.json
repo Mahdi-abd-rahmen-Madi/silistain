@@ -13,15 +13,12 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/assets/(.*)", "dest": "/assets/$1" },
-    { "src": "/favicon.ico", "dest": "/favicon.ico" },
-    { "src": "/vite.svg", "dest": "/vite.svg" },
-    { "src": "/upload-test.html", "dest": "/upload-test.html" },
-    { "src": "^/(.*)", "dest": "/index.html" }
-  ],
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/favicon.ico", "destination": "/favicon.ico" },
+    { "source": "/vite.svg", "destination": "/vite.svg" },
+    { "source": "/upload-test.html", "destination": "/upload-test.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
