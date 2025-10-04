@@ -1,23 +1,36 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  // Content paths for purging
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "./public/**/*.html"
   ],
   // Enable class-based dark mode
   darkMode: 'class',
-  // Remove unused styles in production
-  safelist: ['dark'], // Always include dark mode classes
+  // Safelist dynamic classes
+  safelist: [
+    'dark',
+    // Grid columns that might be used dynamically
+    'sm:grid-cols-1', 'sm:grid-cols-2', 'sm:grid-cols-3', 'sm:grid-cols-4',
+    'md:grid-cols-1', 'md:grid-cols-2', 'md:grid-cols-3', 'md:grid-cols-4',
+    'lg:grid-cols-1', 'lg:grid-cols-2', 'lg:grid-cols-3', 'lg:grid-cols-4'
+  ],
+  // Disable the purge warning
+  future: {
+    purgeLayersByDefault: true,
+    removeDeprecatedGapUtilities: true,
+  },
+  experimental: {
+    optimizeUniversalDefaults: true
+  },
   // Optimize for production
   corePlugins: {
     preflight: true,
-  },
-  // Disable any unused core plugins
-  corePlugins: {
+    // Disable unused utilities
     float: false,
     clear: false,
     skew: false,
-    // Keep other core plugins enabled
   },
   theme: {
     extend: {
