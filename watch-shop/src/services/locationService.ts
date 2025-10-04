@@ -86,7 +86,7 @@ export const getGovernorates = async (municipalities: { governorate: string; del
  */
 export const getDelegations = async (governorate: string): Promise<string[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/municipalities?name=${encodeURIComponent(governorate)}`);
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/municipalities?name=${encodeURIComponent(governorate)}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch delegations: ${response.statusText}`);
     }
