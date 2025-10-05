@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import logger from '../utils/logger';
 
 // Generate a random coupon code
 export const generateCouponCode = (length = 8): string => {
@@ -41,7 +42,7 @@ export const getAvailableCoupons = async (userId: string): Promise<Coupon[]> => 
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching coupons:', error);
+    logger.error('Error fetching coupons:', error);
     throw error;
   }
 
@@ -51,7 +52,7 @@ export const getAvailableCoupons = async (userId: string): Promise<Coupon[]> => 
 export const validateCoupon = async (code: string, userId: string): Promise<{ valid: boolean; coupon?: Coupon; error?: string }> => {
   try {
     const trimmedCode = code.trim().toUpperCase();
-    console.log('Validating coupon:', { code, trimmedCode, userId });
+    logger.debug('Validating coupon:', { code, trimmedCode, userId });
     
     // First try with direct query
     const { data: couponData, error: queryError } = await supabase
@@ -60,17 +61,17 @@ export const validateCoupon = async (code: string, userId: string): Promise<{ va
       .eq('code', trimmedCode)
       .single();
       
-    console.log('Direct query result:', { couponData, queryError });
+    logger.debug('Direct query result:', { couponData, queryError });
     
     // If direct query fails, try with RPC
     if (queryError) {
-      console.log('Direct query failed, trying RPC...');
+logger.debug('Direct query failed, trying RPC...');
       const { data, error: rpcError } = await supabase.rpc('validate_coupon', {
         p_code: trimmedCode,
         p_user_id: userId
       });
       
-      console.log('RPC result:', { data, rpcError });
+      logger.debug('RPC result:', { data, rpcError });
       
       if (rpcError || !data?.valid) {
         throw new Error(rpcError?.message || 'Invalid coupon code');
@@ -114,7 +115,7 @@ export const validateCoupon = async (code: string, userId: string): Promise<{ va
     };
 
   } catch (error) {
-    console.error('Error validating coupon:', error);
+    logger.error('Error validating coupon:', error);
     return {
       valid: false,
       error: 'An error occurred while validating the coupon.'
@@ -134,7 +135,7 @@ export const applyCoupon = async (couponId: string, orderId: string, amountToUse
     });
 
     if (error) {
-      console.error('Error applying coupon:', error);
+      logger.error('Error applying coupon:', error);
       return {
         success: false,
         error: error.message
@@ -173,7 +174,7 @@ export const getCouponHistory = async (userId: string): Promise<Coupon[]> => {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching coupon history:', error);
+    logger.error('Error fetching coupon history:', error);
     throw error;
   }
 

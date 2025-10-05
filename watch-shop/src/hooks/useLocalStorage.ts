@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import logger from '../utils/logger';
 
 type SetValue<T> = (value: T | ((val: T) => T), persistImmediately?: boolean) => void;
 
@@ -60,7 +61,7 @@ export function useLocalStorage<T>(
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
-      console.warn(`Error setting localStorage key "${key}":`, error);
+      logger.warn(`Error setting localStorage key "${key}":`, error);
     }
   };
   
@@ -70,7 +71,7 @@ export function useLocalStorage<T>(
       try {
         window.localStorage.setItem(key, JSON.stringify(storedValue));
       } catch (error) {
-        console.warn(`Error persisting to localStorage key "${key}":`, error);
+        logger.warn(`Error persisting to localStorage key "${key}":`, error);
       }
     }
   }, [key, storedValue]);

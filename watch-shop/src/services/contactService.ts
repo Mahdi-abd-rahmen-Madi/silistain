@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabaseClient';
 import { validateContactForm } from '../utils/formValidation';
+import logger from '../utils/logger';
 
 // Environment variables from .env file
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -28,7 +29,7 @@ export const submitContactForm = async (formData: ContactFormData) => {
     });
 
     if (error) {
-      console.error('Error submitting contact form:', error);
+      logger.error('Error submitting contact form:', error);
       return { 
         success: false, 
         errors: { 
@@ -39,7 +40,7 @@ export const submitContactForm = async (formData: ContactFormData) => {
 
     return { success: true };
   } catch (error) {
-    console.error('Unexpected error:', error);
+    logger.error('Unexpected error in contact form submission:', error);
     return { 
       success: false, 
       errors: { 

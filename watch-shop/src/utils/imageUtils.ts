@@ -1,3 +1,5 @@
+import logger from './logger';
+
 const imageCache = new Map<string, string>();
 
 export const getCachedImage = async (url: string, name: string): Promise<string> => {
@@ -26,7 +28,7 @@ export const getCachedImage = async (url: string, name: string): Promise<string>
     imageCache.set(url, imageUrl);
     return imageUrl;
   } catch (error) {
-    console.error('Error loading image:', error);
+    logger.error('Error loading image:', error);
     // Return empty string to indicate we should use the fallback
     return '';
   }

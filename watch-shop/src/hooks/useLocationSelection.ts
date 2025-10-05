@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Municipality } from '../types/order';
 import { getGovernorates, getDelegations, getCities } from '../services/locationService';
+import logger from '../utils/logger';
 
 export const useLocationSelection = () => {
   const [governorates, setGovernorates] = useState<string[]>([]);
@@ -21,11 +22,12 @@ export const useLocationSelection = () => {
     const loadGovernorates = async () => {
       try {
         setLoading(prev => ({ ...prev, governorates: true }));
-        const data = await getGovernorates();
+        // Pass an empty array as the municipalities parameter since we're fetching all governorates
+        const data = await getGovernorates([]);
         setGovernorates(data);
         setError(null);
       } catch (err) {
-        console.error('Failed to load governorates:', err);
+        logger.error('Failed to load governorates:', err);
         setError('Failed to load governorates. Please try again later.');
       } finally {
         setLoading(prev => ({ ...prev, governorates: false }));
@@ -50,7 +52,7 @@ export const useLocationSelection = () => {
         setDelegations(data);
         setError(null);
       } catch (err) {
-        console.error('Failed to load delegations:', err);
+        logger.error('Failed to load delegations:', err);
         setError('Failed to load delegations. Please try again.');
       } finally {
         setLoading(prev => ({ ...prev, delegations: false }));
@@ -75,7 +77,7 @@ export const useLocationSelection = () => {
         setCities(data);
         setError(null);
       } catch (err) {
-        console.error('Failed to load cities:', err);
+        logger.error('Failed to load cities:', err);
         setError('Failed to load cities. Please try again.');
       } finally {
         setLoading(prev => ({ ...prev, cities: false }));

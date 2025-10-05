@@ -1,3 +1,5 @@
+import logger from '../utils/logger';
+
 const API_BASE_URL = '/api/tn-municipalities';
 
 interface Municipality {
@@ -34,7 +36,7 @@ export async function reverseGeocode(
   radius: number = 5
 ): Promise<ReverseGeocodeResult> {
   try {
-    console.log(`Fetching municipalities near lat: ${lat}, lng: ${lng}, radius: ${radius}km`);
+    logger.debug(`Fetching municipalities near lat: ${lat}, lng: ${lng}, radius: ${radius}km`);
     
     const response = await fetch(
       `${API_BASE_URL}/municipalities?lat=${lat}&lng=${lng}&radius=${radius * 1000}`,
@@ -48,16 +50,16 @@ export async function reverseGeocode(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('API Error Response:', errorText);
+      logger.error('API Error Response:', errorText);
       throw new Error(`Failed to fetch location data: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('API Response:', JSON.stringify(data, null, 2));
+    logger.debug('API Response:', data);
     
     if (!Array.isArray(data) || data.length === 0) {
       if (radius < 20) { // Try with a larger radius if no results
-        console.log(`No municipalities found within ${radius}km, trying with larger radius...`);
+        logger.debug(`No municipalities found within ${radius}km, trying with larger radius...`);
         return reverseGeocode(lat, lng, radius + 5);
       }
       throw new Error('No municipalities found near the specified location');
@@ -92,11 +94,11 @@ export async function reverseGeocode(
       longitude: closest.longitude
     };
 
-    console.log('Reverse geocode result:', result);
+    logger.debug('Reverse geocode result:', result);
     return result;
     
   } catch (error) {
-    console.error('Error in reverseGeocode:', error);
+    logger.error('Error in reverseGeocode:', error);
     throw new Error(`Failed to reverse geocode coordinates: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

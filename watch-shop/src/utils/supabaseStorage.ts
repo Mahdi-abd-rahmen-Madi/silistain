@@ -1,4 +1,5 @@
-import { supabase } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
+import logger from './logger';
 
 export const uploadFile = async (file: File, bucket: string, path: string) => {
   try {
@@ -22,7 +23,7 @@ export const uploadFile = async (file: File, bucket: string, path: string) => {
 
     return { publicUrl, filePath, error: null };
   } catch (error) {
-    console.error('Error uploading file:', error);
+    logger.error('Error uploading file:', error);
     return { publicUrl: null, filePath: null, error };
   }
 };
@@ -36,7 +37,7 @@ export const deleteFile = async (bucket: string, path: string) => {
     if (error) throw error;
     return { error: null };
   } catch (error) {
-    console.error('Error deleting file:', error);
+    logger.error('Error deleting file:', error);
     return { error };
   }
 };

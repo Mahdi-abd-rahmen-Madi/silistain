@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useFavorites } from '@/context/FavoritesContext';
 import { FaHeart, FaRegHeart, FaSpinner } from 'react-icons/fa';
 import { Product } from '@/types/product';
+import logger from '@/utils/logger';
 
 interface FavoriteButtonProps {
   productId: string;
@@ -34,8 +35,7 @@ export default function FavoriteButton({
     e.preventDefault();
     e.stopPropagation();
     
-    console.group('FavoriteButton click handler');
-    console.log('Button clicked. Current state:', {
+    logger.debug('FavoriteButton click handler', {
       productId,
       isFavorited,
       isProcessing,
@@ -43,31 +43,30 @@ export default function FavoriteButton({
     });
     
     if (isProcessing) {
-      console.log('Button is disabled, ignoring click');
-      console.groupEnd();
+      logger.debug('Button is disabled, ignoring click');
       return;
     }
     
     try {
       if (isFavorited) {
-        console.log('Removing from favorites');
+        logger.debug('Removing from favorites');
         await removeFromFavorites(productId);
-        console.log('Successfully removed from favorites');
+        logger.debug('Successfully removed from favorites');
         onToggle?.(false);
       } else {
-        console.log('Adding to favorites');
+        logger.debug('Adding to favorites');
         if (!productData) {
           const errorMsg = 'No product data provided for favorites';
-          console.error(errorMsg);
+          logger.error(errorMsg);
           throw new Error(errorMsg);
         }
-        console.log('Calling addToFavorites with:', { productId, productData });
+        logger.debug('Calling addToFavorites with:', { productId, productData });
         await addToFavorites(productId, productData);
-        console.log('Successfully added to favorites');
+        logger.debug('Successfully added to favorites');
         onToggle?.(true);
       }
     } catch (error) {
-      console.error('Error in handleClick:', error);
+      logger.error('Error toggling favorite:', error);
       // Re-throw to ensure the error is visible in the console
       setTimeout(() => { throw error; });
     } finally {

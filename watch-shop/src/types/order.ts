@@ -19,8 +19,7 @@ export interface OrderItem {
 }
 
 export interface OrderAddress {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   phone: string;
   address: string;

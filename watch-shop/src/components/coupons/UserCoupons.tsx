@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getAvailableCoupons, getCouponHistory } from '../../services/couponService';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
+import logger from '../../utils/logger';
 
 export const UserCoupons = () => {
   const { currentUser } = useAuth();
@@ -12,6 +13,7 @@ export const UserCoupons = () => {
 
   useEffect(() => {
     const loadCoupons = async () => {
+      logger.debug('Loading coupons...');
       if (!currentUser?.id) return;
       
       try {
@@ -24,7 +26,7 @@ export const UserCoupons = () => {
           
         setCoupons(data);
       } catch (err) {
-        console.error('Error loading coupons:', err);
+        logger.error('Error loading coupons:', err);
         setError('Failed to load coupons. Please try again later.');
       } finally {
         setIsLoading(false);

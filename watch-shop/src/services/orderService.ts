@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabaseClient';
 import { CheckoutFormData } from '../types/checkout';
 import { CartItem } from '../types/cart';
 import { Order, OrderItem, OrderAddress } from '../types/order';
+import logger from '../utils/logger';
 
 /**
  * Creates a new order in the database with proper user association
@@ -51,7 +52,7 @@ export const createOrderInDatabase = async (
       order_number: `ORD-${Date.now()}`,
     };
 
-    console.log('Creating order with data:', JSON.stringify(orderData, null, 2));
+    logger.debug('Creating order with data:', orderData);
     
     const { data, error } = await supabase
       .from('orders')
@@ -60,7 +61,7 @@ export const createOrderInDatabase = async (
       .single();
       
     if (error) {
-      console.error('Supabase error:', error);
+      logger.error('Supabase error creating order:', error);
       throw new Error(`Failed to save order: ${error.message}`);
     }
     
@@ -84,7 +85,7 @@ export const createOrderInDatabase = async (
       updatedAt: data.updated_at
     };
   } catch (err) {
-    console.error('Error creating order in database:', err);
+    logger.error('Error creating order in database:', err);
     throw err;
   }
 };

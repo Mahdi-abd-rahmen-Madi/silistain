@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import logger from '../utils/logger';
 
 // Create a single supabase client for interacting with your database
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -14,7 +15,7 @@ let supabaseInstance: SupabaseClient | null = null;
 
 const createSupabaseClient = (): SupabaseClient => {
   if (!supabaseInstance) {
-    console.log('Initializing Supabase client with site URL:', siteUrl);
+    logger.debug('Initializing Supabase client with site URL:', siteUrl);
     
     const authOptions: any = {
       auth: {
@@ -37,7 +38,7 @@ const createSupabaseClient = (): SupabaseClient => {
     
     // Override the redirectTo URL for all auth methods
     supabaseInstance.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
+      logger.debug('Auth state changed:', { event, user: session?.user?.email });
     });
   }
   return supabaseInstance;
@@ -54,7 +55,7 @@ export const getAdminClient = (): SupabaseClient | null => {
 
   const adminKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
   if (!adminKey) {
-    console.error('Missing Supabase service role key');
+    logger.warn('SUPABASE_SERVICE_ROLE_KEY is not defined. Admin features are not available.');
     return null;
   }
   

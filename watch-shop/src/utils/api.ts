@@ -4,6 +4,7 @@ import { OrderItem, OrderAddress } from '../types/order';
 import { CartItem } from '../types/cart'; 
 import { createOrderInDatabase } from '../services/orderService';
 import { formatPrice } from '../lib/utils';
+import logger from './logger';
 
 interface ApiResponse {
   success: boolean;
@@ -52,10 +53,8 @@ export const submitOrderToSheets = async (
       } as CartItem;
     }).filter(Boolean) as CartItem[];
 
-    // Extract customer name parts
-    const customerNameParts = orderData['Customer Name'].split(' ');
-    const firstName = customerNameParts[0];
-    const lastName = customerNameParts.slice(1).join(' ') || '';
+    // Get customer name
+    const customerName = orderData['Customer Name'].trim();
 
     // Parse shipping address
     const addressLines = orderData['Shipping Address'].split('\n');
@@ -75,31 +74,27 @@ export const submitOrderToSheets = async (
       }
     }
 
-    // Create shipping address (without notes)
+    // Create shipping address
     const shippingAddress: OrderAddress = {
-      firstName,
-      lastName,
+      name: customerName,
       email: orderData.Email,
       phone: orderData.Phone,
       address: addressLine1,
       city: delegation,
       governorate,
       delegation,
-      postalCode: orderData['Shipping Address'].match(/\b\d{4}\b/)?.[0] || '',
-      notes: ''
+      postalCode: orderData['Shipping Address'].match(/\b\d{4}\b/)?.[0] || ''
     };
 
-    // Create order data for database (without notes)
+    // Create order data for database
     const orderForDatabase: CheckoutFormData = {
-      firstName,
-      lastName,
+      name: customerName,
       email: orderData.Email,
       phone: orderData.Phone,
       address: addressLine1,
       governorate,
       delegation,
-      saveInfo: false,
-      notes: ''
+      saveInfo: false
     };
 
     // Submit to Supabase - PASS userId CORRECTLY
@@ -117,7 +112,7 @@ export const submitOrderToSheets = async (
       data: order
     };
   } catch (error) {
-    console.error('Error submitting order:', error);
+    logger.error('Error submitting order:', error);
     toast.error(t('checkout.error.submit_failed'));
     throw error;
   }
@@ -140,7 +135,7 @@ export const formatOrderData = (
   return {
     'Order Date': new Date().toISOString(),
     'Order ID': `ORD-${Math.floor(100000 + Math.random() * 900000)}`,
-    'Customer Name': `${order.firstName} ${order.lastName || ''}`,
+    'Customer Name': order.name,
     'Email': order.email || '',
     'Phone': order.phone,
     'Shipping Address': [

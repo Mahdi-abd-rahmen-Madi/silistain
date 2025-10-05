@@ -1,4 +1,5 @@
 import { Municipality } from '../types/order';
+import logger from '../utils/logger';
 
 const API_BASE_URL = '/api/tn-municipalities';
 
@@ -9,7 +10,7 @@ export const fetchMunicipalities = async (filters?: { name?: string; delegation?
     if (filters?.name) params.append('name', filters.name);
     if (filters?.delegation) params.append('delegation', filters.delegation);
     
-    console.log('Fetching municipalities from:', `${API_BASE_URL}/municipalities?${params.toString()}`);
+    logger.debug('Fetching municipalities from:', `${API_BASE_URL}/municipalities?${params.toString()}`);
     const response = await fetch(`${API_BASE_URL}/municipalities?${params.toString()}`, {
       headers: {
         'Accept': 'application/json',
@@ -18,10 +19,10 @@ export const fetchMunicipalities = async (filters?: { name?: string; delegation?
     });
     
     const responseText = await response.text();
-    console.log('Raw response:', responseText.substring(0, 200)); // Log first 200 chars of response
+    logger.debug('Raw response:', responseText.substring(0, 200)); // Log first 200 chars of response
     
     if (!response.ok) {
-      console.error('Error response status:', response.status, response.statusText);
+      logger.error('Error response status:', response.status, response.statusText);
       throw new Error(`Failed to fetch municipalities: ${response.status} ${response.statusText}`);
     }
     
@@ -29,8 +30,8 @@ export const fetchMunicipalities = async (filters?: { name?: string; delegation?
     try {
       data = JSON.parse(responseText);
     } catch (e) {
-      console.error('Failed to parse JSON response:', e);
-      console.error('Response content type:', response.headers.get('content-type'));
+      logger.error('Failed to parse JSON response:', e);
+      logger.error('Response content type:', response.headers.get('content-type'));
       throw new Error('Invalid JSON response from server');
     }
     
@@ -55,7 +56,7 @@ export const fetchMunicipalities = async (filters?: { name?: string; delegation?
     
     return municipalities;
   } catch (error) {
-    console.error('Error in fetchMunicipalities:', error);
+    logger.error('Error in fetchMunicipalities:', error);
     throw error;
   }
 };
@@ -74,7 +75,7 @@ export const getGovernorates = async (municipalities: { governorate: string; del
     const governorates = data.map((g: any) => g.Name);
     return governorates.sort();
   } catch (error) {
-    console.error('Error getting governorates:', error);
+    logger.error('Error getting governorates:', error);
     throw error;
   }
 };
@@ -98,7 +99,7 @@ export const getDelegations = async (governorate: string): Promise<string[]> => 
     
     return gov.Delegations.map((d: any) => d.Name).sort();
   } catch (error) {
-    console.error('Error getting delegations:', error);
+    logger.error('Error getting delegations:', error);
     throw error;
   }
 };
@@ -139,7 +140,7 @@ export const getCities = async (delegation: string): Promise<Municipality[]> => 
     
     return cities;
   } catch (error) {
-    console.error('Error getting cities:', error);
+    logger.error('Error getting cities:', error);
     throw error;
   }
 };

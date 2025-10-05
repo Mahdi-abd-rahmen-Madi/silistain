@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabaseClient';
 import { Coupon } from '../couponService';
+import logger from '../../utils/logger';
 
 export interface CouponData {
   code: string;
@@ -29,7 +30,7 @@ export const saveCoupon = async (couponData: CouponData): Promise<Coupon> => {
     .single();
 
   if (error) {
-    console.error('Error saving coupon:', error);
+    logger.error('Error saving coupon:', error);
     throw error;
   }
 
@@ -44,7 +45,7 @@ export const getCouponByCode = async (code: string): Promise<Coupon | null> => {
     .single();
 
   if (error) {
-    console.error('Error fetching coupon:', error);
+    logger.error('Error fetching coupon:', error);
     return null;
   }
 
@@ -62,7 +63,7 @@ export const markCouponAsUsed = async (code: string, orderId: string): Promise<b
     .eq('code', code);
 
   if (error) {
-    console.error('Error marking coupon as used:', error);
+    logger.error('Error marking coupon as used:', error);
     return false;
   }
 

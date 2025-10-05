@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import logger from '../utils/logger';
 
 export const useNewsletterSubscription = () => {
   const [email, setEmail] = useState('');
@@ -43,7 +44,7 @@ export const useNewsletterSubscription = () => {
       setEmail('');
       return true;
     } catch (err) {
-      console.error('Error subscribing to newsletter:', err);
+      logger.error('Error subscribing to newsletter:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to subscribe. Please try again.';
       setError(errorMessage);
       setStatus('error');
