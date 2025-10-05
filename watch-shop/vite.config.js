@@ -1,5 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { createHtmlPlugin } from 'vite-plugin-html';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -9,7 +11,43 @@ export default defineConfig(({ mode }) => {
   return {
     base: process.env.NODE_ENV === 'production' ? '/' : '/',
     publicDir: 'public',
-    plugins: [react()],
+    plugins: [
+      react(),
+      createHtmlPlugin({
+        minify: true,
+        inject: {
+          data: {
+            title: 'Your Site Title',
+            description: 'Your site description for better SEO',
+            keywords: 'ecommerce, watches, luxury watches',
+            url: 'https://yoursite.com',
+            image: '/social-preview.jpg',
+          },
+        },
+      }),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        manifest: {
+          name: 'Your Site Name',
+          short_name: 'SiteName',
+          description: 'Your site description',
+          theme_color: '#ffffff',
+          icons: [
+            {
+              src: 'pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+            },
+          ],
+        },
+      }),
+    ],
     resolve: {
       alias: {
         '@': '/src',
@@ -19,6 +57,16 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       open: true,
       cors: true,
+      headers: {
+        'Permissions-Policy': [
+          'geolocation=()',
+          'camera=()',
+          'microphone=()',
+          'payment=()',
+          'fullscreen=()',
+          'display-capture=()'
+        ].join(', ')
+      },
       proxy: {
         // Proxy API requests to Supabase
         '/supabase': {
@@ -83,7 +131,14 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    // Generate sitemap and robots.txt
     build: {
+      // Add build hook to generate sitemap
+      buildStart() {
+        if (process.env.NODE_ENV === 'production') {
+          require('./scripts/generate-sitemap');
+        }
+      },
       outDir: 'dist',
       chunkSizeWarningLimit: 1000,
       sourcemap: true,

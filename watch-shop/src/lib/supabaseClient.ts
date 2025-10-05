@@ -17,13 +17,15 @@ const createSupabaseClient = (): SupabaseClient => {
   if (!supabaseInstance) {
     logger.debug('Initializing Supabase client with site URL:', siteUrl);
     
+    const isDev = import.meta.env.DEV;
+    
     const authOptions: any = {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
         flowType: 'pkce' as const,
-        debug: true,
+        debug: isDev, // Only enable debug in development
         storage: window.localStorage,
         storageKey: 'sb-auth-token',
       },
