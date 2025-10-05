@@ -1,9 +1,13 @@
-const fs = require('fs');
-const path = require('path');
-const { glob } = require('glob');
+import { writeFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { glob } from 'glob';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Site URL - replace with your production URL
-const siteUrl = process.env.SITE_URL || 'https://yoursite.com';
+const siteUrl = process.env.VITE_SITE_URL || 'https://silistain.vercel.app';
 
 // Static pages to include
 const staticPages = [
@@ -41,6 +45,6 @@ glob('src/pages/**/*.{jsx,tsx}').then((pages) => {
   const allPages = [...staticPages, ...pages];
   const sitemap = generateSitemap(allPages);
   
-  fs.writeFileSync('public/sitemap.xml', sitemap);
+  writeFileSync('public/sitemap.xml', sitemap);
   console.log('Sitemap generated at public/sitemap.xml');
 });

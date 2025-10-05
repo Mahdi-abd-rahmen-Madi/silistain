@@ -17,10 +17,10 @@ export default defineConfig(({ mode }) => {
         minify: true,
         inject: {
           data: {
-            title: 'Your Site Title',
+            title: 'Silistain',
             description: 'Your site description for better SEO',
             keywords: 'ecommerce, watches, luxury watches',
-            url: 'https://yoursite.com',
+            url: 'https://silistain.vercel.app',
             image: '/social-preview.jpg',
           },
         },
@@ -29,8 +29,8 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
         manifest: {
-          name: 'Your Site Name',
-          short_name: 'SiteName',
+          name: 'Silistain',
+          short_name: 'Silistain',
           description: 'Your site description',
           theme_color: '#ffffff',
           icons: [

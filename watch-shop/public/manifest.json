@@ -1,0 +1,39 @@
+{
+  "name": "Silistain - Premium Watches",
+  "short_name": "Silistain",
+  "description": "Discover exquisite luxury watches and premium timepieces at Silistain.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["fashion", "shopping", "watches"],
+  "orientation": "portrait",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "New Arrivals",
+      "short_name": "New",
+      "description": "View our latest watch collection",
+      "url": "/new-arrivals"
+    },
+    {
+      "name": "Best Sellers",
+      "short_name": "Popular",
+      "description": "Browse our most popular watches",
+      "url": "/best-sellers"
+    }
+  ]
+}

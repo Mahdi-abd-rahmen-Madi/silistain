@@ -2,11 +2,58 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="theme-color" content="#ffffff" />
+    
+    <!-- Primary Meta Tags -->
+    <title>Silistain - Premium Watches & Luxury Timepieces</title>
+    <meta name="title" content="Silistain - Premium Watches & Luxury Timepieces">
+    <meta name="description" content="Discover exquisite luxury watches at Silistain. Shop our curated collection of premium timepieces from leading brands. Free shipping, secure checkout, and exceptional customer service.">
+    <meta name="keywords" content="luxury watches, premium timepieces, men's watches, women's watches, automatic watches, designer watches, watch shop, buy watches online, Swiss watches, dress watches, sports watches, watch collection, watch brands">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://silistain.vercel.app">
+    <meta property="og:title" content="Silistain - Premium Watches & Luxury Timepieces">
+    <meta property="og:description" content="Discover exquisite luxury watches at Silistain. Shop our curated collection of premium timepieces from leading brands. Free shipping, secure checkout, and exceptional customer service.">
+    <meta property="og:image" content="https://silistain.vercel.app/social-preview.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://silistain.vercel.app">
+    <meta property="twitter:title" content="Silistain - Premium Watches & Luxury Timepieces">
+    <meta property="twitter:description" content="Discover exquisite luxury watches at Silistain. Shop our curated collection of premium timepieces from leading brands.">
+    <meta property="twitter:image" content="https://silistain.vercel.app/social-preview.jpg">
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="/watch-icon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Silistain</title>
-  </head>
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="<%= url %>" />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://zzggvfexheroporjlzgd.supabase.co" />
+    <link rel="preconnect" href="https://tn-municipality-api.vercel.app" />
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "<%= title %>",
+      "url": "<%= url %>",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "<%= url %>/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
