@@ -77,6 +77,13 @@ const Navbar = () => {
       <header className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-white/90 backdrop-blur-sm'}`}>
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Logo - Always on left for desktop, hidden on mobile */}
+            <div className="hidden md:flex items-center">
+              <Link to="/" className="text-2xl font-bold text-accent">
+                silistain
+              </Link>
+            </div>
+
             {/* Mobile menu button - Left side */}
             <div className="flex items-center md:hidden">
               <button
@@ -94,10 +101,10 @@ const Navbar = () => {
               </button>
             </div>
 
-            {/* Logo - Center on mobile */}
-            <div className="flex-1 flex justify-center">
+            {/* Logo - Center on mobile, hidden on desktop */}
+            <div className="flex-1 flex justify-center md:hidden">
               <Link to="/" className="text-2xl font-bold text-accent">
-                Silistain
+                silistain
               </Link>
             </div>
             
