@@ -80,8 +80,8 @@ const ProductDetailsPage: React.FC = () => {
   const getProductImages = (product: Product) => {
     const images = [];
     
-    // Check image_url_1 through image_url_5
-    for (let i = 1; i <= 5; i++) {
+    // Check image_url_1 through image_url_10
+    for (let i = 1; i <= 10; i++) {
       const imageUrl = product[`image_url_${i}` as keyof Product];
       if (imageUrl && typeof imageUrl === 'string') {
         images.push({

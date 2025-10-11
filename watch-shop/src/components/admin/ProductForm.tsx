@@ -9,7 +9,7 @@ type ProductFormData = Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & {
   images?: (ProductImage & { file?: File; preview?: string })[];
 };
 
-const MAX_IMAGES = 5;
+const MAX_IMAGES = 10;
 
 const initialFormData: ProductFormData = {
   name: '',

@@ -68,9 +68,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       
       // Map the database fields to our Product type
       const mappedProducts = data.map(item => {
-        // Collect all available image URLs from image_url_1 to image_url_5
+        // Collect all available image URLs from image_url_1 to image_url_10
         const allImageUrls = [];
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 10; i++) {
           const imageUrl = item[`image_url_${i}` as keyof typeof item];
           if (imageUrl && typeof imageUrl === 'string') {
             allImageUrls.push({
@@ -111,7 +111,12 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           ...(allImageUrls[1] && { image_url_2: allImageUrls[1].url }),
           ...(allImageUrls[2] && { image_url_3: allImageUrls[2].url }),
           ...(allImageUrls[3] && { image_url_4: allImageUrls[3].url }),
-          ...(allImageUrls[4] && { image_url_5: allImageUrls[4].url })
+          ...(allImageUrls[4] && { image_url_5: allImageUrls[4].url }),
+          ...(allImageUrls[5] && { image_url_6: allImageUrls[5].url }),
+          ...(allImageUrls[6] && { image_url_7: allImageUrls[6].url }),
+          ...(allImageUrls[7] && { image_url_8: allImageUrls[7].url }),
+          ...(allImageUrls[8] && { image_url_9: allImageUrls[8].url }),
+          ...(allImageUrls[9] && { image_url_10: allImageUrls[9].url })
         };
       });
 
@@ -171,9 +176,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       
       // Map the database fields to our Product type
       const mappedProducts = data.map(item => {
-        // Collect all available image URLs from image_url_1 to image_url_5
+        // Collect all available image URLs from image_url_1 to image_url_10
         const allImageUrls = [];
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 10; i++) {
           const imageUrl = item[`image_url_${i}` as keyof typeof item];
           if (imageUrl && typeof imageUrl === 'string') {
             allImageUrls.push({
@@ -213,7 +218,12 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           ...(allImageUrls[1] && { image_url_2: allImageUrls[1].url }),
           ...(allImageUrls[2] && { image_url_3: allImageUrls[2].url }),
           ...(allImageUrls[3] && { image_url_4: allImageUrls[3].url }),
-          ...(allImageUrls[4] && { image_url_5: allImageUrls[4].url })
+          ...(allImageUrls[4] && { image_url_5: allImageUrls[4].url }),
+          ...(allImageUrls[5] && { image_url_6: allImageUrls[5].url }),
+          ...(allImageUrls[6] && { image_url_7: allImageUrls[6].url }),
+          ...(allImageUrls[7] && { image_url_8: allImageUrls[7].url }),
+          ...(allImageUrls[8] && { image_url_9: allImageUrls[8].url }),
+          ...(allImageUrls[9] && { image_url_10: allImageUrls[9].url })
         };
       });
       
