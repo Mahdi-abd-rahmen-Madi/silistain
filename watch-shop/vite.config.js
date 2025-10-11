@@ -1,21 +1,25 @@
+// vite.config.js
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '');
-  
+
+  // Determine if production mode
+  const isProd = mode === 'production';
+
   return {
-    base: process.env.NODE_ENV === 'production' ? '/' : '/',
+    base: '/',
     publicDir: 'public',
+
     css: {
-      postcss: './postcss.config.mjs',
-      devSourcemap: process.env.NODE_ENV !== 'production',
+      // ✅ Use .js (CommonJS) — NOT .mjs
+      postcss: './postcss.config.cjs',
+      devSourcemap: !isProd,
       modules: {
-        generateScopedName: process.env.NODE_ENV === 'production'
+        generateScopedName: isProd
           ? '[hash:base64:8]'
           : '[name]__[local]__[hash:base64:5]',
       },
@@ -25,6 +29,7 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+
     plugins: [
       react({
         jsxImportSource: '@emotion/react',
@@ -33,7 +38,7 @@ export default defineConfig(({ mode }) => {
         },
       }),
       createHtmlPlugin({
-        minify: true,
+        minify: isProd,
         inject: {
           data: {
             title: 'Silistain',
@@ -95,11 +100,13 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+
     resolve: {
       alias: {
         '@': '/src',
       },
     },
+
     server: {
       port: 3000,
       open: true,
@@ -115,8 +122,8 @@ export default defineConfig(({ mode }) => {
         ].join(', ')
       },
       proxy: {
-        // Proxy API requests to Supabase
         '/supabase': {
+          // ✅ Removed trailing spaces
           target: 'https://zzggvfexheroporjlzgd.supabase.co',
           changeOrigin: true,
           secure: false,
@@ -127,25 +134,19 @@ export default defineConfig(({ mode }) => {
             });
             proxy.on('proxyReq', (proxyReq, req) => {
               console.log('Proxying request:', req.method, req.url);
-              // Ensure we're always sending the correct headers
               proxyReq.setHeader('apikey', env.SUPABASE_ANON_KEY);
               proxyReq.setHeader('Authorization', `Bearer ${env.SUPABASE_ANON_KEY}`);
-              
-              // For auth requests, we need to include credentials
               if (req.url.includes('/auth/')) {
                 proxyReq.setHeader('Access-Control-Allow-Credentials', 'true');
               }
             });
             proxy.on('proxyRes', (proxyRes, req) => {
-              // Ensure CORS headers are set correctly in the response
               proxyRes.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000';
               proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
-              
               console.log('Received response:', proxyRes.statusCode, req.url);
             });
           },
         },
-        // Handle OAuth callbacks
         '/auth/v1/callback': {
           target: 'https://zzggvfexheroporjlzgd.supabase.co',
           changeOrigin: true,
@@ -156,8 +157,8 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
-        // Tunisian Municipality API proxy
         '/api/tn-municipalities': {
+          // ✅ Removed trailing spaces
           target: 'https://tn-municipality-api.vercel.app',
           changeOrigin: true,
           secure: false,
@@ -169,8 +170,7 @@ export default defineConfig(({ mode }) => {
             });
             proxy.on('proxyRes', (proxyRes) => {
               console.log('Received response from Tunisian Municipality API:', proxyRes.statusCode);
-              // Ensure CORS headers are set
-              proxyRes.headers['Access-Control-Allow-Origin'] = '*'; // Or your specific origin
+              proxyRes.headers['Access-Control-Allow-Origin'] = '*';
               proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS';
               proxyRes.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept';
             });
@@ -178,56 +178,59 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    // Build optimization settings
+
     build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      emptyOutDir: true,
+      sourcemap: !isProd,
+      minify: isProd ? 'terser' : false,
+      terserOptions: {
+        compress: {
+          drop_console: isProd,
+          drop_debugger: true,
+        },
+        format: {
+          comments: false,
+        },
+      },
+      chunkSizeWarningLimit: 1000,
+      assetsInlineLimit: 4096,
+      reportCompressedSize: false,
+
       rollupOptions: {
         input: {
-          main: './index.html'
+          main: './index.html',
         },
         output: {
           manualChunks: {
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
             'ui-vendor': [
-              '@headlessui/react', 
-              '@radix-ui/*', 
+              '@headlessui/react',
+              '@radix-ui/react-avatar',
+              '@radix-ui/react-dialog',
+              '@radix-ui/react-dropdown-menu',
+              '@radix-ui/react-hover-card',
+              '@radix-ui/react-scroll-area',
+              '@radix-ui/react-slot',
+              '@radix-ui/react-switch',
+              '@radix-ui/react-tabs',
+              '@radix-ui/react-toast',
               'framer-motion',
               '@heroicons/react',
-              'react-hot-toast'
+              'react-hot-toast',
             ],
             'supabase': ['@supabase/supabase-js', '@supabase/auth-helpers-react'],
-            'utils': ['date-fns', 'clsx', 'class-variance-authority', 'html2canvas']
+            'utils': ['date-fns', 'clsx', 'class-variance-authority'],
           },
           chunkFileNames: 'assets/[name]-[hash].js',
           entryFileNames: 'assets/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash][extname]'
-        }
-      },
-      chunkSizeWarningLimit: 1000,
-      sourcemap: process.env.NODE_ENV !== 'production',
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: process.env.NODE_ENV === 'production',
-          drop_debugger: true
+          assetFileNames: 'assets/[name]-[hash][extname]',
         },
-        format: {
-          comments: false
-        }
       },
-      assetsInlineLimit: 4096,
-      reportCompressedSize: false,
-      // Add build hook to generate sitemap
-      buildStart() {
-        if (process.env.NODE_ENV === 'production') {
-          require('./scripts/generate-sitemap');
-        }
-      },
-      outDir: 'dist',
-      assetsDir: 'assets',
-      emptyOutDir: true
     },
-    define: {
-      'process.env': {}
-    }
+
+    // ✅ REMOVED: define: { 'process.env': {} }
+    // Vite handles this via import.meta.env
   };
 });
