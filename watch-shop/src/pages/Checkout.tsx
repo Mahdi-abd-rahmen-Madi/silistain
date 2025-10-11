@@ -25,7 +25,7 @@ import { CartItem } from '../types/cart';
 interface OrderDetails {
   orderId: string;
   customerName: string;
-  email: string;
+  email?: string; // Made optional since we're removing the email field
   total: number;
   items: {
     id: string; // Changed from number to string
@@ -38,7 +38,6 @@ interface OrderDetails {
 // Form field types
 interface FormFields {
   name: string;
-  email?: string;
   phone: string;
   address: string;
   governorate: string;
@@ -80,7 +79,6 @@ const Checkout = () => {
   // Form state
   const [formData, setFormData] = useState<FormFields>({
     name: '',
-    email: currentUser?.email || '',
     phone: '',
     address: '',
     governorate: '',
@@ -93,7 +91,6 @@ const Checkout = () => {
     if (currentUser) {
       setFormData(prev => ({
         ...prev,
-        email: currentUser.email || '',
         name: currentUser.user_metadata?.full_name || ''
       }));
     }
@@ -223,15 +220,6 @@ const Checkout = () => {
         }
       }
 
-      // Validate email format if provided
-      if (formData.email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-          setError(t('checkout.error.invalid_email'));
-          return false;
-        }
-      }
-
       return true;
     };
 
@@ -271,7 +259,6 @@ const Checkout = () => {
       // Prepare order data for database
       const orderFormData = {
         name: formData.name,
-        email: formData.email || '',
         phone: formData.phone,
         address: formData.address,
         governorate: formData.governorate,
@@ -347,7 +334,6 @@ const Checkout = () => {
       setOrderDetails({
         orderId: order.id,
         customerName: formData.name.trim(),
-        email: formData.email || '',
         total: finalTotal,
         items: itemsWithBrand.map(item => ({
           id: item.id, // This is now string, matching the interface
@@ -409,36 +395,36 @@ const Checkout = () => {
             </p>
 
             {orderDetails && (
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 mb-8">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              <div className="bg-gray-50 rounded-lg p-6 mb-8">
+                <h3 className="text-lg font-medium text-black mb-4">
                   {t('checkout.order_details')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-600">
                       {t('checkout.order_number')}
                     </p>
                     <p className="font-medium">#{orderDetails.orderId}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-600">
                       {t('checkout.date')}
                     </p>
                     <p className="font-medium">{new Date().toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-600">
                       {t('checkout.total')}
                     </p>
                     <p className="font-medium">{formatPrice(orderDetails.total)}</p>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
-                  <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3">
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h4 className="text-md font-medium text-black mb-3">
                     {t('checkout.whats_next')}
                   </h4>
-                  <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300 text-left">
+                  <div className="space-y-3 text-sm text-gray-700 text-left">
                     <p className="flex items-start">
                       <span className="flex-shrink-0 h-5 w-5 text-green-500 mr-2">
                         <CheckCircleIcon className="h-5 w-5" />
@@ -459,8 +445,8 @@ const Checkout = () => {
               </button>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
                 {t('checkout.need_help')} <a href="/contact" className="text-accent hover:underline">{t('checkout.contact_support')}</a>
               </p>
             </div>
@@ -471,26 +457,26 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-gray-600 dark:text-gray-300 hover:text-accent mb-6 transition-colors"
+          className="flex items-center text-gray-700 hover:text-accent mb-6 transition-colors"
         >
           <ArrowLeftIcon className="h-5 w-5 mr-2" />
           {t('checkout.back_to_cart')}
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">{t('checkout.title')}</h1>
+        <h1 className="text-3xl font-bold text-black mb-8">{t('checkout.title')}</h1>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex">
               <div className="flex-shrink-0">
                 <XCircleIcon className="h-5 w-5 text-red-400" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                <p className="text-sm text-red-700">{error}</p>
               </div>
             </div>
           </div>
@@ -499,13 +485,13 @@ const Checkout = () => {
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Billing Details */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-medium text-gray-900 dark:text-white">{t('checkout.billing_details')}</h2>
+            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-medium text-black">{t('checkout.billing_details')}</h2>
               </div>
               <div className="p-6 space-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-800 mb-1">
                     {t('checkout.form.name')} <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -515,28 +501,12 @@ const Checkout = () => {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {t('checkout.form.email')} <span className="text-gray-400">({t('common.optional')})</span>
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email || (currentUser?.email || '')}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
-                    placeholder={t('checkout.form.email_placeholder')}
-                  />
-                  <p className="mt-1 text-xs text-gray-500">{t('checkout.form.email_help')}</p>
-                </div>
-
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-800 mb-1">
                     {t('checkout.form.phone')} <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -546,12 +516,12 @@ const Checkout = () => {
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-800 mb-1">
                     {t('checkout.form.address')} <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -561,12 +531,12 @@ const Checkout = () => {
                     required
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-gray-700"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                   />
                 </div>
 
                 <div className="mb-4">
-                  <label htmlFor="governorate" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="governorate" className="block text-sm font-medium text-gray-800">
                     {t('checkout.form.governorate')} <span className="text-red-500">*</span>
                   </label>
                   <select

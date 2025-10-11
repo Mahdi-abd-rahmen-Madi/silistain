@@ -47,9 +47,9 @@ export const OrderSummary = ({
   return (
     <div className="lg:col-span-1">
       <div className="sticky top-8 space-y-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-medium text-gray-900 dark:text-white">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-black">
               {t('checkout.order_summary.title')}
             </h2>
           </div>
@@ -59,7 +59,7 @@ export const OrderSummary = ({
               {cartItems.map((item) => (
                 <div key={item.id} className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className="h-16 w-16 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                    <div className="h-16 w-16 bg-gray-100 rounded-lg overflow-hidden">
                       <img
                         src={item.image as string || "/images/watches/default-watch.jpg"}
                         alt={item.name}
@@ -67,30 +67,30 @@ export const OrderSummary = ({
                       />
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
+                      <p className="text-sm text-gray-600">
                         {t('checkout.order_summary.quantity')}: {item.quantity}
                       </p>
                     </div>
                   </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
- {formatPrice(item.price * item.quantity)}
+                  <span className="text-sm font-medium text-gray-900">
+                    {formatPrice(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
             </div>
 
             {/* Order Total */}
-            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="mt-6 pt-4 border-t border-gray-200">
               <div className="flex justify-between items-center text-xl font-semibold">
-                <span>{t('checkout.order_summary.total')}</span>
-                <span>{formatPrice(total)}</span>
+                <span className="text-black">{t('checkout.order_summary.total')}</span>
+                <span className="text-black">{formatPrice(total)}</span>
               </div>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm">
+              <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
                 <div className="flex items-center">
                   <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />

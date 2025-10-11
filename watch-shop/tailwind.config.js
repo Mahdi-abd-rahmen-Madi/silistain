@@ -27,7 +27,7 @@ export default {
           light: 'rgb(var(--color-primary-light) / <alpha-value>)',
           dark: 'rgb(var(--color-primary-dark) / <alpha-value>)',
         },
-        // Accent colors (teal)
+        // Accent colors (blue)
         accent: {
           DEFAULT: 'rgb(var(--color-accent) / <alpha-value>)',
           light: 'rgb(var(--color-accent-light) / <alpha-value>)',
