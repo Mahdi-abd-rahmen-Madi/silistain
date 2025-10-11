@@ -15,6 +15,7 @@ const initialFormData: ProductFormData = {
   name: '',
   description: '',
   price: 0,
+  offPercentage: 0,
   category: '',
   brand: '',
   stock: 0,
@@ -249,6 +250,7 @@ export default function ProductForm({
           name: product.name || '',
           description: product.description || '',
           price: product.price || 0,
+          offPercentage: product.offPercentage || 0,
           category: product.category || '',
           brand: product.brand || '',
           stock: product.stock || product.stock_quantity || 0,
@@ -414,7 +416,7 @@ export default function ProductForm({
                 />
               </div>
 
-              <div className="sm:col-span-6 md:col-span-2">
+              <div className="sm:col-span-3 md:col-span-2">
                 <label htmlFor="price" className="block text-sm font-medium text-gray-700">
                   Price <span className="text-red-500">*</span>
                 </label>
@@ -433,6 +435,28 @@ export default function ProductForm({
                     className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm sm:text-base"
                     required
                   />
+                </div>
+              </div>
+
+              <div className="sm:col-span-3 md:col-span-2">
+                <label htmlFor="offPercentage" className="block text-sm font-medium text-gray-700">
+                  Discount (%)
+                </label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    id="offPercentage"
+                    name="offPercentage"
+                    value={formData.offPercentage || ''}
+                    onChange={handleChange}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm sm:text-base"
+                    placeholder="0"
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500 text-sm sm:text-base">%</span>
+                  </div>
                 </div>
               </div>
 

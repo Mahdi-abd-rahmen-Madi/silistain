@@ -22,15 +22,12 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const cartButtonRef = useRef<HTMLButtonElement>(null);
   const { toast } = useToast();
   
-  // Generate a random discount percentage (10%, 15%, 20%, or 50%)
-  const discountPercentage = useMemo(() => {
-    const discounts = [10, 15, 20, 50];
-    return discounts[Math.floor(Math.random() * discounts.length)];
-  }, []);
+  // Use the product's offPercentage if available, otherwise no discount
+  const discountPercentage = product.offPercentage || 0;
   
-  // Calculate fake original price
-  const fakeOriginalPrice = useMemo(() => {
-    if (!product.price) return 0;
+  // Calculate original price based on discount
+  const originalPrice = useMemo(() => {
+    if (!product.price || discountPercentage <= 0) return 0;
     const price = typeof product.price === 'number' ? product.price : parseFloat(product.price);
     return Math.round(price / (1 - (discountPercentage / 100)));
   }, [product.price, discountPercentage]);
@@ -320,13 +317,13 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               
               {/* Original Price and Save Amount */}
               <div className="flex items-center gap-2">
-                {discountPercentage > 0 && (
+                {discountPercentage > 0 && originalPrice > 0 && (
                   <>
                     <span className="text-xs text-gray-500 line-through">
-                      {formatPrice(fakeOriginalPrice)} TND
+                      {formatPrice(originalPrice)} TND
                     </span>
                     <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                      Save {formatPrice(fakeOriginalPrice - Number(product.price))} TND
+                      Save {formatPrice(originalPrice - Number(product.price))} TND
                     </span>
                   </>
                 )}

@@ -12,6 +12,9 @@ export interface Product extends Omit<Watch, 'image' | 'images' | 'specification
   // Main product images array with metadata
   images: ProductImage[];
   
+  // Discount percentage (0-100)
+  offPercentage?: number;
+  
   // Individual image URLs for database mapping
   image_url?: string;        // Main image (backward compatibility)
   image_url_1?: string;      // Primary image
