@@ -17,15 +17,15 @@ export default function CartPage() {
   } = useCart();
 
   return (
-    <div className="pt-24 pb-16 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="pt-24 pb-16 bg-white min-h-screen">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Your Shopping Cart</h1>
+        <h1 className="text-3xl font-bold text-black mb-8">Your Shopping Cart</h1>
         
         {cartItems.length === 0 ? (
           <div className="text-center py-16">
             <ShoppingCartIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-2">Your cart is empty</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">Looks like you haven't added any watches to your cart yet.</p>
+            <h2 className="text-2xl font-medium text-black mb-2">Your cart is empty</h2>
+            <p className="text-gray-600 mb-6">Looks like you haven't added any watches to your cart yet.</p>
             <Link
               to="/shop"
               className="inline-block bg-accent hover:bg-accent-dark text-white font-medium py-2 px-6 rounded-lg transition-colors"
@@ -37,7 +37,7 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+              <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 <div className="p-6">
                   <div className="space-y-6">
                     {cartItems.map((item) => (

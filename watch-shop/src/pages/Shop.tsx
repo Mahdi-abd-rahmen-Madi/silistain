@@ -213,7 +213,7 @@ const Shop = () => {
 
   return (
     <div 
-      className="bg-gray-50 dark:bg-gray-900 min-h-screen pt-24"
+      className="bg-gray-50 min-h-screen pt-24"
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -226,12 +226,12 @@ const Shop = () => {
                 onClick={() => setMobileFiltersOpen(false)} 
               />
               <div 
-                className={`relative flex h-full w-full max-w-xs flex-col overflow-y-auto bg-white dark:bg-gray-800 py-4 pb-12 shadow-xl ${
+                className={`relative flex h-full w-full max-w-xs flex-col overflow-y-auto bg-white py-4 pb-12 shadow-xl ${
                   isRtl ? 'mr-auto' : 'ml-auto'
                 }`}
               >
                 <div className="flex items-center justify-between px-4">
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                  <h2 className="text-lg font-medium text-gray-900">
                     {t('shop.filters')}
                   </h2>
                   <button
@@ -245,7 +245,7 @@ const Shop = () => {
                 <div className="mt-4 px-4 space-y-6">
                   {/* Categories */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-sm font-semibold text-black mb-2">
                       {t('shop.filter_options.categories')}
                     </h3>
                     <div className="space-y-2">
@@ -263,7 +263,7 @@ const Shop = () => {
                             />
                             <label
                               htmlFor={`mobile-category-${category}`}
-                              className="ml-3 text-sm text-gray-600 dark:text-gray-300"
+                              className="ml-3 text-sm font-medium text-black"
                               style={isRtl ? { marginRight: '0.75rem', marginLeft: '0' } : {}}
                             >
                               {translatedCategory}
@@ -276,7 +276,7 @@ const Shop = () => {
 
                   {/* Brands */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-sm font-semibold text-black mb-2">
                       {t('shop.filter_options.brands')}
                     </h3>
                     <div className="space-y-2">
@@ -292,7 +292,7 @@ const Shop = () => {
                           />
                           <label
                             htmlFor={`mobile-brand-${brand}`}
-                            className="ml-3 text-sm text-gray-600 dark:text-gray-300"
+                            className="ml-3 text-sm font-medium text-black"
                             style={isRtl ? { marginRight: '0.75rem', marginLeft: '0' } : {}}
                           >
                             {brand}
@@ -304,13 +304,13 @@ const Shop = () => {
 
                   {/* Price Range */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-sm font-semibold text-black mb-2">
                       {t('shop.filter_options.price_range')}
                     </h3>
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label htmlFor="mobile-min-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          <label htmlFor="mobile-min-price" className="block text-sm font-medium text-black mb-1">
                             {t('shop.filter_options.min')}
                           </label>
                           <input
@@ -323,7 +323,7 @@ const Shop = () => {
                           />
                         </div>
                         <div>
-                          <label htmlFor="mobile-max-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          <label htmlFor="mobile-max-price" className="block text-sm font-medium text-black mb-1">
                             {t('shop.filter_options.max')}
                           </label>
                           <input
@@ -341,7 +341,7 @@ const Shop = () => {
 
                   {/* Search */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-sm font-semibold text-black mb-2">
                       {t('shop.filter_options.search')}
                     </h3>
                     <div className="relative">
@@ -376,7 +376,7 @@ const Shop = () => {
             <div className="sticky top-24 space-y-6">
               {/* Categories */}
               <div>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                <h3 className="text-sm font-semibold text-black mb-2">
                   {t('shop.filter_options.categories')}
                 </h3>
                 <div className="space-y-2">
@@ -394,7 +394,7 @@ const Shop = () => {
                         />
                         <label
                           htmlFor={`desktop-category-${category}`}
-                          className="ml-3 text-sm text-gray-600 dark:text-gray-300"
+                          className="ml-3 text-sm font-medium text-black"
                           style={isRtl ? { marginRight: '0.75rem', marginLeft: '0' } : {}}
                         >
                           {translatedCategory}
@@ -407,7 +407,7 @@ const Shop = () => {
 
               {/* Brands */}
               <div>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                <h3 className="text-sm font-semibold text-black mb-2">
                   {t('shop.filter_options.brands')}
                 </h3>
                 <div className="space-y-2">
@@ -423,7 +423,7 @@ const Shop = () => {
                       />
                       <label
                         htmlFor={`desktop-brand-${brand}`}
-                        className="ml-3 text-sm text-gray-600 dark:text-gray-300"
+                        className="ml-3 text-sm font-medium text-black"
                         style={isRtl ? { marginRight: '0.75rem', marginLeft: '0' } : {}}
                       >
                         {brand}
@@ -435,13 +435,13 @@ const Shop = () => {
 
               {/* Price Range */}
               <div>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                <h3 className="text-sm font-semibold text-black mb-2">
                   {t('shop.filter_options.price_range')}
                 </h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="desktop-min-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label htmlFor="desktop-min-price" className="block text-sm font-medium text-black mb-1">
                         {t('shop.filter_options.min')}
                       </label>
                       <input
@@ -454,7 +454,7 @@ const Shop = () => {
                       />
                     </div>
                     <div>
-                      <label htmlFor="desktop-max-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label htmlFor="desktop-max-price" className="block text-sm font-medium text-black mb-1">
                         {t('shop.filter_options.max')}
                       </label>
                       <input
@@ -472,7 +472,7 @@ const Shop = () => {
 
               {/* Search */}
               <div>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                <h3 className="text-sm font-semibold text-black mb-2">
                   {t('shop.filter_options.search')}
                 </h3>
                 <div className="relative">
@@ -501,7 +501,7 @@ const Shop = () => {
           <div className="lg:col-span-3">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
               <div className="mb-4 md:mb-0">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <h1 className="text-3xl font-bold tracking-tight text-black">
                   {t('shop.title')}
                 </h1>
                 <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">

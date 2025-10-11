@@ -215,14 +215,12 @@ const Home = () => {
           </Tabs.Root>
           
           <div className="view-all-button">
-            <Button>
               <Link to="/shop">
                 <Button variant="outline" className="mt-8">
                   {t('collections.view_all')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-            </Button>
           </div>
         </div>
       </section>

@@ -24,9 +24,9 @@ export function CartSummary({
   const { t } = useTranslation();
   
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden">
       <div className="p-6">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-6">
+        <h2 className="text-lg font-medium text-black mb-6">
           {t('cart.order_summary')}
         </h2>
         

@@ -304,6 +304,7 @@
     "contactSupport": "Contact our customer service team at "
   },
   "product": {
+    "unknown_brand": "Unknown Brand",
     "not_found": {
       "title": "Product not found",
       "description": "The requested product could not be found.",
