@@ -383,6 +383,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         name: product.name,
         description: product.description,
         price: product.price,
+        off_percentage: product.offPercentage || 0,
         image_url: imageUrls[0] || null, // First image as the main image for backward compatibility
         image_url_1: imageUrls[0] || null,
         image_url_2: imageUrls[1] || null,
@@ -488,6 +489,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         ...(updates.name !== undefined && { name: updates.name }),
         ...(updates.description !== undefined && { description: updates.description }),
         ...(updates.price !== undefined && { price: updates.price }),
+        ...(updates.offPercentage !== undefined && { off_percentage: updates.offPercentage }),
         ...(updates.category !== undefined && { category: updates.category }),
         ...(updates.stock !== undefined && { stock_quantity: updates.stock }),
         ...(updates.featured !== undefined && { is_featured: updates.featured }),
