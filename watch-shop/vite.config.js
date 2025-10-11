@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
     base: process.env.NODE_ENV === 'production' ? '/' : '/',
     publicDir: 'public',
     css: {
+      postcss: './postcss.config.mjs',
       devSourcemap: process.env.NODE_ENV !== 'production',
       modules: {
         generateScopedName: process.env.NODE_ENV === 'production'
