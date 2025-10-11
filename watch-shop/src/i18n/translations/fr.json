@@ -333,6 +333,33 @@
     "needHelp": "Besoin d'aide avec votre commande ?",
     "contactSupport": "Contactez notre équipe d'assistance à "
   },
+  "product": {
+    "not_found": {
+      "title": "Produit introuvable",
+      "description": "Le produit demandé n'a pas pu être trouvé.",
+      "back_to_shop": "Retour à la boutique"
+    },
+    "details": {
+      "back_to_products": "Retour aux produits",
+      "free_shipping": "Livraison gratuite",
+      "free_shipping_desc": "Sur toutes les commandes de plus de 300 dinars",
+      "warranty": "Garantie 2 ans",
+      "warranty_desc": "Qualité garantie",
+      "secure_payment": "Paiement sécurisé",
+      "secure_payment_desc": "Paiement 100% sécurisé",
+      "in_stock": "En stock",
+      "out_of_stock": "Rupture de stock",
+      "add_to_cart": "Ajouter au panier",
+      "buy_now": "Acheter maintenant",
+      "added_to_cart": "Ajouté au panier",
+      "added_to_cart_message": "\"{{productName}}\" a été ajouté à votre panier.",
+      "description": "Description",
+      "specifications": "Spécifications",
+      "features": "Caractéristiques",
+      "reviews": "Avis",
+      "similar_products": "Vous pourriez aussi aimer"
+    }
+  },
   "shop": {
     "title": "Notre Collection de Montres",
     "featured": "En Vedette",

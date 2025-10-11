@@ -314,6 +314,33 @@
     "needHelp": "هل تحتاج مساعدة بخصوص طلبك؟",
     "contactSupport": "يمكنك التواصل مع فريق خدمة العملاء على "
   },
+  "product": {
+    "not_found": {
+      "title": "المنتج غير موجود",
+      "description": "لم يتم العثور على المنتج المطلوب.",
+      "back_to_shop": "العودة إلى المتجر"
+    },
+    "details": {
+      "back_to_products": "العودة إلى المنتجات",
+      "free_shipping": "شحن مجاني",
+      "free_shipping_desc": "لجميع الطلبات فوق 300 دينار",
+      "warranty": "ضمان لمدة سنتين",
+      "warranty_desc": "جودة مضمونة",
+      "secure_payment": "دفع آمن",
+      "secure_payment_desc": "%دفع آمن بنسبة 100",
+      "in_stock": "متوفر في المخزون",
+      "out_of_stock": "غير متوفر في المخزون",
+      "add_to_cart": "أضف إلى السلة",
+      "buy_now": "اشتري الآن",
+      "added_to_cart": "تمت الإضافة إلى السلة",
+      "added_to_cart_message": "تمت إضافة \"{{productName}}\" إلى سلة التسوق الخاصة بك.",
+      "description": "الوصف",
+      "specifications": "المواصفات",
+      "features": "المميزات",
+      "reviews": "التقييمات",
+      "similar_products": "قد يعجبك أيضاً"
+    }
+  },
   "shop": {
     "title": "المتجر",
     "featured": "مميز",

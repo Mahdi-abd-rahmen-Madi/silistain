@@ -2,23 +2,58 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '../hooks/use-toast';
 import { Button } from '../components/ui/Button';
-import { ShoppingCart, Truck, Shield, ArrowLeft, Loader2 } from 'lucide-react';
+import { ShoppingCart, Truck, Shield, ArrowLeft, Loader2, ShieldCheck, Box, CreditCard } from 'lucide-react';
 import { Product } from '../types/product';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
 import FavoriteButton from '../components/FavoriteButton';
 import { formatPrice } from '../lib/utils';
+import ProductCard from '../components/ProductCard';
+import { useTranslation } from 'react-i18next';
 
 const ProductDetailsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { products, loading, getProductById } = useProducts();
   const [selectedImage, setSelectedImage] = useState(0);
+  const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   
   // Get the product from the context
   const currentProduct = id ? getProductById(id) : null;
+
+  // Find similar products when currentProduct or products change
+  useEffect(() => {
+    if (currentProduct && products.length > 0) {
+      // Calculate price range (within 30% of current product's price)
+      const priceRange = currentProduct.price * 0.3;
+      const minPrice = currentProduct.price - priceRange;
+      const maxPrice = currentProduct.price + priceRange;
+
+      // Filter products that are in the same category and price range, excluding the current product
+      const similar = products.filter(product => 
+        product.id !== currentProduct.id &&
+        product.category === currentProduct.category &&
+        product.price >= minPrice && 
+        product.price <= maxPrice
+      );
+
+      // If no similar products found in the same category, show any products in the price range
+      if (similar.length === 0) {
+        const fallbackSimilar = products.filter(product => 
+          product.id !== currentProduct.id &&
+          product.price >= minPrice && 
+          product.price <= maxPrice
+        ).slice(0, 4); // Limit to 4 products
+        setSimilarProducts(fallbackSimilar);
+      } else {
+        // Limit to 4 similar products
+        setSimilarProducts(similar.slice(0, 4));
+      }
+    }
+  }, [currentProduct, products]);
   
   // Handle loading and error states
   if (loading) {
@@ -32,10 +67,10 @@ const ProductDetailsPage: React.FC = () => {
   if (!currentProduct) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold">Product not found</h1>
-        <p className="text-gray-600 mt-2">The requested product could not be found.</p>
+        <h1 className="text-2xl font-bold">{t('product.not_found.title')}</h1>
+        <p className="text-gray-600 mt-2">{t('product.not_found.description')}</p>
         <Button onClick={() => navigate('/shop')} className="mt-4">
-          Back to Shop
+          {t('product.not_found.back_to_shop')}
         </Button>
       </div>
     );
@@ -83,8 +118,8 @@ const ProductDetailsPage: React.FC = () => {
   const handleAddToCart = () => {
     addToCart({ ...currentProduct, quantity: 1 });
     toast({
-      title: 'Added to cart',
-      description: `"${currentProduct.name}" has been added to your cart.`,
+      title: t('product.details.added_to_cart'),
+      description: t('product.details.added_to_cart_message', { productName: currentProduct.name }),
     });
   };
 
@@ -101,7 +136,7 @@ const ProductDetailsPage: React.FC = () => {
         onClick={() => navigate('/shop')}
         className="mb-8 flex items-center gap-2 hover:bg-gray-100 px-4 py-2 rounded-lg transition-colors"
       >
-        <ArrowLeft size={16} /> Back to Products
+        <ArrowLeft size={16} /> {t('product.details.back_to_products')}
       </Button>
       
       <div className="grid md:grid-cols-2 gap-8">
@@ -160,28 +195,40 @@ const ProductDetailsPage: React.FC = () => {
           <div className="mt-6 space-y-4">
             <p className="text-gray-700">{currentProduct.description}</p>
             
-            <div className="bg-green-50 border border-green-100 rounded-lg p-4 mt-6">
-              <div className="flex items-center gap-2 text-green-700 mb-2">
-                <Truck className="w-5 h-5" />
-                <span className="font-medium">Free Shipping</span>
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-100 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-green-700 mb-2">
+                  <Truck className="w-5 h-5" />
+                  <span className="font-medium">{t('product.details.free_shipping')}</span>
+                </div>
+                <p className="text-sm text-green-700">
+                  {t('product.details.free_shipping_desc')}
+                </p>
               </div>
-              <p className="text-sm text-green-700">
-                Enjoy free shipping across all 24 governorates in Tunisia.
-              </p>
-            </div>
-            
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-5">
-              <div className="flex items-center gap-2 text-blue-700 mb-2">
-                <Shield className="w-5 h-5" />
-                <span className="font-medium">Cash on Delivery</span>
+              
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-blue-700 mb-2">
+                  <ShieldCheck className="w-5 h-5" />
+                  <span className="font-medium">{t('product.details.warranty')}</span>
+                </div>
+                <p className="text-sm text-blue-700">
+                  {t('product.details.warranty_desc')}
+                </p>
               </div>
-              <p className="text-sm text-blue-700">
-                Pay with cash when your order is delivered. No online payment required.
-              </p>
+              
+              <div className="bg-purple-50 border border-purple-100 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-purple-700 mb-2">
+                  <CreditCard className="w-5 h-5" />
+                  <span className="font-medium">{t('product.details.secure_payment')}</span>
+                </div>
+                <p className="text-sm text-purple-700">
+                  {t('product.details.secure_payment_desc')}
+                </p>
+              </div>
             </div>
             
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-2">Specifications</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('product.details.specifications')}</h3>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 {Object.entries(currentProduct.specifications || {}).map(([key, value]) => (
                   <div key={key} className="flex justify-between border-b pb-1">
@@ -198,7 +245,7 @@ const ProductDetailsPage: React.FC = () => {
                 className="w-full py-6 text-lg flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
               >
                 <ShoppingCart className="w-5 h-5" />
-                Add to Cart - {formatPrice(currentProduct.price || 0)}
+                {t('product.details.add_to_cart')} - {formatPrice(currentProduct.price || 0)}
               </Button>
               <Button 
                 variant="outline"
@@ -206,12 +253,28 @@ const ProductDetailsPage: React.FC = () => {
                 className="w-full py-6 text-lg flex items-center justify-center gap-2 border-primary text-primary hover:bg-primary/10 transition-colors"
               >
                 <ShoppingCart className="w-5 h-5" />
-                Buy Now - {formatPrice(currentProduct.price || 0)}
+                {t('product.details.buy_now')} - {formatPrice(currentProduct.price || 0)}
               </Button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Similar Products Section */}
+      {similarProducts.length > 0 && (
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold mb-6">{t('product.details.similar_products')}</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {similarProducts.map((product) => (
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                onAddToCart={() => addToCart({ ...product, quantity: 1 })} 
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

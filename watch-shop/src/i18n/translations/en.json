@@ -303,6 +303,33 @@
     "needHelp": "Need help with your order?",
     "contactSupport": "Contact our customer service team at "
   },
+  "product": {
+    "not_found": {
+      "title": "Product not found",
+      "description": "The requested product could not be found.",
+      "back_to_shop": "Back to Shop"
+    },
+    "details": {
+      "back_to_products": "Back to Products",
+      "free_shipping": "Free Shipping",
+      "free_shipping_desc": "On all orders over 300 TND",
+      "warranty": "2-Year Warranty",
+      "warranty_desc": "Guaranteed quality",
+      "secure_payment": "Secure Payment",
+      "secure_payment_desc": "100% secure payment",
+      "in_stock": "In Stock",
+      "out_of_stock": "Out of Stock",
+      "add_to_cart": "Add to Cart",
+      "buy_now": "Buy Now",
+      "added_to_cart": "Added to cart",
+      "added_to_cart_message": "\"{{productName}}\" has been added to your cart.",
+      "description": "Description",
+      "specifications": "Specifications",
+      "features": "Features",
+      "reviews": "Reviews",
+      "similar_products": "You May Also Like"
+    }
+  },
   "shop": {
     "title": "Our Watch Collection",
     "description": "Discover our handpicked selection of premium timepieces",

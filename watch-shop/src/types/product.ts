@@ -2,6 +2,7 @@ import { Watch, WatchSpecifications } from "./index";
 
 export interface ProductImage {
   url: string;
+  alt?: string;
   isPrimary?: boolean;
   order?: number;
   preview?: string;
