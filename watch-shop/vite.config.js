@@ -46,9 +46,15 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        strategies: 'generateSW',
         workbox: {
           maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
+          globPatterns: [
+            '**/*.{js,css,html,ico,png,svg,webp,woff,woff2}',
+            'assets/*.{js,css,ico,png,svg,webp,woff,woff2}'
+          ],
+          globDirectory: 'dist',
+          cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
               urlPattern: /^https?:\/\/.*\.(png|jpg|jpeg|svg|gif|webp|ico|woff|woff2)$/i,
@@ -68,16 +74,21 @@ export default defineConfig(({ mode }) => {
           short_name: 'Silistain',
           description: 'Your site description',
           theme_color: '#ffffff',
+          start_url: '/',
+          display: 'standalone',
+          background_color: '#ffffff',
           icons: [
             {
               src: 'pwa-192x192.png',
               sizes: '192x192',
               type: 'image/png',
+              purpose: 'any maskable'
             },
             {
               src: 'pwa-512x512.png',
               sizes: '512x512',
               type: 'image/png',
+              purpose: 'any maskable'
             },
           ],
         },
@@ -169,14 +180,26 @@ export default defineConfig(({ mode }) => {
     // Build optimization settings
     build: {
       rollupOptions: {
+        input: {
+          main: './index.html'
+        },
         output: {
           manualChunks: {
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'ui-vendor': ['@headlessui/react', '@radix-ui/*', 'framer-motion'],
+            'ui-vendor': [
+              '@headlessui/react', 
+              '@radix-ui/*', 
+              'framer-motion',
+              '@heroicons/react',
+              'react-hot-toast'
+            ],
             'supabase': ['@supabase/supabase-js', '@supabase/auth-helpers-react'],
-            'utils': ['date-fns', 'clsx', 'class-variance-authority']
+            'utils': ['date-fns', 'clsx', 'class-variance-authority', 'html2canvas']
           },
-        },
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash][extname]'
+        }
       },
       chunkSizeWarningLimit: 1000,
       sourcemap: process.env.NODE_ENV !== 'production',
@@ -184,11 +207,11 @@ export default defineConfig(({ mode }) => {
       terserOptions: {
         compress: {
           drop_console: process.env.NODE_ENV === 'production',
-          drop_debugger: true,
+          drop_debugger: true
         },
         format: {
-          comments: false,
-        },
+          comments: false
+        }
       },
       assetsInlineLimit: 4096,
       reportCompressedSize: false,
@@ -200,30 +223,7 @@ export default defineConfig(({ mode }) => {
       },
       outDir: 'dist',
       assetsDir: 'assets',
-      emptyOutDir: true,
-      rollupOptions: {
-        input: {
-          main: './index.html'
-        },
-        output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-supabase': ['@supabase/supabase-js', '@supabase/auth-helpers-react'],
-            'vendor-ui': ['@headlessui/react', '@heroicons/react', 'react-hot-toast', 'framer-motion'],
-            'html2canvas': ['html2canvas']
-          },
-          chunkFileNames: 'assets/[name]-[hash].js',
-          entryFileNames: 'assets/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash][extname]'
-        }
-      },
-      base: '/',
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true
-        }
-      }
+      emptyOutDir: true
     },
     define: {
       'process.env': {}

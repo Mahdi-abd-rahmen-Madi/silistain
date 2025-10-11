@@ -68,3 +68,12 @@ node_modules/
 # dataconnect generated files
 .dataconnect
 .vercel
+
+
+# Editor directories and files
+-.vscode/*
++.vscode/*
++!.vscode/settings.json
+ !.vscode/extensions.json
+ .idea
+ .DS_Store

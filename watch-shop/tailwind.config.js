@@ -1,31 +1,19 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  // Content paths for purging
+module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
     "./public/**/*.html"
   ],
-  // Enable purging in production
-  purge: {
-    enabled: process.env.NODE_ENV === 'production',
-    content: [
-      "./index.html",
-      "./src/**/*.{js,ts,jsx,tsx}",
-      "./public/**/*.html"
-    ],
-    options: {
-      safelist: [
-        'dark',
-        // Grid columns that might be used dynamically
-        'sm:grid-cols-1', 'sm:grid-cols-2', 'sm:grid-cols-3', 'sm:grid-cols-4',
-        'md:grid-cols-1', 'md:grid-cols-2', 'md:grid-cols-3', 'md:grid-cols-4',
-        'lg:grid-cols-1', 'lg:grid-cols-2', 'lg:grid-cols-3', 'lg:grid-cols-4',
-        // Add any other classes that are generated dynamically
-        /^bg-/, /^text-/, /^border-/, /^hover:/, /^focus:/, /^active:/, /^group-hover:/
-      ],
-    },
-  },
+  safelist: [
+    'dark',
+    // Grid columns that might be used dynamically
+    'sm:grid-cols-1', 'sm:grid-cols-2', 'sm:grid-cols-3', 'sm:grid-cols-4',
+    'md:grid-cols-1', 'md:grid-cols-2', 'md:grid-cols-3', 'md:grid-cols-4',
+    'lg:grid-cols-1', 'lg:grid-cols-2', 'lg:grid-cols-3', 'lg:grid-cols-4',
+    // Add any other classes that are generated dynamically
+    /^bg-/, /^text-/, /^border-/, /^hover:/, /^focus:/, /^active:/, /^group-hover:/
+  ],
   // Enable class-based dark mode
   darkMode: 'class',
   // Future configurations
