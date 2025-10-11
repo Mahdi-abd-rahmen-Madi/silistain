@@ -45,7 +45,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         .order('created_at', { ascending: false });
 
       console.log('Supabase response:', { status, statusText, error, data: data?.length });
-
+      console.log('First product data from DB:', JSON.stringify(data?.[0], null, 2));
       if (error) {
         console.error('Supabase query error:', {
           message: error.message,
@@ -95,6 +95,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           name: item.name || 'Unnamed Product',
           description: item.description || '',
           price: item.price,
+          offPercentage: item.off_percentage || 0,
           imageUrl: item.image_url,
           images: allImageUrls,
           category: item.category || 'other',

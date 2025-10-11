@@ -22,6 +22,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const cartButtonRef = useRef<HTMLButtonElement>(null);
   const { toast } = useToast();
   
+  // Debug log to check the product data
+  console.log('Product data:', {
+    id: product.id,
+    name: product.name,
+    offPercentage: product.offPercentage,
+    price: product.price
+  });
+
   // Use the product's offPercentage if available, otherwise no discount
   const discountPercentage = product.offPercentage || 0;
   
