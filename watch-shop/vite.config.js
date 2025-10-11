@@ -11,8 +11,26 @@ export default defineConfig(({ mode }) => {
   return {
     base: process.env.NODE_ENV === 'production' ? '/' : '/',
     publicDir: 'public',
+    css: {
+      devSourcemap: process.env.NODE_ENV !== 'production',
+      modules: {
+        generateScopedName: process.env.NODE_ENV === 'production'
+          ? '[hash:base64:8]'
+          : '[name]__[local]__[hash:base64:5]',
+      },
+      preprocessorOptions: {
+        scss: {
+          additionalData: `@import "@/styles/variables.scss";`,
+        },
+      },
+    },
     plugins: [
-      react(),
+      react({
+        jsxImportSource: '@emotion/react',
+        babel: {
+          plugins: ['@emotion/babel-plugin'],
+        },
+      }),
       createHtmlPlugin({
         minify: true,
         inject: {
@@ -28,6 +46,23 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        workbox: {
+          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
+          runtimeCaching: [
+            {
+              urlPattern: /^https?:\/\/.*\.(png|jpg|jpeg|svg|gif|webp|ico|woff|woff2)$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'images',
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                },
+              },
+            },
+          ],
+        },
         manifest: {
           name: 'Silistain',
           short_name: 'Silistain',
@@ -131,8 +166,32 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    // Generate sitemap and robots.txt
+    // Build optimization settings
     build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'ui-vendor': ['@headlessui/react', '@radix-ui/*', 'framer-motion'],
+            'supabase': ['@supabase/supabase-js', '@supabase/auth-helpers-react'],
+            'utils': ['date-fns', 'clsx', 'class-variance-authority']
+          },
+        },
+      },
+      chunkSizeWarningLimit: 1000,
+      sourcemap: process.env.NODE_ENV !== 'production',
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: process.env.NODE_ENV === 'production',
+          drop_debugger: true,
+        },
+        format: {
+          comments: false,
+        },
+      },
+      assetsInlineLimit: 4096,
+      reportCompressedSize: false,
       // Add build hook to generate sitemap
       buildStart() {
         if (process.env.NODE_ENV === 'production') {
@@ -140,9 +199,6 @@ export default defineConfig(({ mode }) => {
         }
       },
       outDir: 'dist',
-      chunkSizeWarningLimit: 1000,
-      sourcemap: true,
-      minify: 'terser',
       assetsDir: 'assets',
       emptyOutDir: true,
       rollupOptions: {
