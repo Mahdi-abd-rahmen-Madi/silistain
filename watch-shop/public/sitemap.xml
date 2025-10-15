@@ -2,151 +2,91 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://silistain.com/</loc>
-    <lastmod>2025-10-11T15:07:14.902Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.458Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://silistain.com/about</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/products</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/contact</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/privacy</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/terms</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/WatchDetails</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/Unauthorized</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/ThankYou</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/Shop</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/ProductDetailsPage</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/Orders</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/NotFound</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/Login</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/Home</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/FavoritesPage</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/Contact</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/Checkout</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/CartPage</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://silistain.com/AdminSignup</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/AccountPage</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/profile/index</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/auth/callback</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/auth/VerifyEmail</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://silistain.com/admin/AdminDashboard</loc>
-    <lastmod>2025-10-11T15:07:14.903Z</lastmod>
+    <lastmod>2025-10-15T09:11:53.459Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

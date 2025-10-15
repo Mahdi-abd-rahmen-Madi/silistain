@@ -19,12 +19,31 @@ const staticPages = [
   'terms'
 ];
 
+// Paths to exclude from sitemap
+const excludedPaths = [
+  'admin',
+  'auth',
+  'profile',
+  'AccountPage',
+  'Orders',
+  'Checkout',
+  'CartPage',
+  'Unauthorized',
+  'NotFound'
+];
+
 // Generate sitemap XML
 const generateSitemap = (pages) => {
   const pagesSitemap = pages
     .map(page => {
       const path = page.replace(/^src\/pages\//, '').replace(/\.(jsx|tsx)$/, '');
       const route = path === 'index' ? '' : path;
+      
+      // Skip excluded paths
+      if (excludedPaths.some(excluded => route.includes(excluded))) {
+        return '';
+      }
+      
       return `  <url>
     <loc>${siteUrl}/${route}</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
@@ -32,6 +51,7 @@ const generateSitemap = (pages) => {
     <priority>${route === '' ? '1.0' : '0.8'}</priority>
   </url>`;
     })
+    .filter(Boolean) // Remove empty strings
     .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
