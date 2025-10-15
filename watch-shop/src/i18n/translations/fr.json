@@ -8,7 +8,8 @@
     "register": "S'inscrire",
     "profile": "Profil",
     "logout": "Déconnexion",
-    "my_cart": "Mon Panier"
+    "my_cart": "Mon Panier",
+    "guest": "Invité"
   },
   "hero": {
     "title": "Découvrez Notre Collection Exclusive de Montres de Luxe",
@@ -41,8 +42,29 @@
       "short": "dd/MM/yyyy",
       "long": "d MMMM yyyy"
     },
-    "days": ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
-    "months": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+    "days": [
+      "dimanche",
+      "lundi",
+      "mardi",
+      "mercredi",
+      "jeudi",
+      "vendredi",
+      "samedi"
+    ],
+    "months": [
+      "janvier",
+      "février",
+      "mars",
+      "avril",
+      "mai",
+      "juin",
+      "juillet",
+      "août",
+      "septembre",
+      "octobre",
+      "novembre",
+      "décembre"
+    ]
   },
   "orders": {
     "title": "Mes commandes",
