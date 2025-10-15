@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Site URL - replace with your production URL
-const siteUrl = process.env.VITE_SITE_URL || 'https://silistain.vercel.app';
+const siteUrl = process.env.VITE_SITE_URL || 'https://silistain.com';
 
 // Static pages to include
 const staticPages = [

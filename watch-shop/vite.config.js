@@ -44,7 +44,7 @@ export default defineConfig(({ mode }) => {
             title: 'Silistain',
             description: 'Your site description for better SEO',
             keywords: 'ecommerce, watches, luxury watches',
-            url: 'https://silistain.vercel.app',
+            url: 'https://silistain.com',
             image: '/social-preview.jpg',
           },
         },

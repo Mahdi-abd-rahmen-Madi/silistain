@@ -7,4 +7,4 @@ Disallow: /api/
 Disallow: /*?*
 
 # Sitemap location
-Sitemap: https://silistain.vercel.app/sitemap.xml
+Sitemap: https://silistain.com/sitemap.xml
