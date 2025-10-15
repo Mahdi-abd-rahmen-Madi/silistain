@@ -118,27 +118,8 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* Mobile Navigation - Always visible */}
-            <div className="md:hidden flex-1 flex justify-center">
-              <div className="flex items-center space-x-6 overflow-x-auto px-2 hide-scrollbar">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={`text-sm font-medium whitespace-nowrap ${
-                      location.pathname === item.href
-                        ? 'text-accent'
-                        : 'text-gray-700 hover:text-accent'
-                    } transition-colors`}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
             {/* Mobile right icons */}
-            <div className="md:hidden flex items-center space-x-2">
+            <div className="md:hidden flex items-center space-x-2 ml-auto">
               <button
                 onClick={toggleCart}
                 className="p-2 text-gray-700 hover:text-accent relative"
