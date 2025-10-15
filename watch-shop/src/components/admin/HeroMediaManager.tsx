@@ -55,11 +55,52 @@ export const HeroMediaManager = () => {
       setHeroMedia(prev => ({
         ...(prev || defaultHeroMedia),
         url,
-        type
+        type,
+        // Clear thumbnail URL when changing media type
+        ...(type === 'video' ? { thumbnail_url: undefined } : {})
       }));
     }
   };
 
+  const renderMediaPreview = () => {
+    if (!heroMedia?.url) return null;
+
+    if (heroMedia.type === 'video') {
+      return (
+        <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+          <video 
+            src={heroMedia.url} 
+            controls 
+            className="w-full h-full object-cover"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+        <img 
+          src={heroMedia.url} 
+          alt="Preview" 
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
+  };
+
+  const getAcceptedFileTypes = () => 'image/*,video/mp4,video/webm,video/quicktime';
+
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      const url = URL.createObjectURL(file);
+      
+      setHeroMedia(prev => ({
+        ...(prev || defaultHeroMedia),
+        thumbnail_url: url
+      }));
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -363,9 +404,57 @@ export const HeroMediaManager = () => {
               ))}
             </select>
             {heroMedia?.product_id && (
-              <p className="mt-1 text-sm text-gray-500">
-                Will link to: {heroMedia.cta_link}
-              </p>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="media">Media (Image or Video)</Label>
+                  <div className="mt-1 flex flex-col space-y-2">
+                    <Input
+                      id="media"
+                      type="file"
+                      onChange={handleFileChange}
+                      accept={getAcceptedFileTypes()}
+                      ref={fileInputRef}
+                      className="cursor-pointer"
+                      disabled={isUploading}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Supported formats: JPG, PNG, GIF, MP4, WebM, MOV (max 20MB)
+                    </p>
+                  </div>
+                </div>
+
+                {heroMedia?.type === 'video' && (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="thumbnail">Video Thumbnail (Optional)</Label>
+                      <span className="text-xs text-gray-500">
+                        Recommended: 1280×720px
+                      </span>
+                    </div>
+                    <Input
+                      id="thumbnail"
+                      type="file"
+                      onChange={handleThumbnailChange}
+                      accept="image/*"
+                      ref={thumbnailInputRef}
+                      className="mt-1"
+                      disabled={isUploading}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Upload a custom thumbnail for the video. If not provided, a thumbnail will be generated automatically.
+                    </p>
+                  </div>
+                )}
+
+                {heroMedia?.url && (
+                  <div className="mt-4">
+                    <Label>Preview</Label>
+                    <div className="mt-2">
+                      {renderMediaPreview()}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
