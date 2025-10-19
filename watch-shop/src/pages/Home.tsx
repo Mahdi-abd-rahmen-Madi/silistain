@@ -9,6 +9,7 @@ import { Product } from '../types/product';
 import { ProductCard } from '../components/ProductCard';
 import { Button } from '../components/ui/Button';
 import { HeroSection } from '../components/HeroSection';
+import { ProductDropsDisplay } from '../components/ProductDropsDisplay';
 import { Send, ArrowRight, Truck, Shield, CheckCircle, Headset } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import '../styles/home.css'; // Import the CSS file
@@ -225,8 +226,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="features-section">
+      <section className="py-12 bg-white">
         <div className="features-grid">
           <div className="feature-card">
             <div className="feature-icon">

@@ -6,6 +6,7 @@ import { Product } from '../../types/product';
 import { Order } from '../../types/order';
 import { OrdersTab } from '../../components/admin/OrdersTab';
 import { HeroMediaManager } from '../../components/admin/HeroMediaManager';
+import { ProductDropsManager } from '../../components/admin/ProductDropsManager';
 import UsersTab from '../../components/admin/UsersTab';
 import { fetchMunicipalities } from '../../services/locationService';
 import { supabase, getAdminClient } from '../../lib/supabaseClient';
@@ -25,7 +26,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
     refreshProducts
   } = useProducts();
   
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'hero'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'hero' | 'drops'>('products');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
@@ -356,13 +357,23 @@ export default function AdminDashboard({}: AdminDashboardProps) {
               </button>
               <button
                 onClick={() => setActiveTab('hero')}
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md whitespace-nowrap ${
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
                   activeTab === 'hero'
-                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
                 }`}
               >
                 Hero Media
+              </button>
+              <button
+                onClick={() => setActiveTab('drops')}
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                  activeTab === 'drops'
+                    ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`}
+              >
+                Product Drops
               </button>
             </nav>
           </div>
