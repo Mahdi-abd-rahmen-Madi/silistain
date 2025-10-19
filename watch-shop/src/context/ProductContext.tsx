@@ -329,15 +329,21 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const deleteImage = async (imageUrl: string) => {
     try {
-      if (!imageUrl || !supabase) return;
+      if (!imageUrl) return;
+      
+      // Get the admin client to bypass RLS
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
+        throw new Error('Admin client is not available');
+      }
       
       // Extract the file path from the URL
       const url = new URL(imageUrl);
       const pathParts = url.pathname.split('/');
       const filePath = pathParts.slice(3).join('/'); // Remove the /storage/v1/object/public/ part
       
-      const { error } = await supabase.storage
-        .from('products') // Changed from 'product-images' to 'products' to match upload bucket
+      const { error } = await adminClient.storage
+        .from('products')
         .remove([filePath]);
         
       if (error) throw error;
@@ -350,7 +356,13 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   // Delete multiple images
   const deleteImages = async (imageUrls: string[]) => {
     try {
-      if (!imageUrls || !imageUrls.length || !supabase) return;
+      if (!imageUrls || !imageUrls.length) return;
+      
+      // Get the admin client to bypass RLS
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
+        throw new Error('Admin client is not available');
+      }
       
       const filePaths = imageUrls.map(url => {
         const urlObj = new URL(url);
@@ -358,7 +370,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         return pathParts.slice(3).join('/');
       });
       
-      const { error } = await supabase.storage
+      const { error } = await adminClient.storage
         .from('products')
         .remove(filePaths);
         
