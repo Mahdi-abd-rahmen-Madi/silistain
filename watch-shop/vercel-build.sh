@@ -2,9 +2,9 @@
 set -e
 
 echo "🔧 Installing dependencies..."
-npm ci --prefer-offline
+pnpm install --frozen-lockfile
 
 echo "🚀 Building project..."
-npm run build
+pnpm run build
 
 echo "✅ Build completed successfully!"
