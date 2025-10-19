@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '../lib/supabaseClient';
+import { supabase, getAdminClient } from '../lib/supabaseClient';
 import { Product, ProductImage } from '../types/product';
 
 interface ProductContextType {
@@ -574,13 +574,48 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      // Delete the image from storage if it exists
-      if (imageUrl) {
-        await deleteImage(imageUrl);
+      // Get the admin client to bypass RLS
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
+        throw new Error('Admin client is not available');
       }
       
-      // Delete the product from the database
-      const { error } = await supabase
+      // First, get the product to find all its images using the admin client
+      const { data: product, error: fetchError } = await adminClient
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      if (!product) {
+        throw new Error('Product not found');
+      }
+      
+      // Collect all image URLs from the product
+      const imageUrls: string[] = [];
+      
+      // Check all possible image URL fields (image_url_1 through image_url_10)
+      for (let i = 1; i <= 10; i++) {
+        const imageUrl = product[`image_url_${i}` as keyof typeof product];
+        if (imageUrl && typeof imageUrl === 'string') {
+          imageUrls.push(imageUrl);
+        }
+      }
+      
+      // Also include the main image_url if it's different
+      if (product.image_url && !imageUrls.includes(product.image_url)) {
+        imageUrls.push(product.image_url);
+      }
+      
+      // Delete all associated images from storage using admin client
+      if (imageUrls.length > 0) {
+        await deleteImages(imageUrls);
+      }
+      
+      // Delete the product from the database using admin client to bypass RLS
+      const { error } = await adminClient
         .from('products')
         .delete()
         .eq('id', id);
@@ -591,7 +626,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       await refreshProducts();
     } catch (err) {
       console.error('Error deleting product:', err);
-      setError('Failed to delete product');
+      setError('Failed to delete product. ' + (err instanceof Error ? err.message : ''));
       throw err;
     } finally {
       setLoading(false);
