@@ -23,7 +23,6 @@ type HeroMedia = {
   updated_at?: string;
   created_by?: string | null;
   user_id?: string;
-  title?: string;
   cta_link?: string;
   product_id?: string | null;
 };
@@ -229,7 +228,6 @@ export const HeroMediaManager = () => {
         thumbnail_url: currentMedia.thumbnail_url || null,
         cta_link: currentMedia.cta_link || null,
         product_id: currentMedia.product_id || null,
-        title: currentMedia.title || null,
         updated_at: now,
         created_by: user?.id || null,
         user_id: user?.id || null,
