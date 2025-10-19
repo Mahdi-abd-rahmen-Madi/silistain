@@ -354,10 +354,12 @@
     }
   },
   "shop": {
-    "title": "Our Watch Collection",
-    "description": "Discover our handpicked selection of premium timepieces",
+    "title": "Our Collection",
+    "subtitle": "Discover our handpicked selection of premium timepieces",
     "new_arrival": "New Arrival",
+    "description": "Discover our carefully curated selection of luxury watches",
     "featured_product": "Featured Product",
+    "best_seller": "Best Seller",
     "filters": "Filters",
     "sort_by": "Sort by",
     "sort_options": {
