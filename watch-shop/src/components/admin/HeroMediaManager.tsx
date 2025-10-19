@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase, getAdminClient } from '../../lib/supabaseClient';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Label } from '../../components/ui/Label';
@@ -183,6 +183,10 @@ export const HeroMediaManager = () => {
     try {
       const currentMedia = heroMedia ? { ...heroMedia } : { ...defaultHeroMedia };
       
+      // Store old URLs for cleanup
+      const oldMediaUrl = currentMedia.url;
+      const oldThumbnailUrl = currentMedia.thumbnail_url;
+      
       // Handle file upload if a new file was selected
       const file = fileInputRef.current?.files?.[0];
       if (file) {
@@ -205,6 +209,14 @@ export const HeroMediaManager = () => {
         } finally {
           setIsUploading(false);
         }
+      }
+      
+      // Clean up old files if they were replaced
+      if (file && oldMediaUrl && oldMediaUrl !== currentMedia.url) {
+        await deleteFile(oldMediaUrl);
+      }
+      if (thumbnailFile && oldThumbnailUrl && oldThumbnailUrl !== currentMedia.thumbnail_url) {
+        await deleteFile(oldThumbnailUrl);
       }
 
       // Get current user
@@ -283,8 +295,14 @@ export const HeroMediaManager = () => {
       const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `${path}/${fileName}`;
 
-      // Upload to the 'hero' bucket
-      const { error: uploadError } = await supabase.storage
+      // Get admin client to bypass RLS
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
+        throw new Error('Admin client is not available');
+      }
+
+      // Upload to the 'hero' bucket using admin client
+      const { error: uploadError } = await adminClient.storage
         .from('hero')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -294,8 +312,8 @@ export const HeroMediaManager = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get public URL using admin client
+      const { data: { publicUrl } } = adminClient.storage
         .from('hero')
         .getPublicUrl(filePath);
 
@@ -303,6 +321,33 @@ export const HeroMediaManager = () => {
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;
+    }
+  };
+
+  const deleteFile = async (url: string) => {
+    try {
+      if (!url) return;
+      
+      // Get admin client to bypass RLS
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
+        throw new Error('Admin client is not available');
+      }
+      
+      // Extract the file path from the URL
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/');
+      const filePath = pathParts.slice(3).join('/'); // Remove the /storage/v1/object/public/ part
+      
+      // Delete the file using admin client
+      const { error } = await adminClient.storage
+        .from('hero')
+        .remove([filePath]);
+        
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error deleting file:', err);
+      // Don't throw the error, as we still want to continue with the operation
     }
   };
 

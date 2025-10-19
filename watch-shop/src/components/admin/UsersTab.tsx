@@ -60,9 +60,56 @@ export const UsersTab = () => {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const deleteUser = async (userId: string) => {
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
+        throw new Error('Admin client not available');
+      }
+
+      // First, check if the user has any orders
+      const { data: userOrders, error: ordersError } = await adminClient
+        .from('orders')
+        .select('id')
+        .eq('user_id', userId);
+        
+      if (ordersError) throw ordersError;
+      
+      if (userOrders && userOrders.length > 0) {
+        throw new Error('Cannot delete user with existing orders. Please deactivate the user instead.');
+      }
+
+      // Delete user from auth
+      const { error: authError } = await adminClient.auth.admin.deleteUser(userId);
+      if (authError) throw authError;
+
+      // Delete user from users table
+      const { error: dbError } = await adminClient
+        .from('users')
+        .delete()
+        .eq('id', userId);
+      
+      if (dbError) throw dbError;
+
+      // Update local state
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+
+      setSuccess('User deleted successfully');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError(`Failed to delete user: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleAdminStatus = async (userId: string, currentStatus: boolean) => {
     if (!window.confirm(`Are you sure you want to ${currentStatus ? 'remove admin' : 'make admin'} this user?`)) {
@@ -70,6 +117,9 @@ export const UsersTab = () => {
     }
 
     try {
+      setLoading(true);
+      setError(null);
+      
       const adminClient = await getAdminClient();
       if (!adminClient) {
         throw new Error('Admin client not available');
@@ -78,16 +128,30 @@ export const UsersTab = () => {
       // Update the is_admin status in the users table
       const { error } = await adminClient
         .from('users')
-        .update({ is_admin: !currentStatus })
+        .update({ 
+          is_admin: !currentStatus,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', userId);
 
       if (error) throw error;
+
+      // Also update the user's auth metadata if needed
+      const { error: authError } = await adminClient.auth.admin.updateUserById(userId, {
+        user_metadata: { is_admin: !currentStatus }
+      });
+      
+      if (authError) throw authError;
 
       // Update local state
       setUsers(prevUsers => 
         prevUsers.map(user => 
           user.id === userId 
-            ? { ...user, is_admin: !currentStatus } 
+            ? { 
+                ...user, 
+                is_admin: !currentStatus,
+                updated_at: new Date().toISOString()
+              } 
             : user
         )
       );
@@ -96,7 +160,9 @@ export const UsersTab = () => {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       console.error('Error updating user role:', err);
-      setError('Failed to update user role');
+      setError(`Failed to update user role: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,29 +172,41 @@ export const UsersTab = () => {
     }
 
     try {
+      setLoading(true);
+      setError(null);
+      
       const adminClient = await getAdminClient();
       if (!adminClient) {
         throw new Error('Admin client not available');
       }
 
-      // Update the is_active status in the user metadata
-      const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(userId);
-      if (userError) throw userError;
-
-      const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
-        user_metadata: {
-          ...userData.user.user_metadata,
-          is_active: !currentStatus
-        }
+      // Update the user's active status in auth
+      const { error: authError } = await adminClient.auth.admin.updateUserById(userId, {
+        user_metadata: { is_active: !currentStatus }
       });
 
-      if (updateError) throw updateError;
+      if (authError) throw authError;
+
+      // Also update the users table for consistency
+      const { error: dbError } = await adminClient
+        .from('users')
+        .update({ 
+          is_active: !currentStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+        
+      if (dbError) throw dbError;
 
       // Update local state
       setUsers(prevUsers => 
         prevUsers.map(user => 
           user.id === userId 
-            ? { ...user, is_active: !currentStatus } 
+            ? { 
+                ...user, 
+                is_active: !currentStatus,
+                updated_at: new Date().toISOString()
+              } 
             : user
         )
       );
@@ -137,7 +215,9 @@ export const UsersTab = () => {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       console.error('Error updating user status:', err);
-      setError('Failed to update user status');
+      setError(`Failed to update user status: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
