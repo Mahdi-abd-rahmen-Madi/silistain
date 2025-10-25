@@ -80,6 +80,28 @@ export default function CategoriesTab() {
       setError('');
       setSuccess('');
       
+      // Handle image upload if a new file was selected
+      let imageUrl = currentCategory.image_url;
+      if (currentCategory.image_file) {
+        const fileExt = currentCategory.image_file.name.split('.').pop();
+        const fileName = `${currentCategory.slug}-${Date.now()}.${fileExt}`;
+        const filePath = `category-images/${fileName}`;
+        
+        // Upload the image to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('categories')
+          .upload(filePath, currentCategory.image_file);
+          
+        if (uploadError) throw uploadError;
+        
+        // Get the public URL of the uploaded image
+        const { data: { publicUrl } } = supabase.storage
+          .from('categories')
+          .getPublicUrl(filePath);
+          
+        imageUrl = publicUrl;
+      }
+      
       if (currentCategory.id) {
         // Update existing category
         const { error } = await supabase
@@ -88,6 +110,7 @@ export default function CategoriesTab() {
             name: currentCategory.name,
             slug: currentCategory.slug,
             description: currentCategory.description || null,
+            image_url: imageUrl || currentCategory.image_url,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentCategory.id);
@@ -102,7 +125,8 @@ export default function CategoriesTab() {
             {
               name: currentCategory.name,
               slug: currentCategory.slug,
-              description: currentCategory.description || null
+              description: currentCategory.description || null,
+              image_url: imageUrl || null
             }
           ])
           .select()
@@ -129,12 +153,47 @@ export default function CategoriesTab() {
     
     try {
       setError('');
-      const { error } = await supabase
+      
+      // Get the category first to check for an associated image
+      const { data: category, error: fetchError } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      // Delete the category from the database
+      const { error: deleteError } = await supabase
         .from('categories')
         .delete()
         .eq('id', id);
         
-      if (error) throw error;
+      if (deleteError) throw deleteError;
+      
+      // If the category had an image, delete it from storage
+      if (category?.image_url) {
+        try {
+          // Extract the file path from the URL
+          const url = new URL(category.image_url);
+          const pathParts = url.pathname.split('/');
+          const bucket = pathParts[1];
+          const filePath = pathParts.slice(2).join('/');
+          
+          // Delete the file from storage
+          const { error: storageError } = await supabase.storage
+            .from(bucket)
+            .remove([filePath]);
+            
+          if (storageError) {
+            console.warn('Failed to delete image from storage:', storageError);
+            // Don't fail the entire operation if image deletion fails
+          }
+        } catch (storageErr) {
+          console.warn('Error deleting category image:', storageErr);
+          // Don't fail the entire operation if image deletion fails
+        }
+      }
       
       setSuccess('Category deleted successfully');
       await loadCategories();
