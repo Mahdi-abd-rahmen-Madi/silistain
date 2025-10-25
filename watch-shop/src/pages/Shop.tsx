@@ -573,13 +573,22 @@ const Shop = () => {
                   {filteredWatches.map((watch) => {
                     const originalProduct = products.find(p => p.id === watch.id);
                     
+                    const originalPrice = Number(originalProduct?.original_price) || Number(watch.price) || 0;
+                    const salePrice = Number(watch.price) || 0;
+                    const discount = originalPrice > 0 && salePrice < originalPrice 
+                      ? Math.round(((originalPrice - salePrice) / originalPrice) * 100) 
+                      : 0;
+
                     const product = {
                       ...watch,
                       imageUrl: watch.image,
                       images: watch.images || [],
                       isNew: originalProduct?.isNew || false,
                       isBestSeller: originalProduct?.isBestSeller || false,
-                      discount: 0,
+                      price: salePrice,
+                      originalPrice: originalPrice,
+                      discount: discount,
+                      offPercentage: discount,
                       rating: 0,
                       reviewCount: 0,
                       stock: watch.inStock || 0,

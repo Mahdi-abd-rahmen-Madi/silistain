@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
-import { useCategories } from '../context/CategoryContext'; // ✅ NEW
+import { useCategories } from '../context/CategoryContext';
 import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { Product } from '../types/product';
@@ -12,6 +12,60 @@ import { Button } from '../components/ui/Button';
 import { Send, ArrowRight, Truck, Shield, CheckCircle, Search } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
 import '../styles/home.css';
+
+// Separate component for category item to properly use hooks
+const CategoryItem = ({ category }: { category: any }) => {
+  const [imageError, setImageError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const { t } = useTranslation();
+  
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    
+    if (retryCount < 2) {
+      // Try loading the image again with a small delay
+      setTimeout(() => {
+        const src = img.src;
+        img.src = '';
+        setTimeout(() => {
+          img.src = src;
+          setRetryCount(prev => prev + 1);
+        }, 100);
+      }, 100);
+    } else {
+      setImageError(true);
+    }
+  };
+
+  return (
+    <Link
+      key={category.id}
+      to={`/category/${category.slug || category.id}`}
+      className="group flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
+    >
+      <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden mb-3">
+        {!imageError && category.image_url ? (
+          <img
+            src={category.image_url}
+            alt={category.name}
+            className="w-full h-full object-cover"
+            onError={handleImageError}
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+            <Truck className="w-8 h-8" />
+          </div>
+        )}
+      </div>
+      <h3 className="text-sm font-medium text-gray-900 text-center group-hover:text-brand-600 transition-colors">
+        {category.name}
+      </h3>
+      <span className="text-xs text-gray-500 mt-1">
+        {t('products.count', { count: category.product_count || 0 })}
+      </span>
+    </Link>
+  );
+};
 
 type MappedProduct = Omit<Product, 'createdAt' | 'updatedAt'> & {
   id: string;
@@ -94,39 +148,50 @@ const Home = () => {
   const productList = useMemo<MappedProduct[]>(() => {
     if (!products || products.length === 0) return [];
 
-    return products.map((product): MappedProduct => ({
-      ...product,
-      id: product.id,
-      name: product.name || t('product.unnamed_product'),
-      brand: product.brand || t('product.unknown_brand'),
-      price: Number(product.price) || 0,
-      stock_quantity: product.stock_quantity || 0,
-      is_featured: Boolean(product.is_featured),
-      image: (product.images?.[0]?.url || '') as string,
-      images: (product.images || []).map(img => ({
-        url: img.url || '',
-        alt: (img as any).alt || product.name || 'Product image',
-        isPrimary: (img as any).isPrimary || false
-      })),
-      stock: product.stock || 0,
-      sold: (product as any).sold || 0,
-      featured: Boolean(product.featured),
-      isNew: Boolean(product.isNew),
-      isBestSeller: Boolean(product.isBestSeller),
-      specifications: {
-        movement: product.specifications?.movement || '',
-        caseMaterial: product.specifications?.caseMaterial || '',
-        caseDiameter: product.specifications?.caseDiameter || '',
-        waterResistance: product.specifications?.waterResistance || '',
-        powerReserve: product.specifications?.powerReserve || '',
-        functions: product.specifications?.functions || ''
-      },
-      onAddToCart: () => addToCart(product, 1),
-      description: product.description || '',
-      category: product.category || '',
-      slug: product.slug || `product-${product.id}`,
-      sku: (product as any).sku || `SKU-${product.id}`
-    }));
+    return products.map((product): MappedProduct => {
+      const originalPrice = Number(product.original_price) || Number(product.price) || 0;
+      const salePrice = Number(product.price) || 0;
+      const discount = originalPrice > 0 && salePrice < originalPrice 
+        ? Math.round(((originalPrice - salePrice) / originalPrice) * 100)
+        : 0;
+
+      return {
+        ...product,
+        id: product.id,
+        name: product.name || t('product.unnamed_product'),
+        brand: product.brand || t('product.unknown_brand'),
+        price: salePrice,
+        originalPrice: originalPrice,
+        discount: discount,
+        offPercentage: discount,
+        stock_quantity: product.stock_quantity || 0,
+        is_featured: Boolean(product.is_featured),
+        image: (product.images?.[0]?.url || '') as string,
+        images: (product.images || []).map(img => ({
+          url: img.url || '',
+          alt: (img as any).alt || product.name || 'Product image',
+          isPrimary: (img as any).isPrimary || false
+        })),
+        stock: product.stock || 0,
+        sold: (product as any).sold || 0,
+        featured: Boolean(product.featured),
+        isNew: Boolean(product.isNew),
+        isBestSeller: Boolean(product.isBestSeller),
+        specifications: {
+          movement: product.specifications?.movement || '',
+          caseMaterial: product.specifications?.caseMaterial || '',
+          caseDiameter: product.specifications?.caseDiameter || '',
+          waterResistance: product.specifications?.waterResistance || '',
+          powerReserve: product.specifications?.powerReserve || '',
+          functions: product.specifications?.functions || ''
+        },
+        onAddToCart: () => addToCart(product, 1),
+        description: product.description || '',
+        category: product.category || '',
+        slug: product.slug || `product-${product.id}`,
+        sku: (product as any).sku || `SKU-${product.id}`
+      };
+    });
   }, [products, addToCart, t]);
 
   const filteredProducts = useMemo(() => {
@@ -193,7 +258,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ✅ DYNAMIC CATEGORIES SECTION */}
+      {/* DYNAMIC CATEGORIES SECTION */}
       <section className="categories-section py-8 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-6">
@@ -205,68 +270,12 @@ const Home = () => {
             </div>
           ) : allCategories.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {allCategories.map((category) => {
-                const [imageError, setImageError] = useState(false);
-                const [retryCount, setRetryCount] = useState(0);
-                
-                const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-                  const img = e.currentTarget;
-                  
-                  if (retryCount < 2) {
-                    // Try loading the image again with a small delay
-                    setTimeout(() => {
-                      const src = img.src;
-                      img.src = '';
-                      setTimeout(() => {
-                        img.src = src;
-                        setRetryCount(prev => prev + 1);
-                      }, 200);
-                    }, 500);
-                    return;
-                  }
-                  
-                  // Only show error in development
-                  if (process.env.NODE_ENV === 'development') {
-                    console.warn(`Failed to load image for category ${category.name}:`, category.image_url);
-                  }
-                  
-                  setImageError(true);
-                };
-
-                return (
-                  <Link
-                    key={category.id}
-                    to={`/shop?category=${category.slug}`}
-                    className="category-card group text-center p-4 rounded-lg border border-gray-200 hover:border-brand-500 transition-colors hover:shadow-md"
-                  >
-                    {!imageError && category.image_url ? (
-                      <div className="mb-3 flex justify-center h-16">
-                        <img
-                          src={category.image_url}
-                          alt={category.name}
-                          className="max-w-full max-h-16 w-auto object-contain"
-                          onError={handleImageError}
-                          loading="lazy"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-gray-500 font-medium text-lg">
-                          {category.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                    <h3 className="font-medium text-gray-900 group-hover:text-brand-600">
-                      {category.name}
-                    </h3>
-                  </Link>
-                );
-              })}
+              {allCategories.map((category) => (
+                <CategoryItem key={category.id} category={category} />
+              ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              {t('categories.empty') || 'No categories available'}
-            </div>
+            <p className="text-center text-gray-500">No categories found</p>
           )}
         </div>
       </section>

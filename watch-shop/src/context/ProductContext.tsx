@@ -472,11 +472,17 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         order: index
       }));
       
+      // Calculate original price if not provided
+      const originalPrice = product.original_price || (product.offPercentage && product.offPercentage > 0 
+        ? Math.round((product.price / (1 - (product.offPercentage / 100))) * 100) / 100 
+        : product.price);
+      
       // Prepare product data for database
       const productData: any = {
         name: product.name,
         description: product.description,
         price: product.price,
+        original_price: originalPrice,
         off_percentage: product.offPercentage || 0,
         image_url: imageUrls[0] || null, // First image as the main image for backward compatibility
         image_url_1: imageUrls[0] || null,
@@ -587,6 +593,20 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       
       console.log('Updating product with image fields:', imageFields);
       
+      // Calculate original price if not provided but offPercentage is updated
+      let originalPrice = updates.original_price;
+      if (updates.offPercentage !== undefined || updates.price !== undefined) {
+        const currentPrice = updates.price !== undefined ? updates.price : existingProduct.price;
+        const currentOffPercentage = updates.offPercentage !== undefined ? updates.offPercentage : (existingProduct.offPercentage || 0);
+        
+        if (currentOffPercentage > 0) {
+          originalPrice = originalPrice || Math.round((currentPrice / (1 - (currentOffPercentage / 100))) * 100) / 100;
+        } else if (updates.original_price === undefined && updates.offPercentage === 0) {
+          // If discount is removed, set original_price to current price
+          originalPrice = currentPrice;
+        }
+      }
+      
       // Prepare updates for Supabase
       const updateData: any = {
         // Always update these fields if they are provided in updates
@@ -595,8 +615,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         ...(updates.category !== undefined && { category: updates.category }),
         ...(updates.stock !== undefined && { stock_quantity: updates.stock }),
         ...(updates.featured !== undefined && { is_featured: updates.featured }),
-        
-        // Handle price with proper type conversion
+        ...(updates.price !== undefined && { price: updates.price }),
+        ...(updates.offPercentage !== undefined && { off_percentage: updates.offPercentage }),
+        ...(originalPrice !== undefined && { original_price: originalPrice }),
         ...(updates.price !== undefined && { 
           price: typeof updates.price === 'string' 
             ? (updates.price === '' ? 0 : parseFloat(updates.price) || 0)
