@@ -206,20 +206,31 @@ const Home = () => {
           ) : allCategories.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {allCategories.map((category) => {
-                console.log('Category:', {
-                  id: category.id,
-                  name: category.name,
-                  image_url: category.image_url,
-                  slug: category.slug
-                });
+                const [imageError, setImageError] = useState(false);
+                const [retryCount, setRetryCount] = useState(0);
                 
                 const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-                  console.error(`Failed to load image for category ${category.name}:`, category.image_url);
-                  // Fallback to the first letter of the category name if image fails to load
-                  const fallbackDiv = document.createElement('div');
-                  fallbackDiv.className = 'w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3';
-                  fallbackDiv.innerHTML = `<span class="text-gray-500 font-medium text-lg">${category.name.charAt(0).toUpperCase()}</span>`;
-                  e.currentTarget.parentNode?.replaceChild(fallbackDiv, e.currentTarget);
+                  const img = e.currentTarget;
+                  
+                  if (retryCount < 2) {
+                    // Try loading the image again with a small delay
+                    setTimeout(() => {
+                      const src = img.src;
+                      img.src = '';
+                      setTimeout(() => {
+                        img.src = src;
+                        setRetryCount(prev => prev + 1);
+                      }, 200);
+                    }, 500);
+                    return;
+                  }
+                  
+                  // Only show error in development
+                  if (process.env.NODE_ENV === 'development') {
+                    console.warn(`Failed to load image for category ${category.name}:`, category.image_url);
+                  }
+                  
+                  setImageError(true);
                 };
 
                 return (
@@ -228,7 +239,7 @@ const Home = () => {
                     to={`/shop?category=${category.slug}`}
                     className="category-card group text-center p-4 rounded-lg border border-gray-200 hover:border-brand-500 transition-colors hover:shadow-md"
                   >
-                    {category.image_url ? (
+                    {!imageError && category.image_url ? (
                       <div className="mb-3 flex justify-center h-16">
                         <img
                           src={category.image_url}

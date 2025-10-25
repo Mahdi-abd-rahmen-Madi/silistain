@@ -5,7 +5,6 @@ import { useProducts } from '../../context/ProductContext';
 import { Product } from '../../types/product';
 import { Order } from '../../types/order';
 import { OrdersTab } from '../../components/admin/OrdersTab';
-import { HeroMediaManager } from '../../components/admin/HeroMediaManager';
 import { ProductDropsManager } from '../../components/admin/ProductDropsManager';
 import UsersTab from '../../components/admin/UsersTab';
 import CategoriesTab from '../../components/admin/CategoriesTab';
@@ -28,7 +27,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
     refreshProducts
   } = useProducts();
   
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'hero' | 'drops' | 'categories'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'drops' | 'categories'>('products');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
@@ -357,13 +356,6 @@ export default function AdminDashboard({}: AdminDashboardProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('hero')}
-                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'hero' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              >
-                Hero Media
-              </button>
-              <button
-                type="button"
                 onClick={() => setActiveTab('drops')}
                 className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'drops' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               >
@@ -395,7 +387,6 @@ export default function AdminDashboard({}: AdminDashboardProps) {
             />
           )}
           {activeTab === 'users' && <UsersTab />}
-          {activeTab === 'hero' && <HeroMediaManager />}
           {activeTab === 'drops' && <ProductDropsManager />}
         </div>
       </main>
