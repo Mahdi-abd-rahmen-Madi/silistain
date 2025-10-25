@@ -59,7 +59,17 @@ interface Governorate {
   // Add other properties if they exist
 }
 
-const Checkout = () => {
+interface CheckoutProps {
+  embedded?: boolean;
+  product?: any; // Replace 'any' with the actual Product type if available
+  onOrderSuccess?: () => void;
+}
+
+const Checkout: React.FC<CheckoutProps> = ({ 
+  embedded = false, 
+  product,
+  onOrderSuccess 
+}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { cartItems, clearCart } = useCart();
@@ -690,7 +700,7 @@ const Checkout = () => {
         }}
         orderTotal={cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)}
         orderId={orderDetails?.orderId || ''}
-        customerEmail={formData.email || currentUser?.email || ''}
+        customerEmail={typeof formData.email === 'string' ? formData.email : (currentUser?.email || '')}
       />
     </div>
   );

@@ -338,6 +338,19 @@
   },
   "product": {
     "unknown_brand": "ماركة غير معروفة",
+    "specifications": {
+      "title": "المواصفات الفنية",
+      "brand": "العلامة التجارية",
+      "model": "الموديل",
+      "movement": "نوع الحركة",
+      "case_material": "مادة العلبة",
+      "band_material": "مادة السوار",
+      "water_resistance": "مقاومة الماء",
+      "warranty": "الضمان",
+      "gender": "النوع",
+      "features": "المميزات"
+    },
+    "recommended": "منتجات مقترحة",
     "not_found": {
       "title": "المنتج غير موجود",
       "description": "لم يتم العثور على المنتج المطلوب.",

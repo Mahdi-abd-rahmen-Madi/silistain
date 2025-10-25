@@ -29,6 +29,7 @@ import Profile from './pages/profile';
 import Orders from './pages/Orders';
 import AuthCallback from './pages/auth/callback';
 import VerifyEmail from './pages/auth/VerifyEmail';
+import { CategoryProvider } from './context/CategoryContext';
 
 function AppContent() {
   const location = useLocation();
@@ -143,13 +144,15 @@ function App(): ReactElement {
       <AuthProvider>
         <LanguageProvider>
           <ProductProvider>
-            <CartProvider>
+            <CategoryProvider>
+              <CartProvider>
               <FavoritesProvider>
                 <OrdersProvider>
                   <AppContent />
                 </OrdersProvider>
               </FavoritesProvider>
             </CartProvider>
+            </CategoryProvider>
           </ProductProvider>
         </LanguageProvider>
       </AuthProvider>

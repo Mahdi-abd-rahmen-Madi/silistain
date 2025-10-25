@@ -327,6 +327,19 @@
   },
   "product": {
     "unknown_brand": "Unknown Brand",
+    "specifications": {
+      "title": "Specifications",
+      "brand": "Brand",
+      "model": "Model",
+      "movement": "Movement Type",
+      "case_material": "Case Material",
+      "band_material": "Band Material",
+      "water_resistance": "Water Resistance",
+      "warranty": "Warranty",
+      "gender": "Gender",
+      "features": "Features"
+    },
+    "recommended": "Recommended Products",
     "not_found": {
       "title": "Product not found",
       "description": "The requested product could not be found.",

@@ -356,6 +356,19 @@
     "contactSupport": "Contactez notre équipe d'assistance à "
   },
   "product": {
+    "specifications": {
+      "title": "Spécifications techniques",
+      "brand": "Marque",
+      "model": "Modèle",
+      "movement": "Type de mouvement",
+      "case_material": "Matériau du boîtier",
+      "band_material": "Matériau du bracelet",
+      "water_resistance": "Résistance à l'eau",
+      "warranty": "Garantie",
+      "gender": "Genre",
+      "features": "Caractéristiques"
+    },
+    "recommended": "Produits recommandés",
     "not_found": {
       "title": "Produit introuvable",
       "description": "Le produit demandé n'a pas pu être trouvé.",

@@ -8,7 +8,7 @@ import { formatPrice } from '../../lib/utils';
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { getProductById } = useProducts();
-  const [product, setProduct] = useState<ReturnType<typeof getProductById>>(undefined);
+  const [product, setProduct] = useState<Product | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ export default function ProductDetail() {
   useEffect(() => {
     if (id) {
       const productData = getProductById(id);
-      setProduct(productData);
+      setProduct(productData || null);
       setLoading(false);
     }
   }, [id, getProductById]);
@@ -29,34 +29,20 @@ export default function ProductDetail() {
     );
   }
 
-  // Get all available image URLs from the product
   const getProductImages = (product: Product) => {
     const images = [];
-    
-    // Check image_url_1 through image_url_5
     for (let i = 1; i <= 5; i++) {
       const imageUrl = product[`image_url_${i}` as keyof Product];
       if (imageUrl && typeof imageUrl === 'string') {
-        images.push({
-          url: imageUrl,
-          isPrimary: i === 1,
-          order: i - 1
-        });
+        images.push({ url: imageUrl, isPrimary: i === 1, order: i - 1 });
       }
     }
-    
-    // Fallback to the main image_url if no other images are found
     if (images.length === 0 && product.imageUrl) {
-      images.push({
-        url: product.imageUrl,
-        isPrimary: true,
-        order: 0
-      });
+      images.push({ url: product.imageUrl, isPrimary: true, order: 0 });
     }
-    
     return images;
   };
-  
+
   const productImages = product ? getProductImages(product) : [];
 
   if (!product) {
@@ -94,42 +80,85 @@ export default function ProductDetail() {
           Edit
         </button>
       </div>
+
       <div className="px-4 py-5 sm:p-0">
         <dl className="sm:divide-y sm:divide-gray-200">
+          {/* Basic Fields */}
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Product name</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{product.name}</dd>
           </div>
+
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Description</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 whitespace-pre-line">
               {product.description || 'No description provided'}
             </dd>
           </div>
+
+          {/* 🔹 PRICING SECTION — UPDATED */}
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Price</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{formatPrice(product.price)}</dd>
+            <dt className="text-sm font-medium text-gray-500">Pricing</dt>
+            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <div className="space-y-2">
+                {product.original_price != null && product.original_price > product.price ? (
+                  <>
+                    <div>
+                      <span className="text-sm text-gray-500">Original Price:</span>{' '}
+                      <span className="line-through text-red-500 ml-2">
+                        {formatPrice(product.original_price)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Current Price:</span>{' '}
+                      <span className="font-semibold text-green-600 ml-2">
+                        {formatPrice(product.price)}
+                      </span>
+                    </div>
+                    {product.offPercentage && product.offPercentage > 0 && (
+                      <div>
+                        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                          {product.offPercentage}% OFF
+                        </span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    <span className="font-semibold">{formatPrice(product.price)}</span>
+                    <span className="ml-2 text-sm text-gray-500">No discount applied</span>
+                  </div>
+                )}
+              </div>
+            </dd>
           </div>
+
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Category</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 capitalize">
               {product.category || 'Uncategorized'}
             </dd>
           </div>
+
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Stock</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                product.stock || 0 > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {product.stock || 0} in stock
+              <span
+                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  (product.stock_quantity || 0) > 0
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }`}
+              >
+                {product.stock_quantity || 0} in stock
               </span>
             </dd>
           </div>
+
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Status</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-              {product.featured ? (
+              {product.is_featured ? (
                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
                   Featured
                 </span>
@@ -140,14 +169,41 @@ export default function ProductDetail() {
               )}
             </dd>
           </div>
+
+          {/* 🔹 Dynamic Specifications */}
+          {product.specifications && Object.keys(product.specifications).length > 0 && (
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">Specifications</dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-200">
+                      {Object.entries(product.specifications).map(([key, value]) => (
+                        <tr key={key} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 text-sm font-medium text-gray-700 capitalize">
+                            {key.replace(/_/g, ' ')}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900">
+                            {String(value)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </dd>
+            </div>
+          )}
+
+          {/* Images */}
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Images</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
               {productImages.length > 0 ? (
                 <div className="space-y-4">
                   <div className="w-full h-64 bg-gray-100 rounded-md overflow-hidden">
-                    <img 
-                      src={productImages[selectedImageIndex]?.url} 
+                    <img
+                      src={productImages[selectedImageIndex]?.url}
                       alt={`${product.name} ${selectedImageIndex + 1}`}
                       className="w-full h-full object-contain"
                     />
@@ -159,11 +215,13 @@ export default function ProductDetail() {
                           key={index}
                           onClick={() => setSelectedImageIndex(index)}
                           className={`flex-shrink-0 w-16 h-16 border rounded-md overflow-hidden ${
-                            selectedImageIndex === index ? 'ring-2 ring-indigo-500' : 'border-gray-200'
+                            selectedImageIndex === index
+                              ? 'ring-2 ring-indigo-500'
+                              : 'border-gray-200'
                           }`}
                         >
-                          <img 
-                            src={img.url} 
+                          <img
+                            src={img.url}
                             alt={`${product.name} ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
@@ -179,9 +237,10 @@ export default function ProductDetail() {
               )}
             </dd>
           </div>
-          {product.imageUrl && (
+
+          {product.imageUrl && productImages.length === 0 && (
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Image</dt>
+              <dt className="text-sm font-medium text-gray-500">Main Image</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <div className="border-2 border-gray-100 rounded-md overflow-hidden max-w-xs">
                   <img src={product.imageUrl} alt={product.name} className="w-full h-auto" />
@@ -191,6 +250,7 @@ export default function ProductDetail() {
           )}
         </dl>
       </div>
+
       <div className="px-4 py-4 bg-gray-50 text-right sm:px-6">
         <button
           type="button"
