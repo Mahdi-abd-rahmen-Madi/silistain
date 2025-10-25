@@ -90,17 +90,24 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           });
         }
         
-        return {
+        // Create product object with all required properties
+        const product: Product = {
           id: item.id,
           name: item.name || 'Unnamed Product',
           description: item.description || '',
-          price: item.price,
+          price: item.price || 0,
           offPercentage: item.off_percentage || 0,
-          imageUrl: item.image_url,
+          original_price: item.original_price || null,
+          imageUrl: item.image_url || '',
           images: allImageUrls,
           category: item.category || 'other',
+          // Required properties from Product interface
+          stock_quantity: item.stock_quantity || 0,
+          is_featured: Boolean(item.is_featured),
+          // Aliases for convenience
           stock: item.stock_quantity || 0,
-          featured: item.is_featured || false,
+          featured: Boolean(item.is_featured),
+          // Additional properties
           isBestSeller: false,  // Will be set below
           isNew: false,         // Will be set below
           specifications: item.specifications || {},
@@ -108,37 +115,53 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           updatedAt: item.updated_at ? new Date(item.updated_at) : new Date(),
           // Include individual image URLs for backward compatibility
           ...(allImageUrls[0] && { image_url_1: allImageUrls[0].url }),
-          ...(allImageUrls[1] && { image_url_2: allImageUrls[1].url }),
-          ...(allImageUrls[2] && { image_url_3: allImageUrls[2].url }),
-          ...(allImageUrls[3] && { image_url_4: allImageUrls[3].url }),
-          ...(allImageUrls[4] && { image_url_5: allImageUrls[4].url }),
-          ...(allImageUrls[5] && { image_url_6: allImageUrls[5].url }),
-          ...(allImageUrls[6] && { image_url_7: allImageUrls[6].url }),
-          ...(allImageUrls[7] && { image_url_8: allImageUrls[7].url }),
-          ...(allImageUrls[8] && { image_url_9: allImageUrls[8].url }),
-          ...(allImageUrls[9] && { image_url_10: allImageUrls[9].url })
+          ...(allImageUrls[1] && { image_url_2: allImageUrls[1]?.url }),
+          ...(allImageUrls[2] && { image_url_3: allImageUrls[2]?.url }),
+          ...(allImageUrls[3] && { image_url_4: allImageUrls[3]?.url }),
+          ...(allImageUrls[4] && { image_url_5: allImageUrls[4]?.url }),
+          ...(allImageUrls[5] && { image_url_6: allImageUrls[5]?.url }),
+          ...(allImageUrls[6] && { image_url_7: allImageUrls[6]?.url }),
+          ...(allImageUrls[7] && { image_url_8: allImageUrls[7]?.url }),
+          ...(allImageUrls[8] && { image_url_9: allImageUrls[8]?.url }),
+          ...(allImageUrls[9] && { image_url_10: allImageUrls[9]?.url })
         };
+        
+        return product;
       });
 
       // Sort by stock in descending order and mark the top item as Best Seller
-      const sortedByStock = [...mappedProducts].sort((a, b) => b.stock - a.stock);
+      const sortedByStock = [...mappedProducts].sort((a, b) => {
+        const stockA = a.stock_quantity ?? 0;
+        const stockB = b.stock_quantity ?? 0;
+        return stockB - stockA;
+      });
+      
       if (sortedByStock.length > 0) {
         const bestSeller = sortedByStock[0];
         const bestSellerIndex = mappedProducts.findIndex(p => p.id === bestSeller.id);
         if (bestSellerIndex !== -1) {
-          mappedProducts[bestSellerIndex].isBestSeller = true;
+          mappedProducts[bestSellerIndex] = {
+            ...mappedProducts[bestSellerIndex],
+            isBestSeller: true
+          };
         }
       }
 
       // Sort by creation date and mark the latest item as New
-      const sortedByDate = [...mappedProducts].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      const sortedByDate = [...mappedProducts].sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      
       if (sortedByDate.length > 0) {
         const newestItem = sortedByDate[0];
         const newestItemIndex = mappedProducts.findIndex(p => p.id === newestItem.id);
         if (newestItemIndex !== -1) {
-          mappedProducts[newestItemIndex].isNew = true;
+          mappedProducts[newestItemIndex] = {
+            ...mappedProducts[newestItemIndex],
+            isNew: true
+          };
         }
       }
 
@@ -169,63 +192,105 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
       if (fetchError) throw fetchError;
       
-      if (!data) {
-        setProducts([]);
-        return [];
-      }
+      if (!data) return [];
       
-      // Map the database fields to our Product type
-      const mappedProducts = data.map(item => {
-        // Collect all available image URLs from image_url_1 to image_url_10
-        const allImageUrls = [];
-        for (let i = 1; i <= 10; i++) {
-          const imageUrl = item[`image_url_${i}` as keyof typeof item];
-          if (imageUrl && typeof imageUrl === 'string') {
+      const mappedProducts: Product[] = data.map(item => {
+        try {
+          // Process images from the database
+          const allImageUrls: ProductImage[] = [];
+          
+          // Add main image if it exists
+          if (item.image_url) {
             allImageUrls.push({
-              url: imageUrl,
-              isPrimary: i === 1,
-              order: i - 1
+              url: item.image_url,
+              isPrimary: true,
+              order: 0
             });
           }
+          
+          // Add additional images if they exist
+          for (let i = 1; i <= 10; i++) {
+            const imageUrl = item[`image_url_${i}` as keyof typeof item];
+            if (imageUrl && typeof imageUrl === 'string') {
+              allImageUrls.push({
+                url: imageUrl,
+                isPrimary: i === 1 && !item.image_url, // First image is primary if no main image
+                order: i
+              });
+            }
+          }
+          
+          // Fallback to the main image_url if no other images are found
+          if (allImageUrls.length === 0 && item.image_url) {
+            allImageUrls.push({
+              url: item.image_url,
+              isPrimary: true,
+              order: 0
+            });
+          }
+          
+          // Create product object with all required properties
+          const product: Product = {
+            id: item.id,
+            name: item.name || 'Unnamed Product',
+            description: item.description || '',
+            price: item.price || 0,
+            imageUrl: item.image_url || '',
+            images: allImageUrls,
+            category: item.category || 'other',
+            // Required properties from Product interface
+            stock_quantity: item.stock_quantity || 0,
+            is_featured: Boolean(item.is_featured),
+            // Aliases for convenience
+            stock: item.stock_quantity || 0,
+            featured: Boolean(item.is_featured),
+            // Additional properties
+            isBestSeller: false,
+            isNew: false,
+            offPercentage: item.off_percentage || 0,
+            original_price: item.original_price || null,
+            specifications: item.specifications || {},
+            createdAt: item.created_at ? new Date(item.created_at) : new Date(),
+            updatedAt: item.updated_at ? new Date(item.updated_at) : new Date(),
+            // Include individual image URLs for backward compatibility
+            ...(allImageUrls[0] && { image_url_1: allImageUrls[0].url }),
+            ...(allImageUrls[1] && { image_url_2: allImageUrls[1].url }),
+            ...(allImageUrls[2] && { image_url_3: allImageUrls[2].url }),
+            ...(allImageUrls[3] && { image_url_4: allImageUrls[3].url }),
+            ...(allImageUrls[4] && { image_url_5: allImageUrls[4].url }),
+            ...(allImageUrls[5] && { image_url_6: allImageUrls[5].url }),
+            ...(allImageUrls[6] && { image_url_7: allImageUrls[6].url }),
+            ...(allImageUrls[7] && { image_url_8: allImageUrls[7].url }),
+            ...(allImageUrls[8] && { image_url_9: allImageUrls[8].url }),
+            ...(allImageUrls[9] && { image_url_10: allImageUrls[9].url })
+          };
+          
+          return product;
+        } catch (error) {
+          console.error('Error mapping product:', item.id, error);
+          // Return a minimal valid product object in case of error
+          return {
+            id: item.id || 'error',
+            name: 'Error loading product',
+            description: '',
+            price: 0,
+            imageUrl: '',
+            images: [],
+            category: 'other',
+            stock_quantity: 0,
+            is_featured: false,
+            stock: 0,
+            featured: false,
+            isBestSeller: false,
+            isNew: false,
+            offPercentage: 0,
+            original_price: null,
+            specifications: {},
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
         }
-        
-        // Fallback to the main image_url if no other images are found
-        if (allImageUrls.length === 0 && item.image_url) {
-          allImageUrls.push({
-            url: item.image_url,
-            isPrimary: true,
-            order: 0
-          });
-        }
-        
-        return {
-          id: item.id,
-          name: item.name || 'Unnamed Product',
-          description: item.description || '',
-          price: item.price,
-          imageUrl: item.image_url,
-          images: allImageUrls,
-          category: item.category || 'other',
-          stock: item.stock_quantity || 0,
-          featured: item.is_featured || false,
-          isBestSeller: false,
-          isNew: false,
-          specifications: item.specifications || {},
-          createdAt: item.created_at ? new Date(item.created_at) : new Date(),
-          updatedAt: item.updated_at ? new Date(item.updated_at) : new Date(),
-          // Include individual image URLs for backward compatibility
-          ...(allImageUrls[0] && { image_url_1: allImageUrls[0].url }),
-          ...(allImageUrls[1] && { image_url_2: allImageUrls[1].url }),
-          ...(allImageUrls[2] && { image_url_3: allImageUrls[2].url }),
-          ...(allImageUrls[3] && { image_url_4: allImageUrls[3].url }),
-          ...(allImageUrls[4] && { image_url_5: allImageUrls[4].url }),
-          ...(allImageUrls[5] && { image_url_6: allImageUrls[5].url }),
-          ...(allImageUrls[6] && { image_url_7: allImageUrls[6].url }),
-          ...(allImageUrls[7] && { image_url_8: allImageUrls[7].url }),
-          ...(allImageUrls[8] && { image_url_9: allImageUrls[8].url }),
-          ...(allImageUrls[9] && { image_url_10: allImageUrls[9].url })
-        };
-      });
+      }).filter((p): p is Product => p !== undefined);
       
       setProducts(mappedProducts);
       return mappedProducts;
@@ -383,13 +448,19 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   // Add a new product with multiple images
   const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>, imageFiles: File[]) => {
-    if (!supabase) {
-      throw new Error('Supabase client is not available');
+    // Get the admin client for this operation
+    const adminClient = await getAdminClient();
+    if (!adminClient) {
+      throw new Error('Admin client is not available. Make sure VITE_SUPABASE_SERVICE_ROLE_KEY is set.');
     }
 
     try {
       setLoading(true);
       setError(null);
+      
+      // Get the current user for logging
+      const { data: { user } } = await adminClient.auth.getUser();
+      console.log(`[${new Date().toISOString()}] Adding new product by user:`, user?.email || 'unknown');
 
       // Upload all images first
       const imageUrls = await uploadImages(imageFiles);
@@ -425,14 +496,18 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         productData.specifications = product.specifications;
       }
 
-      // Insert into database
-      const { data, error } = await supabase
+      // Insert into database using admin client
+      console.log('Inserting new product with data:', productData);
+      const { data, error } = await adminClient
         .from('products')
         .insert(productData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting product:', error);
+        throw new Error(`Failed to add product: ${error.message}`);
+      }
       
       // Refresh the products list
       await refreshProducts();
@@ -450,12 +525,18 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   // Update an existing product with multiple images
   const updateProduct = async (id: string, updates: Partial<Product>, imageFiles: File[] = []) => {
     try {
-      if (!supabase) {
-        throw new Error('Supabase client is not available');
+      // Get the admin client for this operation
+      const adminClient = await getAdminClient();
+      if (!adminClient) {
+        throw new Error('Admin client is not available. Make sure VITE_SUPABASE_SERVICE_ROLE_KEY is set.');
       }
       
       setLoading(true);
       setError(null);
+      
+      // Get the current user for logging
+      const { data: { user } } = await adminClient.auth.getUser();
+      console.log(`[${new Date().toISOString()}] Updating product ${id} by user:`, user?.email || 'unknown');
       
       // Get the existing product to handle image cleanup
       const existingProduct = getProductById(id);
@@ -508,22 +589,37 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       
       // Prepare updates for Supabase
       const updateData: any = {
-        // Map our Product type to database fields
+        // Always update these fields if they are provided in updates
         ...(updates.name !== undefined && { name: updates.name }),
         ...(updates.description !== undefined && { description: updates.description }),
-        ...(updates.price !== undefined && { 
-          price: typeof updates.price === 'string' ? parseFloat(updates.price) : updates.price 
-        }),
-        ...(updates.offPercentage !== undefined && { 
-          off_percentage: updates.offPercentage === '' || updates.offPercentage === null ? 0 : 
-            (typeof updates.offPercentage === 'string' ? parseFloat(updates.offPercentage) : updates.offPercentage) || 0 
-        }),
         ...(updates.category !== undefined && { category: updates.category }),
         ...(updates.stock !== undefined && { stock_quantity: updates.stock }),
         ...(updates.featured !== undefined && { is_featured: updates.featured }),
-        // Only include specifications if it exists in updates
+        
+        // Handle price with proper type conversion
+        ...(updates.price !== undefined && { 
+          price: typeof updates.price === 'string' 
+            ? (updates.price === '' ? 0 : parseFloat(updates.price) || 0)
+            : (updates.price ?? 0)
+        }),
+        
+        // Handle offPercentage with proper type conversion and validation
+        ...(updates.offPercentage !== undefined && { 
+          off_percentage: typeof updates.offPercentage === 'string'
+            ? (updates.offPercentage === '' ? 0 : parseFloat(updates.offPercentage) || 0)
+            : (updates.offPercentage ?? 0)
+        }),
+        
+        // Handle original_price if provided
+        ...(updates.original_price !== undefined && {
+          original_price: typeof updates.original_price === 'string'
+            ? (updates.original_price === '' ? null : parseFloat(updates.original_price) || null)
+            : (updates.original_price ?? null)
+        }),
+        
+        // Only include specifications if it exists in updates and is not empty
         ...(updates.specifications !== undefined && { 
-          specifications: Object.keys(updates.specifications).length > 0 
+          specifications: updates.specifications && Object.keys(updates.specifications).length > 0 
             ? updates.specifications 
             : {}
         }),
@@ -536,32 +632,31 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       
       console.log('Updating product with data:', updateData);
       
-      // Update the product in Supabase
-      const { error } = await supabase
+      // Update the product in Supabase using the admin client
+      console.log('Updating product with data:', updateData);
+      const { data: updatedProduct, error: updateError } = await adminClient
         .from('products')
         .update(updateData)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
         
-      if (error) {
-        console.error('Supabase update error:', error);
-        throw error;
+      if (updateError) {
+        console.error('Supabase update error:', updateError);
+        throw new Error(`Failed to update product: ${updateError.message}`);
+      }
+      
+      console.log('Product updated successfully:', updatedProduct);
+      
+      // Update the local state with the updated product
+      if (updatedProduct) {
+        setProducts(prevProducts => 
+          prevProducts.map(p => p.id === id ? { ...p, ...updatedProduct } : p)
+        );
       }
       
       console.log('Product updated successfully');
       
-      // Fetch the updated product data
-      const { data: updatedProduct, error: fetchError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single();
-        
-      if (fetchError) {
-        console.error('Error fetching updated product:', fetchError);
-        throw fetchError;
-      }
-      
-      console.log('Fetched updated product:', updatedProduct);
       
       // Clean up old images that are no longer used
       const oldImagesToDelete = existingImageUrls.filter(url => !allImageUrls.includes(url));
