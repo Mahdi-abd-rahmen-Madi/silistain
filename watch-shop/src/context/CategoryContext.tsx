@@ -19,13 +19,14 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        console.log('Fetching categories...');
         const { data, error } = await supabase
           .from('categories')
           .select('*')
-          .eq('is_active', true)
           .order('name', { ascending: true });
 
         if (error) throw error;
+        console.log('Fetched categories:', data);
         setCategories(data || []);
       } catch (err) {
         console.error('Error fetching categories:', err);

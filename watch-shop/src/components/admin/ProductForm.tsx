@@ -272,6 +272,9 @@ export default function ProductForm({
           }];
         }
         
+        // Ensure the category is set to the name, not the ID
+        const categoryName = categories.find(cat => cat.id === product.category)?.name || product.category;
+        
         const formattedData: ProductFormData = {
           ...product,
           images,
@@ -280,11 +283,17 @@ export default function ProductForm({
           description: product.description || '',
           price: product.price || 0,
           offPercentage: product.offPercentage || 0,
-          category: product.category || '',
+          category: categoryName || '',
           brand: product.brand || '',
           stock: product.stock || product.stock_quantity || 0,
           featured: product.featured || false
         };
+        
+        console.log('Setting category:', { 
+          original: product.category, 
+          resolved: categoryName,
+          availableCategories: categories.map(c => ({ id: c.id, name: c.name }))
+        });
         
         console.log('Formatted product data:', formattedData);
         setFormData(formattedData);
@@ -525,7 +534,7 @@ export default function ProductForm({
                 >
                   <option value="">Select a category</option>
                   {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
+                    <option key={category.id} value={category.name}>
                       {category.name}
                     </option>
                   ))}
@@ -535,6 +544,11 @@ export default function ProductForm({
                 )}
                 {!isLoadingCategories && categories.length === 0 && (
                   <p className="mt-1 text-xs text-gray-500">No categories found. Please add categories first.</p>
+                )}
+                {formData.category && !categories.some(cat => cat.name === formData.category) && (
+                  <p className="mt-1 text-xs text-yellow-600">
+                    Category "{formData.category}" not found in the list. It will be saved as a new category.
+                  </p>
                 )}
               </div>
 
