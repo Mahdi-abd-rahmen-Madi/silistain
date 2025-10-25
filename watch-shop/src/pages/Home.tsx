@@ -205,32 +205,52 @@ const Home = () => {
             </div>
           ) : allCategories.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {allCategories.map((category) => (
-                <Link
-                  key={category.id}
-                  to={`/shop?category=${category.slug}`}
-                  className="category-card group text-center p-4 rounded-lg border border-gray-200 hover:border-brand-500 transition-colors"
-                >
-                  {category.image_url ? (
-                    <div className="mb-3 flex justify-center">
-                      <img
-                        src={category.image_url}
-                        alt={category.name}
-                        className="w-16 h-16 object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-gray-500 font-medium text-lg">
-                        {category.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <h3 className="font-medium text-gray-900 group-hover:text-brand-600">
-                    {category.name}
-                  </h3>
-                </Link>
-              ))}
+              {allCategories.map((category) => {
+                console.log('Category:', {
+                  id: category.id,
+                  name: category.name,
+                  image_url: category.image_url,
+                  slug: category.slug
+                });
+                
+                const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+                  console.error(`Failed to load image for category ${category.name}:`, category.image_url);
+                  // Fallback to the first letter of the category name if image fails to load
+                  const fallbackDiv = document.createElement('div');
+                  fallbackDiv.className = 'w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3';
+                  fallbackDiv.innerHTML = `<span class="text-gray-500 font-medium text-lg">${category.name.charAt(0).toUpperCase()}</span>`;
+                  e.currentTarget.parentNode?.replaceChild(fallbackDiv, e.currentTarget);
+                };
+
+                return (
+                  <Link
+                    key={category.id}
+                    to={`/shop?category=${category.slug}`}
+                    className="category-card group text-center p-4 rounded-lg border border-gray-200 hover:border-brand-500 transition-colors hover:shadow-md"
+                  >
+                    {category.image_url ? (
+                      <div className="mb-3 flex justify-center h-16">
+                        <img
+                          src={category.image_url}
+                          alt={category.name}
+                          className="max-w-full max-h-16 w-auto object-contain"
+                          onError={handleImageError}
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span className="text-gray-500 font-medium text-lg">
+                          {category.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <h3 className="font-medium text-gray-900 group-hover:text-brand-600">
+                      {category.name}
+                    </h3>
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">

@@ -272,8 +272,16 @@ export default function ProductForm({
           }];
         }
         
+        // Get the latest categories to ensure we have the most up-to-date list
+        const { data: latestCategories } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name', { ascending: true });
+        
         // Ensure the category is set to the name, not the ID
-        const categoryName = categories.find(cat => cat.id === product.category)?.name || product.category;
+        const categoryName = latestCategories?.find(cat => 
+          cat.id === product.category || cat.name === product.category
+        )?.name || product.category;
         
         const formattedData: ProductFormData = {
           ...product,
@@ -292,7 +300,7 @@ export default function ProductForm({
         console.log('Setting category:', { 
           original: product.category, 
           resolved: categoryName,
-          availableCategories: categories.map(c => ({ id: c.id, name: c.name }))
+          availableCategories: latestCategories?.map(c => ({ id: c.id, name: c.name })) || []
         });
         
         console.log('Formatted product data:', formattedData);
@@ -308,7 +316,7 @@ export default function ProductForm({
     fetchBrands();
     fetchCategories();
     // Include all dependencies that are used in the effect
-  }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchBrands]);
+  }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchBrands, fetchCategories]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
