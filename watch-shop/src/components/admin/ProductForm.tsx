@@ -458,6 +458,11 @@ export default function ProductForm({
                     <span className="text-gray-500 text-sm sm:text-base">%</span>
                   </div>
                 </div>
+                {formData.offPercentage > 0 && formData.price > 0 && (
+                  <p className="mt-1 text-sm text-green-600">
+                    Discounted Price: ${(formData.price * (1 - (formData.offPercentage / 100))).toFixed(2)}
+                  </p>
+                )}
               </div>
 
               <div className="sm:col-span-6">

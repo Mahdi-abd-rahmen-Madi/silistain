@@ -437,7 +437,13 @@
     "try_adjusting_filters": "Essayez d'ajuster vos filtres ou votre terme de recherche.",
     "loading": "Chargement des produits...",
     "error_loading": "Erreur lors du chargement des produits. Veuillez réessayer plus tard.",
-    "search_placeholder": "Rechercher des produits..."
+    "search": {
+      "placeholder": "Rechercher des produits..."
+    },
+    "categories": {
+      "title": "Parcourir par catégorie",
+      "empty": "Aucune catégorie disponible"
+    }
   },
   "footer": {
     "quick_links": "Liens rapides",

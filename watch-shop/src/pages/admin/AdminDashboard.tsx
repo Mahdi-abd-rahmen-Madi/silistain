@@ -8,6 +8,8 @@ import { OrdersTab } from '../../components/admin/OrdersTab';
 import { HeroMediaManager } from '../../components/admin/HeroMediaManager';
 import { ProductDropsManager } from '../../components/admin/ProductDropsManager';
 import UsersTab from '../../components/admin/UsersTab';
+import CategoriesTab from '../../components/admin/CategoriesTab';
+import ProductList from '../../components/admin/ProductList';
 import { fetchMunicipalities } from '../../services/locationService';
 import { supabase, getAdminClient } from '../../lib/supabaseClient';
 import { formatPrice } from '../../lib/utils';
@@ -26,7 +28,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
     refreshProducts
   } = useProducts();
   
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'hero' | 'drops'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'hero' | 'drops' | 'categories'>('products');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
@@ -324,54 +326,46 @@ export default function AdminDashboard({}: AdminDashboardProps) {
         {/* Tabs */}
         <div className="relative">
           <div className="overflow-x-auto pb-1 -mx-2 sm:mx-0">
-            <nav className="flex space-x-1 sm:space-x-2 px-2 sm:px-0">
+            <nav className="-mb-px flex space-x-4 overflow-x-auto">
               <button
+                type="button"
                 onClick={() => setActiveTab('products')}
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md whitespace-nowrap ${
-                  activeTab === 'products'
-                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'products' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               >
                 Products
               </button>
               <button
+                type="button"
+                onClick={() => setActiveTab('categories')}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'categories' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              >
+                Categories
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab('orders')}
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md whitespace-nowrap ${
-                  activeTab === 'orders'
-                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'orders' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               >
                 Orders
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('users')}
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md whitespace-nowrap ${
-                  activeTab === 'users'
-                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'users' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               >
                 Users
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('hero')}
-                className={`px-4 py-2 text-sm font-medium rounded-md ${
-                  activeTab === 'hero'
-                    ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-                }`}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'hero' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               >
                 Hero Media
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('drops')}
-                className={`px-4 py-2 text-sm font-medium rounded-md ${
-                  activeTab === 'drops'
-                    ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-                }`}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'drops' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               >
                 Product Drops
               </button>
@@ -382,139 +376,27 @@ export default function AdminDashboard({}: AdminDashboardProps) {
 
         <div className="flex-1 p-2 sm:p-4 md:p-6">
           {activeTab === 'products' && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-lg font-medium text-gray-900">Products</h2>
-                  <Link
-                    to="/admin/products/new"
-                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    Add Product
-                  </Link>
-                </div>
-                
-                {loading ? (
-                  <div className="text-center py-4">Loading products...</div>
-                ) : productsError ? (
-                  <div className="text-red-500">{productsError}</div>
-                ) : products.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500">No products found</div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Product
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Price
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {products.map((product) => (
-                          <tr key={product.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10">
-                                  {product.images?.[0]?.url && (
-                                    <img
-                                      className="h-10 w-10 rounded-md object-cover"
-                                      src={product.images[0].url}
-                                      alt={product.name}
-                                    />
-                                  )}
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {product.name}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {product.category}
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {formatPrice(product.price)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                (product.stock ?? 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                                {(product.stock ?? 0) > 0 ? 'In Stock' : 'Out of Stock'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <Link
-                                to={`/admin/products/edit/${product.id}`}
-                                className="text-indigo-600 hover:text-indigo-900 mr-4"
-                              >
-                                Edit
-                              </Link>
-                              <button
-                                onClick={() => handleDeleteProduct(product)}
-                                className="text-red-600 hover:text-red-900"
-                                disabled={isDeleting[product.id!]}
-                              >
-                                {isDeleting[product.id!] ? 'Deleting...' : 'Delete'}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <ProductList />
             </div>
           )}
-
+          {activeTab === 'categories' && <CategoriesTab />}
           {activeTab === 'orders' && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-6">Orders</h2>
-                {ordersLoading ? (
-                  <div className="text-center py-4">Loading orders...</div>
-                ) : ordersError ? (
-                  <div className="text-red-500">{ordersError}</div>
-                ) : orders.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500">No orders found</div>
-                ) : (
-                  <OrdersTab 
-                    orders={orders} 
-                    onUpdateOrderStatus={handleUpdateOrderStatus} 
-                    onUpdateOrder={handleUpdateOrder}
-                    loading={ordersLoading}
-                    error={ordersError}
-                  />
-                )}
-              </div>
-            </div>
+            <OrdersTab 
+              orders={orders} 
+              loading={ordersLoading} 
+              error={ordersError} 
+              onUpdateOrderStatus={handleUpdateOrderStatus}
+              onUpdateOrder={async (order) => {
+                // Implement order update logic here
+                console.log('Updating order:', order);
+                // Add your update logic here
+              }}
+            />
           )}
-          
-          {activeTab === 'users' && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-6">Users</h2>
-                <UsersTab />
-              </div>
-            </div>
-          )}
-          
-          {activeTab === 'hero' && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <HeroMediaManager />
-            </div>
-          )}
+          {activeTab === 'users' && <UsersTab />}
+          {activeTab === 'hero' && <HeroMediaManager />}
+          {activeTab === 'drops' && <ProductDropsManager />}
         </div>
       </main>
     </div>

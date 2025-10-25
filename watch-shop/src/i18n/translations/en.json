@@ -408,7 +408,13 @@
     "try_adjusting_filters": "Try adjusting your filters or search term.",
     "loading": "Loading products...",
     "error_loading": "Error loading products. Please try again later.",
-    "search_placeholder": "Search products..."
+    "search": {
+      "placeholder": "Search products..."
+    },
+    "categories": {
+      "title": "Shop by Category",
+      "empty": "No categories available"
+    }
   },
   "footer": {
     "quick_links": "Quick Links",
