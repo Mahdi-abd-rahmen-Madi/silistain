@@ -5,6 +5,14 @@ import { Product, ProductImage } from '../../types/product';
 import { PhotoIcon, XMarkIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { supabase } from '../../lib/supabaseClient';
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  created_at: string;
+}
+
 type ProductFormData = Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & {
   images?: (ProductImage & { file?: File; preview?: string })[];
 };
@@ -41,6 +49,8 @@ export default function ProductForm({
   const [error, setError] = useState('');
   const [brands, setBrands] = useState<string[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
   const { 
     addProduct, 
@@ -121,6 +131,25 @@ export default function ProductForm({
         }
       });
     };
+  }, []);
+
+  // Fetch categories from database
+  const fetchCategories = useCallback(async () => {
+    try {
+      setIsLoadingCategories(true);
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name', { ascending: true });
+      
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      setError('Failed to load categories');
+    } finally {
+      setIsLoadingCategories(false);
+    }
   }, []);
 
   // Fetch existing brands
@@ -268,6 +297,7 @@ export default function ProductForm({
     
     loadProduct();
     fetchBrands();
+    fetchCategories();
     // Include all dependencies that are used in the effect
   }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchBrands]);
 
@@ -491,14 +521,21 @@ export default function ProductForm({
                   value={formData.category}
                   onChange={handleChange}
                   className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm sm:text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 focus:ring-offset-2"
+                  disabled={isLoadingCategories}
                 >
                   <option value="">Select a category</option>
-                  <option value="men">Men's Watches</option>
-                  <option value="women">Women's Watches</option>
-                  <option value="smart">Smart Watches</option>
-                  <option value="luxury">Luxury Watches</option>
-                  <option value="sports">Sports Watches</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
+                {isLoadingCategories && (
+                  <p className="mt-1 text-xs text-gray-500">Loading categories...</p>
+                )}
+                {!isLoadingCategories && categories.length === 0 && (
+                  <p className="mt-1 text-xs text-gray-500">No categories found. Please add categories first.</p>
+                )}
               </div>
 
               <div className="sm:col-span-6 md:col-span-3">

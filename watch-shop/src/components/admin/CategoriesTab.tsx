@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { XMarkIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PlusIcon, PencilIcon, TrashIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
 interface Category {
   id: string;
   name: string;
   slug: string;
   description?: string;
+  image_url?: string;
   created_at: string;
+  // Additional properties for form handling
+  image_file?: File;
+  image_preview?: string;
 }
 
 export default function CategoriesTab() {
@@ -39,8 +43,23 @@ export default function CategoriesTab() {
   };
 
   // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLInputElement>) => {
+    const { name, type } = e.target;
+    
+    if (type === 'file') {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const previewUrl = URL.createObjectURL(file);
+        setCurrentCategory(prev => ({
+          ...prev,
+          image_file: file,
+          image_preview: previewUrl
+        }));
+      }
+      return;
+    }
+    
+    const { value } = e.target as HTMLInputElement | HTMLTextAreaElement;
     setCurrentCategory(prev => ({
       ...prev,
       [name]: value,
@@ -134,6 +153,10 @@ export default function CategoriesTab() {
 
   // Reset form
   const resetForm = () => {
+    // Revoke any object URLs to prevent memory leaks
+    if (currentCategory.image_preview) {
+      URL.revokeObjectURL(currentCategory.image_preview);
+    }
     setCurrentCategory({});
     setIsAdding(false);
     setIsEditing(false);
@@ -250,6 +273,59 @@ export default function CategoriesTab() {
               />
             </div>
             
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Category Image
+              </label>
+              <div className="mt-1 flex items-center">
+                <label
+                  htmlFor="image-upload"
+                  className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  <span>Upload Image</span>
+                  <input
+                    id="image-upload"
+                    name="image-upload"
+                    type="file"
+                    className="sr-only"
+                    accept="image/*"
+                    onChange={handleInputChange}
+                  />
+                </label>
+                {currentCategory.image_preview || currentCategory.image_url ? (
+                  <div className="ml-4 relative">
+                    <img
+                      src={currentCategory.image_preview || currentCategory.image_url}
+                      alt="Category preview"
+                      className="h-16 w-16 rounded-md object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (currentCategory.image_preview) {
+                          URL.revokeObjectURL(currentCategory.image_preview);
+                        }
+                        setCurrentCategory(prev => ({
+                          ...prev,
+                          image_file: undefined,
+                          image_preview: undefined,
+                          image_url: undefined
+                        }));
+                      }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                    >
+                      <XMarkIcon className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="ml-4 h-16 w-16 rounded-md bg-gray-200 flex items-center justify-center">
+                    <PhotoIcon className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-gray-500">Recommended size: 400x400px</p>
+            </div>
+            
             <div className="flex justify-end space-x-3 pt-2">
               <button
                 type="button"
@@ -282,19 +358,30 @@ export default function CategoriesTab() {
             {categories.map((category) => (
               <li key={category.id} className="px-6 py-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {category.name}
-                    </p>
-                    {category.description && (
-                      <p className="text-sm text-gray-500 truncate">
-                        {category.description}
-                      </p>
+                  <div className="flex items-center">
+                    {category.image_url && (
+                      <div className="flex-shrink-0 h-16 w-16 mr-4">
+                        <img
+                          src={category.image_url}
+                          alt={category.name}
+                          className="h-full w-full object-cover rounded-md"
+                        />
+                      </div>
                     )}
-                    <div className="mt-1 flex items-center text-xs text-gray-500">
-                      <span>Slug: {category.slug}</span>
-                      <span className="mx-1">•</span>
-                      <span>Created: {new Date(category.created_at).toLocaleDateString()}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {category.name}
+                      </p>
+                      {category.description && (
+                        <p className="text-sm text-gray-500 truncate">
+                          {category.description}
+                        </p>
+                      )}
+                      <div className="mt-1 flex items-center text-xs text-gray-500">
+                        <span>Slug: {category.slug}</span>
+                        <span className="mx-1">•</span>
+                        <span>Created: {new Date(category.created_at).toLocaleDateString()}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="ml-4 flex-shrink-0 flex space-x-2">
