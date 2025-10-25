@@ -511,8 +511,13 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         // Map our Product type to database fields
         ...(updates.name !== undefined && { name: updates.name }),
         ...(updates.description !== undefined && { description: updates.description }),
-        ...(updates.price !== undefined && { price: updates.price }),
-        ...(updates.offPercentage !== undefined && { off_percentage: typeof updates.offPercentage === 'string' ? parseFloat(updates.offPercentage) || 0 : updates.offPercentage }),
+        ...(updates.price !== undefined && { 
+          price: typeof updates.price === 'string' ? parseFloat(updates.price) : updates.price 
+        }),
+        ...(updates.offPercentage !== undefined && { 
+          off_percentage: updates.offPercentage === '' || updates.offPercentage === null ? 0 : 
+            (typeof updates.offPercentage === 'string' ? parseFloat(updates.offPercentage) : updates.offPercentage) || 0 
+        }),
         ...(updates.category !== undefined && { category: updates.category }),
         ...(updates.stock !== undefined && { stock_quantity: updates.stock }),
         ...(updates.featured !== undefined && { is_featured: updates.featured }),
