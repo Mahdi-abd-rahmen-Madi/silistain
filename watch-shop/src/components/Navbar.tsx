@@ -108,11 +108,12 @@ const Navbar = () => {
             <div className="flex-1 flex justify-center md:justify-start">
               <Link
                 to="/"
-                className="text-2xl font-bold text-accent"
+                className="text-2xl font-bold text-blue-600 hover:no-underline"
                 onClick={() => {
                   setIsMenuOpen(false);
                   setIsProfileOpen(false);
                 }}
+                style={{ pointerEvents: 'none' }}
               >
                 silistain
               </Link>
@@ -122,12 +123,12 @@ const Navbar = () => {
             <div className="md:hidden flex items-center space-x-2 ml-auto">
               <button
                 onClick={toggleCart}
-                className="p-2 text-gray-700 hover:text-accent relative"
+                className="p-2 text-gray-700 hover:no-underline relative"
                 aria-label={t('navbar.shopping_cart')}
               >
                 <ShoppingCart className="h-6 w-6" />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {cartItemCount > 9 ? '9+' : cartItemCount}
                   </span>
                 )}
@@ -173,12 +174,12 @@ const Navbar = () => {
               <LanguageSelector />
               <button
                 onClick={toggleCart}
-                className="p-2 text-gray-700 hover:text-accent relative"
+                className="p-2 text-gray-700 hover:no-underline relative"
                 aria-label={t('navbar.shopping_cart')}
               >
                 <ShoppingCart className="h-6 w-6" />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-accent text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {cartItemCount > 9 ? '9+' : cartItemCount}
                   </span>
                 )}

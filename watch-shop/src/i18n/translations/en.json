@@ -151,6 +151,9 @@
     },
     "not_signed_in": "Please sign in to view your profile"
   },
+  "search": {
+    "placeholder": "Search for watches..."
+  },
   "collections": {
     "title": "Our Collections",
     "subtitle": "Discover our handpicked selection of premium timepieces",
@@ -312,6 +315,7 @@
     "tiktok_handle": "@silistain"
   },
   "categories": {
+    "title": "Shop by Category",
     "men": "Men's",
     "smart": "Smart",
     "diving": "Diving",

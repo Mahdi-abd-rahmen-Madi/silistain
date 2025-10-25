@@ -335,7 +335,7 @@ export default function ProductForm({
     } else {
       setFormData(prev => ({
         ...prev,
-        [name]: type === 'number' ? parseFloat(value) || 0 : value,
+        [name]: type === 'number' ? (value === '' ? '' : parseFloat(value)) : value,
       }));
     }
   };

@@ -35,9 +35,11 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   
   // Calculate original price based on discount
   const originalPrice = useMemo(() => {
-    if (!product.price || discountPercentage <= 0) return 0;
+    if (!product.price) return 0;
     const price = typeof product.price === 'number' ? product.price : parseFloat(product.price);
-    return Math.round(price / (1 - (discountPercentage / 100)));
+    return discountPercentage > 0 
+      ? Math.round(price / (1 - (discountPercentage / 100)))
+      : price; // Return the same price when there's no discount
   }, [product.price, discountPercentage]);
   
   // Format price with currency
@@ -316,24 +318,28 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 <div className="text-[22px] font-bold text-gray-900">
                   {formatPrice(Number(product.price))} TND
                 </div>
-                {discountPercentage > 0 && (
-                  <div className="bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                    -{discountPercentage}%
-                  </div>
-                )}
+                <div className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                  discountPercentage > 0 
+                    ? 'bg-red-600 text-white' 
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {discountPercentage > 0 ? `-${discountPercentage}%` : '0%'}
+                </div>
               </div>
               
               {/* Original Price and Save Amount */}
               <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">
+                  {discountPercentage > 0 ? (
+                    <span className="line-through">{formatPrice(originalPrice)} TND</span>
+                  ) : (
+                    <span>{formatPrice(originalPrice)} TND</span>
+                  )}
+                </span>
                 {discountPercentage > 0 && originalPrice > 0 && (
-                  <>
-                    <span className="text-xs text-gray-500 line-through">
-                      {formatPrice(originalPrice)} TND
-                    </span>
-                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                      Save {formatPrice(originalPrice - Number(product.price))} TND
-                    </span>
-                  </>
+                  <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                    Save {formatPrice(originalPrice - Number(product.price))} TND
+                  </span>
                 )}
               </div>
             </div>

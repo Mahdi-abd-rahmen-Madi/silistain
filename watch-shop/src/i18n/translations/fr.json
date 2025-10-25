@@ -181,6 +181,9 @@
     },
     "not_signed_in": "Veuillez vous connecter pour voir votre profil"
   },
+  "search": {
+    "placeholder": "Rechercher des montres..."
+  },
   "collections": {
     "title": "Nos Collections",
     "subtitle": "Découvrez notre sélection de montres de luxe soigneusement choisies",
@@ -225,7 +228,8 @@
     "tiktok_handle": "@silistain"
   },
   "categories": {
-    "men": "Homme",
+    "title": "Catégories",
+    "men": "Hommes",
     "smart": "Connectées",
     "diving": "Plongée",
     "luxury": "Luxe",

@@ -150,6 +150,9 @@
     },
     "not_signed_in": "يرجى تسجيل الدخول لعرض ملفك الشخصي"
   },
+  "search": {
+    "placeholder": "ابحث عن الساعات..."
+  },
   "collections": {
     "title": "مجموعاتنا",
     "subtitle": "اكتشف مجموعتنا المختارة بعناية من الساعات الفاخرة",
@@ -195,6 +198,7 @@
     "tiktok_handle": "@silistain"
   },
   "categories": {
+    "title": "الفئات",
     "men": "رجالية",
     "smart": "ذكية",
     "diving": "غوص",

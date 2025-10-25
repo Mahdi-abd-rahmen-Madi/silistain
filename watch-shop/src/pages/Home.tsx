@@ -376,33 +376,33 @@ const Home = () => {
       </section>
 
       {/* Features */}
-      <section className="py-12 bg-white">
+      <section className="py-6 sm:py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="feature-card text-center p-6">
-              <div className="feature-icon flex justify-center mb-3">
-                <Truck className="h-6 w-6 text-brand-600" />
+          <div className="grid grid-cols-3 gap-2 sm:gap-6">
+            <div className="feature-card text-center p-2 sm:p-6">
+              <div className="feature-icon flex justify-center mb-1 sm:mb-3">
+                <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-brand-600" />
               </div>
-              <h3 className="feature-title font-semibold">{t('collections.features.free_shipping')}</h3>
-              <p className="feature-description text-gray-600 mt-1">
+              <h3 className="feature-title text-sm sm:text-base font-semibold">{t('collections.features.free_shipping')}</h3>
+              <p className="feature-description text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">
                 {t('collections.features.free_shipping_desc')}
               </p>
             </div>
-            <div className="feature-card text-center p-6">
-              <div className="feature-icon flex justify-center mb-3">
-                <Shield className="h-6 w-6 text-brand-600" />
+            <div className="feature-card text-center p-2 sm:p-6">
+              <div className="feature-icon flex justify-center mb-1 sm:mb-3">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-brand-600" />
               </div>
-              <h3 className="feature-title font-semibold">{t('collections.features.warranty')}</h3>
-              <p className="feature-description text-gray-600 mt-1">
+              <h3 className="feature-title text-sm sm:text-base font-semibold">{t('collections.features.warranty')}</h3>
+              <p className="feature-description text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">
                 {t('collections.features.warranty_desc')}
               </p>
             </div>
-            <div className="feature-card text-center p-6">
-              <div className="feature-icon flex justify-center mb-3">
-                <CheckCircle className="h-6 w-6 text-brand-600" />
+            <div className="feature-card text-center p-2 sm:p-6">
+              <div className="feature-icon flex justify-center mb-1 sm:mb-3">
+                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-brand-600" />
               </div>
-              <h3 className="feature-title font-semibold">{t('collections.features.authentic')}</h3>
-              <p className="feature-description text-gray-600 mt-1">
+              <h3 className="feature-title text-sm sm:text-base font-semibold">{t('collections.features.authentic')}</h3>
+              <p className="feature-description text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">
                 {t('collections.features.authentic_desc')}
               </p>
             </div>
