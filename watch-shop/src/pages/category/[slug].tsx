@@ -66,11 +66,17 @@ const CategoryPage = () => {
         setCategory(categoryData);
 
         // Fetch products in this category
+        // First get the category name from the slug
+        const categoryName = categoryData.name;
+        
+        // Then fetch products that have this category name in their category field
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select('*')
-          .eq('category_id', categoryData.id)
+          .eq('category', categoryName)
           .order('created_at', { ascending: false });
+          
+        console.log('Products for category', categoryName, ':', productsData);
 
         if (productsError) throw productsError;
         setProducts(productsData || []);
@@ -110,7 +116,16 @@ const CategoryPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">{category.name}</h1>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">{category.name}</h1>
+          {products.length > 0 && (
+            <p className="text-gray-500 mt-2">
+              {products.length} {products.length === 1 ? 'product' : 'products'} in this category
+            </p>
+          )}
+        </div>
+      </div>
       
       {category.description && (
         <div className="mb-8 text-gray-600">

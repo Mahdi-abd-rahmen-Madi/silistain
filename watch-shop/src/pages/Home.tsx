@@ -14,10 +14,16 @@ import * as Tabs from '@radix-ui/react-tabs';
 import '../styles/home.css';
 
 // Separate component for category item to properly use hooks
-const CategoryItem = ({ category }: { category: any }) => {
+const CategoryItem = ({ category, products = [] }: { category: any, products?: any[] }) => {
   const [imageError, setImageError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const { t } = useTranslation();
+  
+  // Count products in this category
+  const productCount = useMemo(() => {
+    if (!category?.name || !Array.isArray(products)) return 0;
+    return products.filter(p => p.category === category.name).length;
+  }, [category?.name, products]);
   
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
@@ -61,7 +67,7 @@ const CategoryItem = ({ category }: { category: any }) => {
         {category.name}
       </h3>
       <span className="text-xs text-gray-500 mt-1">
-        {t('products.count', { count: category.product_count || 0 })}
+        {productCount} {productCount === 1 ? 'product' : 'products'}
       </span>
     </Link>
   );
@@ -270,8 +276,12 @@ const Home = () => {
             </div>
           ) : allCategories.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {allCategories.map((category) => (
-                <CategoryItem key={category.id} category={category} />
+              {allCategories?.map((category) => (
+                <CategoryItem 
+                  key={category.id} 
+                  category={category} 
+                  products={products} 
+                />
               ))}
             </div>
           ) : (
