@@ -591,11 +591,13 @@ const Shop = () => {
                       offPercentage: discount,
                       rating: 0,
                       reviewCount: 0,
-                      stock: watch.inStock || 0,
+                      stock_quantity: watch.inStock || 0,
+                      stock: watch.inStock || 0, // Keep for backward compatibility
                       brand: watch.brand === 'product.unknown_brand' ? t('product.unknown_brand') : (watch.brand || ''),
                       description: watch.description || '',
                       category: watch.category || 'watches',
-                      featured: watch.isFeatured || false,
+                      is_featured: watch.isFeatured || false,
+                      featured: watch.isFeatured || false, // Keep for backward compatibility
                       specifications: watch.specifications || {},
                     };
 

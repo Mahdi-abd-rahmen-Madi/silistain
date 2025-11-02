@@ -87,18 +87,29 @@ export default function CategoriesTab() {
         const fileName = `${currentCategory.slug}-${Date.now()}.${fileExt}`;
         const filePath = `category-images/${fileName}`;
         
+        console.log('Uploading image to path:', filePath);
+        
         // Upload the image to Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from('categories')
-          .upload(filePath, currentCategory.image_file);
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('public')  // Changed from 'categories' to 'public' bucket
+          .upload(filePath, currentCategory.image_file, {
+            cacheControl: '3600',
+            upsert: false
+          });
           
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          throw uploadError;
+        }
+        
+        console.log('Upload successful, data:', uploadData);
         
         // Get the public URL of the uploaded image
         const { data: { publicUrl } } = supabase.storage
-          .from('categories')
+          .from('public')
           .getPublicUrl(filePath);
           
+        console.log('Generated public URL:', publicUrl);
         imageUrl = publicUrl;
       }
       
