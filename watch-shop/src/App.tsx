@@ -30,6 +30,7 @@ import Orders from './pages/Orders';
 import AuthCallback from './pages/auth/callback';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import { CategoryProvider } from './context/CategoryContext';
+import CategoryPage from './pages/category/[slug]';
 
 function AppContent() {
   const location = useLocation();
@@ -70,6 +71,7 @@ function AppContent() {
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/product/:id" element={<ProductDetailsPage />} />
+            <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/thank-you" element={<ThankYou />} />
