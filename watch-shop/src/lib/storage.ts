@@ -38,19 +38,23 @@ export const uploadCategoryImage = async (file: File, slug: string): Promise<str
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${slug}-${Date.now()}.${fileExt}`;
-    const filePath = fileName;
     
-    const { error: uploadError } = await supabase.storage
+    // Upload the file
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(filePath, file);
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
       
     if (uploadError) throw uploadError;
     
     // Get the public URL
     const { data: { publicUrl } } = supabase.storage
       .from(STORAGE_BUCKET)
-      .getPublicUrl(filePath);
-      
+      .getPublicUrl(fileName);
+    
+    console.log('File uploaded successfully. Public URL:', publicUrl);
     return publicUrl;
   } catch (error) {
     console.error('Error uploading image:', error);
@@ -62,14 +66,21 @@ export const uploadCategoryImage = async (file: File, slug: string): Promise<str
 export const deleteCategoryImage = async (imageUrl: string): Promise<boolean> => {
   try {
     // Extract the file path from the URL
-    const filePath = imageUrl.split('/').pop();
-    if (!filePath) throw new Error('Invalid image URL');
+    const url = new URL(imageUrl);
+    const pathParts = url.pathname.split('/');
+    const bucketName = pathParts[pathParts.length - 2];
+    const fileName = pathParts[pathParts.length - 1];
     
-    const { error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .remove([filePath]);
+    if (!fileName) throw new Error('Invalid image URL');
+    
+    console.log(`Deleting file: ${fileName} from bucket: ${bucketName}`);
+    
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .remove([fileName]);
       
     if (error) throw error;
+    console.log('File deleted successfully:', data);
     return true;
   } catch (error) {
     console.error('Error deleting image:', error);
