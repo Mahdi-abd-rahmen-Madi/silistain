@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-export const STORAGE_BUCKET = 'categories';
+export const STORAGE_BUCKET = 'category-images';
 
 export const initializeStorage = async () => {
   try {
@@ -38,7 +38,7 @@ export const uploadCategoryImage = async (file: File, slug: string): Promise<str
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${slug}-${Date.now()}.${fileExt}`;
-    const filePath = `category-images/${fileName}`;
+    const filePath = fileName;
     
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
@@ -67,7 +67,7 @@ export const deleteCategoryImage = async (imageUrl: string): Promise<boolean> =>
     
     const { error } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .remove([`category-images/${filePath}`]);
+      .remove([filePath]);
       
     if (error) throw error;
     return true;
