@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { XMarkIcon, PlusIcon, PencilIcon, TrashIcon, PhotoIcon } from '@heroicons/react/24/outline';
-import { initializeStorage, uploadCategoryImage, deleteCategoryImage, STORAGE_BUCKET } from '../../lib/storage';
+import { uploadCategoryImage, deleteCategoryImage, STORAGE_BUCKET } from '../../lib/storage';
 
 interface Category {
   id: string;
@@ -23,19 +23,6 @@ export default function CategoriesTab() {
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Partial<Category>>({});
-
-  // Initialize storage on component mount
-  useEffect(() => {
-    const initStorage = async () => {
-      const success = await initializeStorage();
-      if (!success) {
-        setError('Failed to initialize storage. Please check your connection and try again.');
-      }
-    };
-    
-    initStorage();
-    loadCategories();
-  }, []);
 
   // Load categories
   const loadCategories = async () => {
