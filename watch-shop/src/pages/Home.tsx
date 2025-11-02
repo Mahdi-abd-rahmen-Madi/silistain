@@ -13,32 +13,11 @@ import { Send, ArrowRight, Truck, Shield, CheckCircle, Search } from 'lucide-rea
 import * as Tabs from '@radix-ui/react-tabs';
 import '../styles/home.css';
 
-// Helper function to get the full image URL from Supabase
-const getImageUrl = (url: string | null | undefined) => {
-  if (!url) return null;
-  
-  // If the URL is already a full URL, return it as is
-  if (url.startsWith('http')) {
-    return url;
-  }
-  
-  // If it's a storage path (starts with 'category-images/' or similar)
-  if (url.startsWith('category-images/') || url.startsWith('public/')) {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const storagePath = url.startsWith('public/') ? url : `public/${url}`;
-    return `${supabaseUrl}/storage/v1/object/public/${storagePath}`;
-  }
-  
-  return url;
-};
-
 // Separate component for category item to properly use hooks
 const CategoryItem = ({ category }: { category: any }) => {
   const [imageError, setImageError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const { t } = useTranslation();
-  
-  const imageUrl = getImageUrl(category.image_url);
   
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
@@ -65,13 +44,12 @@ const CategoryItem = ({ category }: { category: any }) => {
       className="group flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
     >
       <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden mb-3">
-        {!imageError && imageUrl ? (
+        {!imageError && category.image_url ? (
           <img
-            src={imageUrl}
+            src={category.image_url}
             alt={category.name}
             className="w-full h-full object-cover"
             onError={handleImageError}
-            loading="lazy"
           />
         ) : (
           <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">

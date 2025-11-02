@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { XMarkIcon, PlusIcon, PencilIcon, TrashIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { initializeStorage, uploadCategoryImage, deleteCategoryImage, STORAGE_BUCKET } from '../../lib/storage';
 
 interface Category {
   id: string;
@@ -22,6 +23,19 @@ export default function CategoriesTab() {
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Partial<Category>>({});
+
+  // Initialize storage on component mount
+  useEffect(() => {
+    const initStorage = async () => {
+      const success = await initializeStorage();
+      if (!success) {
+        setError('Failed to initialize storage. Please check your connection and try again.');
+      }
+    };
+    
+    initStorage();
+    loadCategories();
+  }, []);
 
   // Load categories
   const loadCategories = async () => {
@@ -82,35 +96,16 @@ export default function CategoriesTab() {
       
       // Handle image upload if a new file was selected
       let imageUrl = currentCategory.image_url;
-      if (currentCategory.image_file) {
-        const fileExt = currentCategory.image_file.name.split('.').pop();
-        const fileName = `${currentCategory.slug}-${Date.now()}.${fileExt}`;
-        const filePath = `category-images/${fileName}`;
-        
-        console.log('Uploading image to path:', filePath);
-        
-        // Upload the image to Supabase Storage
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('public')  // Changed from 'categories' to 'public' bucket
-          .upload(filePath, currentCategory.image_file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-          
-        if (uploadError) {
-          console.error('Error uploading image:', uploadError);
-          throw uploadError;
+      if (currentCategory.image_file && currentCategory.slug) {
+        const newImageUrl = await uploadCategoryImage(currentCategory.image_file, currentCategory.slug);
+        if (!newImageUrl) {
+          throw new Error('Failed to upload image. Please try again.');
         }
-        
-        console.log('Upload successful, data:', uploadData);
-        
-        // Get the public URL of the uploaded image
-        const { data: { publicUrl } } = supabase.storage
-          .from('public')
-          .getPublicUrl(filePath);
-          
-        console.log('Generated public URL:', publicUrl);
-        imageUrl = publicUrl;
+        // Delete the old image if it exists and is being replaced
+        if (currentCategory.image_url && currentCategory.image_url !== newImageUrl) {
+          await deleteCategoryImage(currentCategory.image_url);
+        }
+        imageUrl = newImageUrl;
       }
       
       if (currentCategory.id) {
@@ -182,27 +177,13 @@ export default function CategoriesTab() {
         
       if (deleteError) throw deleteError;
       
-      // If the category had an image, delete it from storage
-      if (category?.image_url) {
+      // Delete the category image from storage if it exists
+      if (category.image_url) {
         try {
-          // Extract the file path from the URL
-          const url = new URL(category.image_url);
-          const pathParts = url.pathname.split('/');
-          const bucket = pathParts[1];
-          const filePath = pathParts.slice(2).join('/');
-          
-          // Delete the file from storage
-          const { error: storageError } = await supabase.storage
-            .from(bucket)
-            .remove([filePath]);
-            
-          if (storageError) {
-            console.warn('Failed to delete image from storage:', storageError);
-            // Don't fail the entire operation if image deletion fails
-          }
-        } catch (storageErr) {
-          console.warn('Error deleting category image:', storageErr);
+          await deleteCategoryImage(category.image_url);
           // Don't fail the entire operation if image deletion fails
+        } catch (err) {
+          console.error('Error deleting category image:', err);
         }
       }
       
