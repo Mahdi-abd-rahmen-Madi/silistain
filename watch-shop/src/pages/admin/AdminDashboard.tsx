@@ -149,96 +149,100 @@ export default function AdminDashboard({}: AdminDashboardProps) {
     }
   }, []);
 
-  // Handle order status update
-  const handleUpdateOrderStatus = useCallback(async (orderId: string, status: Order['status']) => {
-    try {
-      const adminClient = await getAdminClient();
-      if (!adminClient) {
-        throw new Error('Admin client not available');
-      }
-      
-      // Update order status in the database
-      const { error } = await adminClient
-        .from('orders')
-        .update({ 
-          status,
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', orderId);
-      
-      if (error) throw error;
-      
-      // Update local state
-      setOrders((prevOrders: Order[]) =>
-        prevOrders.map(order =>
-          order.id === orderId ? { 
-            ...order, 
-            status, 
-            updatedAt: new Date().toISOString() 
-          } : order
-        )
-      );
-      
-      setSuccess(`Order ${orderId} status updated to ${status}`);
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
-      setError('Failed to update order status');
+  // Handle order status update - Updated to include items for stock processing
+const handleUpdateOrderStatus = useCallback(async (orderId: string, status: Order['status']) => {
+  try {
+    const adminClient = await getAdminClient();
+    if (!adminClient) {
+      throw new Error('Admin client not available');
     }
-  }, []);
+    
+    // Get the current order to include items in the update
+    const currentOrder = orders.find(order => order.id === orderId);
+    if (!currentOrder) {
+      throw new Error('Order not found');
+    }
+    
+    // Update order status in the database, including items for stock processing
+    const { error } = await adminClient
+      .from('orders')
+      .update({ 
+        status,
+        items: currentOrder.items, // Include items for stock processing
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', orderId);
+    
+    if (error) throw error;
+    
+    // Update local state
+    setOrders((prevOrders: Order[]) =>
+      prevOrders.map(order =>
+        order.id === orderId ? { 
+          ...order, 
+          status, 
+          updatedAt: new Date().toISOString() 
+        } : order
+      )
+    );
+    
+    setSuccess(`Order ${orderId} status updated to ${status}`);
+    setTimeout(() => setSuccess(''), 3000);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Failed to update order status';
+    console.error('Error updating order status:', err);
+    setError(errorMessage);
+  }
+}, [orders]); // Add orders to dependency array
 
-  // FIXED: Handle full order updates (no longer includes subtotal)
-  const handleUpdateOrder = useCallback(async (updatedOrder: Order) => {
-    try {
-      setSuccess('');
-      setError('');
-      
-      const adminClient = await getAdminClient();
-      if (!adminClient) {
-        throw new Error('Admin client not available');
-      }
-      
-      // Prepare the data for Supabase - include all necessary fields that might be needed by triggers
-      const orderData: any = {
-        status: updatedOrder.status,
-        payment_status: updatedOrder.paymentStatus,
-        shipping_address: updatedOrder.shippingAddress,
-        total: updatedOrder.total,
-        updated_at: new Date().toISOString()
-      };
-      
-      // Include items in the update if they exist in the updated order
-      // This is important for triggers that might need the items data
-      if (updatedOrder.items) {
-        orderData.items = updatedOrder.items;
-      }
-      
-      console.log('Updating order with ', orderData);
-      
-      // Update order in the database
-      const { error } = await adminClient
-        .from('orders')
-        .update(orderData)
-        .eq('id', updatedOrder.id);
-      
-      if (error) throw error;
-      
-      // Update local state
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order.id === updatedOrder.id ? updatedOrder : order
-        )
-      );
-      
-      setSuccess(`Order ${updatedOrder.orderNumber} updated successfully`);
-      setTimeout(() => setSuccess(''), 3000);
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update order';
-      console.error('Error updating order:', err);
-      setError(errorMessage);
-      throw err; // Re-throw so OrdersTab can handle it
+// Handle full order updates - Updated to always include items
+const handleUpdateOrder = useCallback(async (updatedOrder: Order) => {
+  try {
+    setSuccess('');
+    setError('');
+    
+    const adminClient = await getAdminClient();
+    if (!adminClient) {
+      throw new Error('Admin client not available');
     }
-  }, []);
+    
+    // Prepare the data for Supabase - include items for stock processing
+    const orderData: any = {
+      status: updatedOrder.status,
+      payment_status: updatedOrder.paymentStatus,
+      shipping_address: updatedOrder.shippingAddress,
+      total: updatedOrder.total,
+      items: updatedOrder.items, // Always include items for stock processing
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log('Updating order with data:', orderData);
+    
+    // Update order in the database
+    const { error } = await adminClient
+      .from('orders')
+      .update(orderData)
+      .eq('id', updatedOrder.id);
+    
+    if (error) throw error;
+    
+    // Update local state
+    setOrders(prevOrders => 
+      prevOrders.map(order => 
+        order.id === updatedOrder.id ? updatedOrder : order
+      )
+    );
+    
+    setSuccess(`Order ${updatedOrder.orderNumber} updated successfully`);
+    setTimeout(() => setSuccess(''), 3000);
+    
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Failed to update order';
+    console.error('Error updating order:', err);
+    setError(errorMessage);
+    throw err;
+  }
+}, []);
 
   // Show error from products context if any
   useEffect(() => {
