@@ -149,6 +149,22 @@ export default function AdminDashboard({}: AdminDashboardProps) {
     }
   }, []);
 
+  // Add this to your component to see the items structure
+useEffect(() => {
+  if (orders.length > 0) {
+    console.log('Sample order with items:', {
+      id: orders[0].id,
+      status: orders[0].status,
+      items: orders[0].items
+    });
+    
+    if (orders[0].items && orders[0].items.length > 0) {
+      console.log('First item keys:', Object.keys(orders[0].items[0]));
+      console.log('First item values:', orders[0].items[0]);
+    }
+  }
+}, [orders]);
+
   // Handle order status update - Updated to include items for stock processing
 const handleUpdateOrderStatus = useCallback(async (orderId: string, status: Order['status']) => {
   try {
