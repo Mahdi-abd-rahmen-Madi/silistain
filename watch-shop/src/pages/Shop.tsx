@@ -160,6 +160,9 @@ const Shop = () => {
     }
 
     let filtered = watches.filter(watch => {
+      // Skip out of stock products
+      if (watch.inStock <= 0) return false;
+      
       const categoryMatch =
         filters.category === null ||
         watch.category === filters.category ||
