@@ -196,7 +196,7 @@ export default function CategoriesTab() {
       if (deleteError) throw deleteError;
       
       // Delete the category image from storage if it exists
-      if (category.image_url) {
+      if (category?.image_url) {
         try {
           await deleteCategoryImage(category.image_url);
           // Don't fail the entire operation if image deletion fails
@@ -215,7 +215,11 @@ export default function CategoriesTab() {
 
   // Edit a category
   const editCategory = (category: Category) => {
-    setCurrentCategory(category);
+    setCurrentCategory({
+      ...category,
+      name_translations: category.name_translations || {},
+      description_translations: category.description_translations || {},
+    });
     setIsEditing(true);
     setIsAdding(true);
   };
