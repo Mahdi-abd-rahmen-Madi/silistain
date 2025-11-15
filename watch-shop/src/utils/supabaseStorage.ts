@@ -1,9 +1,20 @@
 import { supabase } from '../lib/supabaseClient';
 import logger from './logger';
+import { convertToWebP } from './imageUtils';
 
 export const uploadFile = async (file: File, bucket: string, path: string) => {
   try {
-    const fileExt = file.name.split('.').pop();
+    // Convert to WebP if it's an image
+    let uploadFile = file;
+    if (file.type.startsWith('image/') && file.type !== 'image/webp') {
+      try {
+        uploadFile = await convertToWebP(file);
+      } catch (error) {
+        console.warn('Failed to convert image to WebP, uploading original:', error);
+      }
+    }
+    
+    const fileExt = uploadFile.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = path ? `${path}/${fileName}` : fileName;
 

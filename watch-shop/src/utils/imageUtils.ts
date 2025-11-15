@@ -38,3 +38,82 @@ export const getInitials = (name: string): string => {
   if (!name) return '';
   return name.charAt(0).toUpperCase();
 };
+
+export const convertToWebP = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    // If already a WebP image, return as is
+    if (file.type === 'image/webp') {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not create canvas context'));
+          return;
+        }
+
+        // Calculate new dimensions while maintaining aspect ratio
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let { width, height } = img;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw image on canvas
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to WebP (0.8 quality for good balance between size and quality)
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('Failed to convert image to WebP'));
+              return;
+            }
+            
+            // Create a new File object with the WebP image
+            const webpFile = new File(
+              [blob],
+              `${file.name.split('.')[0]}.webp`,
+              { type: 'image/webp' }
+            );
+            resolve(webpFile);
+          },
+          'image/webp',
+          0.8
+        );
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+      
+      img.src = event.target?.result as string;
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
+    
+    reader.readAsDataURL(file);
+  });
+};

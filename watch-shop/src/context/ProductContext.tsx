@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase, getAdminClient } from '../lib/supabaseClient';
+import { uploadFile } from '../utils/supabaseStorage';
 import { Product, ProductImage } from '../types/product';
 
 interface ProductContextType {
@@ -341,37 +342,23 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Supabase client is not available');
       }
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = fileName; // Just use the filename, no subfolder
       const bucketName = 'products'; // Using 'products' bucket which exists in your storage
+      const filePath = 'uploads'; // Subfolder in the bucket
 
       console.log('Uploading image to bucket:', bucketName, 'path:', filePath);
       
-      // Upload the file
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true // Allow overwriting if file exists
-        });
+      // Use our uploadFile utility which handles WebP conversion
+      const { publicUrl, error: uploadError } = await uploadFile(file, bucketName, filePath);
 
       if (uploadError) {
         console.error('Upload error details:', uploadError);
         throw uploadError;
       }
 
-      console.log('Upload successful, getting public URL...');
-      
-      // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(filePath);
-
-      console.log('Generated public URL:', publicUrl);
+      console.log('Upload successful, public URL:', publicUrl);
       
       if (!publicUrl) {
-        throw new Error('Failed to generate public URL for the uploaded image');
+        throw new Error('Failed to get public URL for the uploaded image');
       }
 
       return publicUrl;

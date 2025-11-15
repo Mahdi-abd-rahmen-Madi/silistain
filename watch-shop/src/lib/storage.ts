@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { uploadFile } from '../utils/supabaseStorage';
 
 export const STORAGE_BUCKET = 'category-images';
 
@@ -16,40 +17,31 @@ export const uploadCategoryImage = async (file: File, slug: string): Promise<str
       return null;
     }
 
-    const fileExt = file.name.split('.').pop()?.toLowerCase();
-    if (!fileExt) {
-      console.error('Could not determine file extension.');
-      return null;
-    }
+    // Generate a unique file name
+    const fileName = `${slug.trim()}-${Date.now()}`;
+    const filePath = 'categories'; // Subfolder for category images
 
-    const fileName = `${slug.trim()}-${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    // Upload file
-    const { error: uploadError } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
+    console.log('Uploading category image...');
+    
+    // Use our uploadFile utility which handles WebP conversion
+    const { publicUrl, error: uploadError } = await uploadFile(
+      file,
+      STORAGE_BUCKET,
+      filePath
+    );
 
     if (uploadError) {
-      console.error('Upload failed:', uploadError.message);
+      console.error('Upload failed:', uploadError);
       return null;
     }
 
-    // Get public URL
-    const { data } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .getPublicUrl(filePath);
-
-    if (!data?.publicUrl) {
+    if (!publicUrl) {
       console.error('Failed to retrieve public URL');
       return null;
     }
 
-    console.log('✅ Image uploaded:', data.publicUrl);
-    return data.publicUrl;
+    console.log('Category image uploaded successfully:', publicUrl);
+    return publicUrl;
   } catch (error) {
     console.error('Unexpected error during upload:', error);
     return null;
