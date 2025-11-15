@@ -197,15 +197,20 @@ export default function AdminDashboard({}: AdminDashboardProps) {
         throw new Error('Admin client not available');
       }
       
-      // Prepare the data for Supabase - ONLY include columns that exist in your table
-      // Subtotal was deleted from the database, so we don't include it here
-      const orderData = {
+      // Prepare the data for Supabase - include all necessary fields that might be needed by triggers
+      const orderData: any = {
         status: updatedOrder.status,
         payment_status: updatedOrder.paymentStatus,
         shipping_address: updatedOrder.shippingAddress,
         total: updatedOrder.total,
         updated_at: new Date().toISOString()
       };
+      
+      // Include items in the update if they exist in the updated order
+      // This is important for triggers that might need the items data
+      if (updatedOrder.items) {
+        orderData.items = updatedOrder.items;
+      }
       
       console.log('Updating order with ', orderData);
       
