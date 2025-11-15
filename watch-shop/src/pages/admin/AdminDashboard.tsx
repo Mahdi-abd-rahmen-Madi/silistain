@@ -379,11 +379,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
               loading={ordersLoading} 
               error={ordersError} 
               onUpdateOrderStatus={handleUpdateOrderStatus}
-              onUpdateOrder={async (order) => {
-                // Implement order update logic here
-                console.log('Updating order:', order);
-                // Add your update logic here
-              }}
+              onUpdateOrder={handleUpdateOrder}
             />
           )}
           {activeTab === 'users' && <UsersTab />}
