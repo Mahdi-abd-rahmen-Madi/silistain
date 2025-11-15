@@ -483,11 +483,6 @@ export default function CategoriesTab() {
                       <p className="text-sm font-medium text-gray-900 truncate">
                         {category.name}
                       </p>
-                      {category.description && (
-                        <p className="text-sm text-gray-500 truncate">
-                          {category.description}
-                        </p>
-                      )}
                       <div className="mt-1 flex items-center text-xs text-gray-500">
                         <span>Slug: {category.slug}</span>
                         <span className="mx-1">•</span>
