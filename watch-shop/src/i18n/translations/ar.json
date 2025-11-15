@@ -320,6 +320,11 @@
     "need_help": "بحاجة إلى مساعدة؟",
     "contact_support": "اتصل بفريق الدعم"
   },
+  "category": {
+    "no_products": "لا توجد منتجات في هذه الفئة",
+    "not_found": "الفئة غير موجودة",
+    "product_count": "{{count}} {{count, plural, zero{منتج} one{منتج} two{منتجان} few={منتجات} many={منتج} other={منتج}}} في هذه الفئة"
+  },
   "footer": {
     "quick_links": "روابط سريعة",
     "shop": "المتجر",

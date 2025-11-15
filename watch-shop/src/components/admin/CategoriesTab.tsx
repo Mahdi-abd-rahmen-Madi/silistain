@@ -1,13 +1,26 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { XMarkIcon, PlusIcon, PencilIcon, TrashIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PlusIcon, PencilIcon, TrashIcon, PhotoIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { uploadCategoryImage, deleteCategoryImage, STORAGE_BUCKET } from '../../lib/storage';
+
+// Define supported languages
+const SUPPORTED_LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'fr', name: 'French' },
+  { code: 'ar', name: 'Arabic' },
+];
+
+interface Translations {
+  [key: string]: string;
+}
 
 interface Category {
   id: string;
   name: string;
   slug: string;
   description?: string;
+  name_translations: Translations;
+  description_translations: Translations;
   image_url?: string;
   created_at: string;
   // Additional properties for form handling
@@ -22,7 +35,10 @@ export default function CategoriesTab() {
   const [success, setSuccess] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState<Partial<Category>>({});
+  const [currentCategory, setCurrentCategory] = useState<Partial<Category>>({
+    name_translations: {},
+    description_translations: {},
+  });
 
   // Load categories
   const loadCategories = async () => {
@@ -68,6 +84,17 @@ export default function CategoriesTab() {
     }));
   };
 
+  // Handle translation changes
+  const handleTranslationChange = (field: 'name_translations' | 'description_translations', lang: string, value: string) => {
+    setCurrentCategory(prev => ({
+      ...prev,
+      [field]: {
+        ...prev[field],
+        [lang]: value
+      }
+    }));
+  };
+
   // Save category (create or update)
   const saveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +130,8 @@ export default function CategoriesTab() {
             name: currentCategory.name,
             slug: currentCategory.slug,
             description: currentCategory.description || null,
+            name_translations: currentCategory.name_translations,
+            description_translations: currentCategory.description_translations,
             image_url: imageUrl || currentCategory.image_url,
             updated_at: new Date().toISOString()
           })
@@ -119,6 +148,8 @@ export default function CategoriesTab() {
               name: currentCategory.name,
               slug: currentCategory.slug,
               description: currentCategory.description || null,
+              name_translations: currentCategory.name_translations,
+              description_translations: currentCategory.description_translations,
               image_url: imageUrl || null
             }
           ])
@@ -195,7 +226,10 @@ export default function CategoriesTab() {
     if (currentCategory.image_preview) {
       URL.revokeObjectURL(currentCategory.image_preview);
     }
-    setCurrentCategory({});
+    setCurrentCategory({
+      name_translations: {},
+      description_translations: {},
+    });
     setIsAdding(false);
     setIsEditing(false);
     setError('');
@@ -265,7 +299,7 @@ export default function CategoriesTab() {
             </button>
           </div>
           
-          <form onSubmit={saveCategory} className="space-y-4">
+          <form onSubmit={saveCategory} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 Name <span className="text-red-500">*</span>
@@ -298,8 +332,43 @@ export default function CategoriesTab() {
             </div>
             
             <div>
+              <label className="block text-sm font-medium text-gray-700 flex items-center">
+                <GlobeAltIcon className="h-5 w-5 mr-1" /> Translations
+              </label>
+              <div className="mt-2 space-y-4">
+                {SUPPORTED_LANGUAGES.map(lang => (
+                  <div key={lang.code} className="grid grid-cols-12 gap-2">
+                    <div className="col-span-3 flex items-center">
+                      <span className="text-sm font-medium text-gray-700">{lang.name}</span>
+                    </div>
+                    <div className="col-span-9 space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-500">Name</label>
+                        <input
+                          type="text"
+                          value={currentCategory.name_translations?.[lang.code] || ''}
+                          onChange={(e) => handleTranslationChange('name_translations', lang.code, e.target.value)}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500">Description</label>
+                        <textarea
+                          rows={2}
+                          value={currentCategory.description_translations?.[lang.code] || ''}
+                          onChange={(e) => handleTranslationChange('description_translations', lang.code, e.target.value)}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
+                Default Description
               </label>
               <textarea
                 id="description"
@@ -419,6 +488,19 @@ export default function CategoriesTab() {
                         <span>Slug: {category.slug}</span>
                         <span className="mx-1">•</span>
                         <span>Created: {new Date(category.created_at).toLocaleDateString()}</span>
+                      </div>
+                      {/* Show available translations */}
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {SUPPORTED_LANGUAGES.map(lang => (
+                          (category.name_translations?.[lang.code] || category.description_translations?.[lang.code]) && (
+                            <span 
+                              key={lang.code}
+                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800"
+                            >
+                              {lang.code.toUpperCase()}
+                            </span>
+                          )
+                        ))}
                       </div>
                     </div>
                   </div>

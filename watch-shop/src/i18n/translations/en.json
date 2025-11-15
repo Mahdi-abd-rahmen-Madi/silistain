@@ -420,6 +420,11 @@
       "empty": "No categories available"
     }
   },
+  "category": {
+    "no_products": "No products found in this category",
+    "not_found": "Category not found",
+    "product_count": "{{count}} {{count, plural, one{product} other{products}}} in this category"
+  },
   "footer": {
     "quick_links": "Quick Links",
     "shop": "Shop",

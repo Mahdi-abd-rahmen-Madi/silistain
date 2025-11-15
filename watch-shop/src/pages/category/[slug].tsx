@@ -4,8 +4,16 @@ import { supabase } from '../../lib/supabaseClient';
 import { Product, ProductImage } from '../../types/product';
 import { ProductCard } from '../../components/ProductCard';
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../hooks/use-toast';
+
+// Helper function to get translated field with fallback
+const getTranslatedField = (translations: any, field: string, fallback: string = '') => {
+  if (!translations) return fallback;
+  const lang = i18n.language.split('-')[0]; // Get base language code (e.g., 'en' from 'en-US')
+  return translations[lang] || translations['en'] || fallback;
+};
 
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -14,8 +22,10 @@ const CategoryPage = () => {
   const [category, setCategory] = useState<{
     id: string;
     name: string;
+    name_translations?: Record<string, string>;
     slug: string;
     description?: string;
+    description_translations?: Record<string, string>;
     image_url?: string;
     is_active: boolean;
   } | null>(null);
@@ -50,7 +60,7 @@ const CategoryPage = () => {
         // Fetch category by slug
         const { data: categoryData, error: categoryError } = await supabase
           .from('categories')
-          .select('*')
+          .select('*, name_translations, description_translations')
           .eq('slug', slug)
           .eq('is_active', true)
           .single();
@@ -98,14 +108,6 @@ const CategoryPage = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
   if (!category) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -114,22 +116,31 @@ const CategoryPage = () => {
     );
   }
 
+  // Get translated name and description
+  const translatedName = category.name_translations 
+    ? getTranslatedField(category.name_translations, 'name', category.name)
+    : category.name;
+    
+  const translatedDescription = category.description_translations && category.description
+    ? getTranslatedField(category.description_translations, 'description', category.description)
+    : category.description;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">{category.name}</h1>
+          <h1 className="text-3xl font-bold">{translatedName}</h1>
           {products.length > 0 && (
             <p className="text-gray-500 mt-2">
-              {products.length} {products.length === 1 ? 'product' : 'products'} in this category
+              {t('category.product_count', { count: products.length })}
             </p>
           )}
         </div>
       </div>
       
-      {category.description && (
+      {translatedDescription && (
         <div className="mb-8 text-gray-600">
-          <p>{category.description}</p>
+          <p>{translatedDescription}</p>
         </div>
       )}
 

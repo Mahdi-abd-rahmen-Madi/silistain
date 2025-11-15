@@ -111,6 +111,16 @@
   }
 }
 
+@media (min-width: 1024px) {
+  .product-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      display: flex;
+      gap: 1.5rem;
+  }
+}
+
+
+
 /* Feature Section */
 .feature-section {
   display: grid;
@@ -184,18 +194,6 @@
   .feature-description {
     display: block;
     margin-top: 0.25rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .product-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .product-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

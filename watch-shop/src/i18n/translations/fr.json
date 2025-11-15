@@ -449,6 +449,11 @@
       "empty": "Aucune catégorie disponible"
     }
   },
+  "category": {
+    "no_products": "Aucun produit trouvé dans cette catégorie",
+    "not_found": "Catégorie non trouvée",
+    "product_count": "{{count}} {{count, plural, =1{produit} other{produits}}} dans cette catégorie"
+  },
   "footer": {
     "quick_links": "Liens rapides",
     "shop": "Boutique",
