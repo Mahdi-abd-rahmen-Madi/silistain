@@ -114,7 +114,7 @@ const ProductDetailsPage: React.FC = () => {
     const message = `Hello! I'm interested in this product:\n\n*${productName}*\nPrice: ${productPrice}\n\nProduct Link: ${productUrl}`;
     
     // Replace with your WhatsApp number (include country code without +)
-    const phoneNumber = '21620033875'; // TODO: Replace with actual business WhatsApp number
+    const phoneNumber = '21655171771'; // TODO: Replace with actual business WhatsApp number
     const encodedMessage = encodeURIComponent(message);
     
     // Direct message URL - will prompt to open WhatsApp app or web
