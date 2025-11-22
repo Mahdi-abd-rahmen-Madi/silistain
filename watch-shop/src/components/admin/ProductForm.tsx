@@ -355,22 +355,31 @@ export default function ProductForm({
     const product = getProductById(productId);
     if (!product) return;
     
+    console.log('Product brand data:', {
+      productBrandId: product.brand_id,
+      productBrandName: product.brand,
+      availableBrands: brands.map(b => ({ id: b.id, name: b.name }))
+    });
+    
     // If we have a brand_id, try to find the corresponding brand
     if (product.brand_id) {
       const brand = brands.find(b => b.id === product.brand_id);
       if (brand) {
-        console.log('Updating selected brand from effect:', brand.id);
+        console.log('Updating selected brand from effect by ID:', brand);
+        // Update both the selected brand and form data
         setSelectedBrand(brand.id);
         setFormData(prev => ({
           ...prev,
           brand: brand.name,
           brand_id: brand.id
         }));
+      } else {
+        console.warn(`Brand with ID ${product.brand_id} not found in available brands`);
       }
     }
     // If we have a brand name but no ID, try to find the ID
     else if (product.brand) {
-      const brand = brands.find(b => b.name === product.brand);
+      const brand = brands.find(b => b.name.toLowerCase() === product.brand?.toLowerCase());
       if (brand) {
         console.log('Found brand by name in effect:', brand);
         setSelectedBrand(brand.id);
@@ -379,6 +388,8 @@ export default function ProductForm({
           brand: brand.name,
           brand_id: brand.id
         }));
+      } else {
+        console.warn(`Brand with name "${product.brand}" not found in available brands`);
       }
     }
   }, [brands, isEditing, productId, getProductById]);
@@ -404,14 +415,24 @@ export default function ProductForm({
   // Handle brand selection
   const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const brandId = e.target.value;
-    setSelectedBrand(brandId);
+    console.log('Brand changed to ID:', brandId);
     
     const brand = brands.find(b => b.id === brandId);
     if (brand) {
+      console.log('Updating form with brand:', brand);
+      setSelectedBrand(brand.id);
       setFormData(prev => ({
         ...prev,
         brand: brand.name,
         brand_id: brand.id
+      }));
+    } else {
+      console.log('Clearing brand selection');
+      setSelectedBrand('');
+      setFormData(prev => ({
+        ...prev,
+        brand: '',
+        brand_id: ''
       }));
     }
   };

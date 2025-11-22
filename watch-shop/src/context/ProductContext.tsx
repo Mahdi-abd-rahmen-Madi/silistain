@@ -605,8 +605,12 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         ...(updates.price !== undefined && { price: updates.price }),
         ...(updates.offPercentage !== undefined && { off_percentage: updates.offPercentage }),
         ...(originalPrice !== undefined && { original_price: originalPrice }),
-        // Include brand_id if it's in the updates
-        ...(updates.brand_id !== undefined && { brand_id: updates.brand_id }),
+        // Include brand and brand_id if they're in the updates
+        ...(updates.brand_id !== undefined && { 
+          brand_id: updates.brand_id,
+          // Only update the brand name if it's explicitly provided in updates
+          ...(updates.brand !== undefined && { brand: updates.brand })
+        }),
         ...(updates.price !== undefined && { 
           price: typeof updates.price === 'string' 
             ? (updates.price === '' ? 0 : parseFloat(updates.price) || 0)
