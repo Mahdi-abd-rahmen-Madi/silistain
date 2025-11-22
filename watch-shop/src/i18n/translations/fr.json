@@ -23,8 +23,8 @@
   "features": {
     "free_shipping": "Livraison gratuite",
     "free_shipping_desc": "Sur toutes les commandes de plus de 300 dinars",
-    "warranty": "Garantie 2 ans",
-    "warranty_desc": "Qualité garantie",
+    "warranty": "Garantie de 3 mois",
+    "warranty_desc": "Garantie de 3 mois",
     "secure_payment": "Paiement sécurisé",
     "secure_payment_desc": "Paiement 100% sécurisé",
     "support": "Support 24/7",
@@ -203,8 +203,8 @@
     "features": {
       "free_shipping": "Livraison gratuite",
       "free_shipping_desc": "Livraison gratuite pour toutes les commandes",
-      "warranty": "Garantie de 2 ans",
-      "warranty_desc": "Chaque montre est garantie 2 ans",
+      "warranty": "Garantie de 3 mois",
+      "warranty_desc": "Chaque montre est livrée avec une garantie de 3 mois",
       "authentic": "Produits authentiques",
       "authentic_desc": "Montres 100% authentiques des meilleures marques"
     }
@@ -382,8 +382,7 @@
       "back_to_products": "Retour aux produits",
       "free_shipping": "Livraison gratuite",
       "free_shipping_desc": "Sur toutes les commandes de plus de 300 dinars",
-      "warranty": "Garantie 2 ans",
-      "warranty_desc": "Qualité garantie",
+      "warranty": "Garantie de 3 mois",
       "secure_payment": "Paiement sécurisé",
       "secure_payment_desc": "Paiement 100% sécurisé",
       "in_stock": "En stock",

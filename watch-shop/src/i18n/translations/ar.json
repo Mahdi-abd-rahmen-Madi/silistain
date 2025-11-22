@@ -25,8 +25,8 @@
   "features": {
     "free_shipping": "شحن مجاني",
     "free_shipping_desc": "لجميع الطلبات فوق 300 دينار",
-    "warranty": "ضمان لمدة سنتين",
-    "warranty_desc": "جودة مضمونة",
+    "warranty": "ضمان لمدة 3 أشهر",
+    "warranty_desc": "ضمان لمدة 3 أشهر",
     "secure_payment": "دفع آمن",
     "secure_payment_desc": "%دفع آمن بنسبة 100",
     "support": "دعم فني على مدار الساعة",
@@ -173,8 +173,8 @@
     "features": {
       "free_shipping": "شحن مجاني",
       "free_shipping_desc": "شحن مجاني لجميع الطلبات",
-      "warranty": "ضمان لمدة سنتين",
-      "warranty_desc": "كل ساعة تأتي مع ضمان لمدة سنتين",
+      "warranty": "ضمان لمدة 3 أشهر",
+      "warranty_desc": "كل ساعة تأتي مع ضمان لمدة 3 أشهر",
       "authentic": "منتجات أصلية",
       "authentic_desc": "ساعات أصلية 100٪ من أشهر الماركات"
     }
@@ -247,6 +247,7 @@
     "title": "إتمام الطلب",
     "back_to_cart": "العودة إلى السلة",
     "billing_details": "تفاصيل الفاتورة",
+    "show_form": "عرض نموذج الدفع",
     "payment_method": "طريقة الدفع",
     "selectOnMap": "تحديد على الخريطة",
     "hideMap": "إخفاء الخريطة",
@@ -360,6 +361,9 @@
       "features": "المميزات"
     },
     "recommended": "منتجات مقترحة",
+    "similar_products": "منتجات مشابهة",
+    "you_may_also_like": "قد يعجبك أيضاً",
+    "recently_viewed": "شوهدت مؤخراً",
     "not_found": {
       "title": "المنتج غير موجود",
       "description": "لم يتم العثور على المنتج المطلوب.",
@@ -369,8 +373,9 @@
       "back_to_products": "العودة إلى المنتجات",
       "free_shipping": "شحن مجاني",
       "free_shipping_desc": "لجميع الطلبات فوق 300 دينار",
-      "warranty": "ضمان لمدة سنتين",
-      "warranty_desc": "جودة مضمونة",
+      "warranty": "ضمان لمدة 3 أشهر",
+      "whatsapp_cta": "تواصل معنا على واتساب",
+      "whatsapp_description": "انقر للدردشة معنا حول هذا المنتج",
       "secure_payment": "دفع آمن",
       "secure_payment_desc": "%دفع آمن بنسبة 100",
       "in_stock": "متوفر في المخزون",

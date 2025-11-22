@@ -25,8 +25,8 @@
   "features": {
     "free_shipping": "Free Shipping",
     "free_shipping_desc": "On all orders over 300 TND",
-    "warranty": "2-Year Warranty",
-    "warranty_desc": "Guaranteed quality",
+    "warranty": "3-Month Warranty",
+    "warranty_desc": "3 months guarantee",
     "secure_payment": "Secure Payment",
     "secure_payment_desc": "100% secure payment",
     "support": "24/7 Support",
@@ -166,8 +166,8 @@
     "features": {
       "free_shipping": "Free Shipping",
       "free_shipping_desc": "Free shipping on all orders",
-      "warranty": "2-Year Warranty",
-      "warranty_desc": "Every watch comes with a 2-year warranty",
+      "warranty": "3-Month Warranty",
+      "warranty_desc": "Every watch comes with a 3-month warranty",
       "authentic": "Authentic Products",
       "authentic_desc": "100% authentic watches from top brands"
     },
@@ -229,6 +229,7 @@
     "title": "Checkout",
     "back_to_cart": "Back to Cart",
     "billing_details": "Billing Details",
+    "show_form": "Show Checkout Form",
     "selectOnMap": "Select on Map",
     "hideMap": "Hide Map",
     "address": "Address",
@@ -344,6 +345,9 @@
       "features": "Features"
     },
     "recommended": "Recommended Products",
+    "similar_products": "Similar Products",
+    "you_may_also_like": "You May Also Like",
+    "recently_viewed": "Recently Viewed",
     "not_found": {
       "title": "Product not found",
       "description": "The requested product could not be found.",
@@ -353,8 +357,9 @@
       "back_to_products": "Back to Products",
       "free_shipping": "Free Shipping",
       "free_shipping_desc": "On all orders over 300 TND",
-      "warranty": "2-Year Warranty",
-      "warranty_desc": "Guaranteed quality",
+      "warranty": "3-Month Warranty",
+      "whatsapp_cta": "Contact Us on WhatsApp",
+      "whatsapp_description": "Click to chat with us about this product",
       "secure_payment": "Secure Payment",
       "secure_payment_desc": "100% secure payment",
       "in_stock": "In Stock",

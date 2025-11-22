@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Loader2,
   CreditCard,
+  MessageCircle
 } from 'lucide-react';
 import { Product } from '../types/product';
 import { useCart } from '../context/CartContext';
@@ -16,6 +17,7 @@ import { useProducts } from '../context/ProductContext';
 import FavoriteButton from '../components/FavoriteButton';
 import { formatPrice } from '../lib/utils';
 import ProductCard from '../components/ProductCard';
+import RecommendedProducts from '../components/RecommendedProducts';
 import { useTranslation } from 'react-i18next';
 import Checkout from './Checkout'; // Adjust path if needed
 
@@ -28,6 +30,7 @@ const ProductDetailsPage: React.FC = () => {
   const { products, loading, getProductById } = useProducts();
   const [selectedImage, setSelectedImage] = useState(0);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+  const [isCheckoutExpanded, setIsCheckoutExpanded] = useState(false);
 
   const currentProduct = id ? getProductById(id) : null;
 
@@ -101,12 +104,21 @@ const ProductDetailsPage: React.FC = () => {
 
   const displayImages = getProductImages(currentProduct);
 
-  const handleAddToCart = () => {
-    addToCart({ ...currentProduct, quantity: 1 });
-    toast({
-      title: t('cart.added_to_cart'),
-      description: t('cart.item_added', { name: currentProduct.name }),
-    });
+  const handleWhatsAppClick = () => {
+    if (!currentProduct) return;
+    
+    // Construct WhatsApp message with product details
+    const productName = currentProduct.name;
+    const productPrice = formatPrice(currentProduct.price);
+    const productUrl = window.location.href;
+    const message = `Hello! I'm interested in this product:\n\n*${productName}*\nPrice: ${productPrice}\n\nProduct Link: ${productUrl}`;
+    
+    // Replace with your WhatsApp number
+    const phoneNumber = '1234567890'; // TODO: Replace with actual business WhatsApp number
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -208,96 +220,96 @@ const ProductDetailsPage: React.FC = () => {
                 </div>
 
                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-blue-700 mb-2">
+                  <div className="flex items-center gap-2 text-blue-700">
                     <ShieldCheck className="w-5 h-5" />
                     <span className="font-medium">{t('product.details.warranty')}</span>
                   </div>
-                  <p className="text-sm text-blue-700">{t('product.details.warranty_desc')}</p>
                 </div>
 
-                <div className="bg-purple-50 border border-purple-100 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-purple-700 mb-2">
-                    <CreditCard className="w-5 h-5" />
-                    <span className="font-medium">{t('product.details.secure_payment')}</span>
-                  </div>
-                  <p className="text-sm text-purple-700">{t('product.details.secure_payment_desc')}</p>
-                </div>
               </div>
 
-              {/* Dynamic Specifications */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-3">{t('product.details.specifications')}</h3>
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {Object.entries(currentProduct.specifications || {}).map(([key, value]) => (
-                        <tr key={key} className="border-b last:border-b-0 hover:bg-gray-50">
-                          <td className="px-4 py-2 text-gray-600 capitalize">{key}:</td>
-                          <td className="px-4 py-2 font-medium">{String(value)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Fixed Specifications Table */}
+              {/* Specifications Table */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">{t('product.specifications.title')}</h3>
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full text-sm">
+                <div className="border rounded-lg overflow-hidden text-sm">
+                  <table className="w-full">
                     <tbody>
                       <tr className="border-b hover:bg-gray-50">
-                        <td className="px-4 py-3 text-gray-600 w-1/3">{t('product.specifications.brand')}</td>
-                        <td className="px-4 py-3 font-medium">{currentProduct.brand || t('product.unknown_brand')}</td>
+                        <td className="px-3 py-2 text-gray-600 w-1/3">{t('product.specifications.brand')}</td>
+                        <td className="px-3 py-2 font-medium">{currentProduct.brand || t('product.unknown_brand')}</td>
                       </tr>
                       <tr className="border-b hover:bg-gray-50">
-                        <td className="px-4 py-3 text-gray-600">{t('product.specifications.model')}</td>
-                        <td className="px-4 py-3 font-medium">{currentProduct.model || '-'}</td>
+                        <td className="px-3 py-2 text-gray-600">{t('product.specifications.model')}</td>
+                        <td className="px-3 py-2 font-medium">{currentProduct.model || '-'}</td>
                       </tr>
                       <tr className="border-b hover:bg-gray-50">
-                        <td className="px-4 py-3 text-gray-600">{t('product.specifications.movement')}</td>
-                        <td className="px-4 py-3 font-medium">{currentProduct.movementType || 'Quartz'}</td>
+                        <td className="px-3 py-2 text-gray-600">{t('product.specifications.movement')}</td>
+                        <td className="px-3 py-2 font-medium">{currentProduct.movementType || 'Quartz'}</td>
                       </tr>
                       <tr className="border-b hover:bg-gray-50">
-                        <td className="px-4 py-3 text-gray-600">{t('product.specifications.case_material')}</td>
-                        <td className="px-4 py-3 font-medium">{currentProduct.caseMaterial || 'Stainless Steel'}</td>
+                        <td className="px-3 py-2 text-gray-600">{t('product.specifications.case_material')}</td>
+                        <td className="px-3 py-2 font-medium">{currentProduct.caseMaterial || 'Stainless Steel'}</td>
                       </tr>
                       <tr className="border-b hover:bg-gray-50">
-                        <td className="px-4 py-3 text-gray-600">{t('product.specifications.band_material')}</td>
-                        <td className="px-4 py-3 font-medium">{currentProduct.bandMaterial || 'Stainless Steel'}</td>
+                        <td className="px-3 py-2 text-gray-600">{t('product.specifications.band_material')}</td>
+                        <td className="px-3 py-2 font-medium">{currentProduct.bandMaterial || 'Stainless Steel'}</td>
                       </tr>
-                      <tr className="border-b hover:bg-gray-50">
-                        <td className="px-4 py-3 text-gray-600">{t('product.specifications.water_resistance')}</td>
-                        <td className="px-4 py-3 font-medium">{currentProduct.waterResistance || '50m'}</td>
+                      <tr className="hover:bg-gray-50">
+                        <td className="px-3 py-2 text-gray-600">{t('product.specifications.water_resistance')}</td>
+                        <td className="px-3 py-2 font-medium">{currentProduct.waterResistance || '50m'}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              {/* CTA Buttons */}
+              {/* WhatsApp CTA Button */}
               <div className="space-y-3 mb-8">
                 <Button
-                  onClick={handleAddToCart}
-                  className="w-full py-4 text-lg flex items-center justify-center gap-2"
+                  onClick={handleWhatsAppClick}
+                  className="w-full py-4 text-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
                 >
-                  <ShoppingCart className="w-5 h-5" />
-                  {t('product.details.add_to_cart')}
+                  <MessageCircle className="w-5 h-5" />
+                  {t('product.details.whatsapp_cta')}
                 </Button>
+                <p className="text-center text-sm text-gray-600">
+                  {t('product.details.whatsapp_description')}
+                </p>
               </div>
             </div>
 
             {/* Embedded Checkout Form */}
             <div className="bg-gray-50 p-6 rounded-xl border">
-              <h2 className="text-xl font-bold mb-4">{t('checkout.title')}</h2>
-              <Checkout
-                embedded={true}
-                product={currentProduct}
-                onOrderSuccess={() => {
-                  // Optional: handle post-order logic
-                }}
-              />
+              <div className="md:hidden mb-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCheckoutExpanded(!isCheckoutExpanded)}
+                  className="w-full"
+                >
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  {isCheckoutExpanded 
+                    ? t('checkout.hide_form') 
+                    : t('checkout.show_form', { price: formatPrice(currentProduct.price) })
+                  }
+                </Button>
+              </div>
+              
+              <div className={`${isCheckoutExpanded ? 'block' : 'hidden'} md:block`}>
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold">{t('checkout.title')}</h2>
+                  <p className="text-gray-600 text-sm">
+                    {t('checkout.description', { productName: currentProduct.name })}
+                  </p>
+                </div>
+                
+                <Checkout
+                  embedded={true}
+                  product={currentProduct}
+                  onOrderSuccess={() => {
+                    // Optional: handle post-order logic
+                  }}
+                />
+              </div>
             </div>
           </div>
 
@@ -318,21 +330,12 @@ const ProductDetailsPage: React.FC = () => {
           </div>
 
           {/* Recommended Products */}
-          {similarProducts.length > 0 && (
-            <div className="mb-16">
-              <h2 className="text-2xl font-bold mb-6">{t('product.recommended')}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {similarProducts.slice(0, 4).map((product) => (
-                  <div key={product.id} className="h-full">
-                    <ProductCard
-                      product={product}
-                      onAddToCart={(p) => addToCart({ ...p, quantity: 1 })}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="mt-16">
+            <RecommendedProducts 
+              products={products} 
+              currentProductId={currentProduct.id} 
+            />
+          </div>
         </>
       )}
     </div>
