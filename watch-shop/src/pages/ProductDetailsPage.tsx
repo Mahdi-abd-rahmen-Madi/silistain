@@ -113,13 +113,16 @@ const ProductDetailsPage: React.FC = () => {
     const productUrl = window.location.href;
     const message = `Hello! I'm interested in this product:\n\n*${productName}*\nPrice: ${productPrice}\n\nProduct Link: ${productUrl}`;
     
-    // Replace with your WhatsApp number
-    const phoneNumber = '21655171771'; // TODO: Replace with actual business WhatsApp number
+    // Replace with your WhatsApp number (include country code without +)
+    const phoneNumber = '21620033875'; // TODO: Replace with actual business WhatsApp number
     const encodedMessage = encodeURIComponent(message);
+    
+    // Direct message URL - will prompt to open WhatsApp app or web
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     
+    // Attempt to open WhatsApp directly
     window.open(whatsappUrl, '_blank');
-  };
+  };;
 
   return (
     <div className="container mx-auto px-4 py-8">
