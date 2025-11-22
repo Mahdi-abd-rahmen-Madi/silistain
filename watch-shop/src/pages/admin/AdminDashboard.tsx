@@ -8,6 +8,7 @@ import { OrdersTab } from '../../components/admin/OrdersTab';
 import { ProductDropsManager } from '../../components/admin/ProductDropsManager';
 import UsersTab from '../../components/admin/UsersTab';
 import CategoriesTab from '../../components/admin/CategoriesTab';
+import { BrandsTab } from '../../components/admin/BrandsTab';
 import ProductList from '../../components/admin/ProductList';
 import { fetchMunicipalities } from '../../services/locationService';
 import { supabase, getAdminClient } from '../../lib/supabaseClient';
@@ -27,7 +28,7 @@ export default function AdminDashboard({}: AdminDashboardProps) {
     refreshProducts
   } = useProducts();
   
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'drops' | 'categories'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'users' | 'drops' | 'categories' | 'brands'>('products');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
@@ -350,42 +351,20 @@ const handleUpdateOrder = useCallback(async (updatedOrder: Order) => {
         {/* Tabs */}
         <div className="relative">
           <div className="overflow-x-auto pb-1 -mx-2 sm:mx-0">
-            <nav className="-mb-px flex space-x-4 overflow-x-auto">
-              <button
-                type="button"
-                onClick={() => setActiveTab('products')}
-                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'products' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              >
-                Products
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('categories')}
-                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'categories' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              >
-                Categories
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('orders')}
-                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'orders' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              >
-                Orders
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('users')}
-                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'users' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              >
-                Users
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('drops')}
-                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'drops' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              >
-                Product Drops
-              </button>
+            <nav className="-mb-px flex space-x-8 overflow-x-auto" aria-label="Tabs">
+              {['products', 'brands', 'categories', 'orders', 'users', 'drops'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab as any)}
+                  className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab
+                      ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
             </nav>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-200 -z-10"></div>
@@ -397,6 +376,7 @@ const handleUpdateOrder = useCallback(async (updatedOrder: Order) => {
               <ProductList />
             </div>
           )}
+          {activeTab === 'brands' && <BrandsTab />}
           {activeTab === 'categories' && <CategoriesTab />}
           {activeTab === 'orders' && (
             <OrdersTab 
