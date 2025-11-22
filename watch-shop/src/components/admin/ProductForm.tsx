@@ -47,8 +47,13 @@ export default function ProductForm({
   const [formData, setFormData] = useState<ProductFormData>(initialData || initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [brands, setBrands] = useState<string[]>([]);
+  interface BrandOption {
+    id: string;
+    name: string;
+  }
+  const [brands, setBrands] = useState<BrandOption[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
@@ -152,23 +157,36 @@ export default function ProductForm({
     }
   }, []);
 
-  // Fetch existing brands
+  // Fetch brands from brands table
   const fetchBrands = useCallback(async () => {
     try {
       setIsLoadingBrands(true);
       const { data, error } = await supabase
-        .from('products')
-        .select('brand')
-        .not('brand', 'is', null)
-        .not('brand', 'eq', '');
+        .from('brands')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
       
       if (error) throw error;
       
-      // Get unique brands and sort them
-      const uniqueBrands = [...new Set((data as { brand: string }[]).map(item => item.brand))].sort() as string[];
-      setBrands(uniqueBrands);
+      // Map to array of brand objects
+      const brandOptions = data.map(brand => ({
+        id: brand.id,
+        name: brand.name
+      }));
+      
+      setBrands(brandOptions);
+      
+      // If we're editing and have a product with a brand, set it as selected
+      if (isEditing && initialData?.brand) {
+        const brand = brandOptions.find(b => b.name === initialData.brand || b.id === initialData.brand);
+        if (brand) {
+          setSelectedBrand(brand.id);
+        }
+      }
     } catch (err) {
       console.error('Error fetching brands:', err);
+      setError('Failed to load brands');
     } finally {
       setIsLoadingBrands(false);
     }
@@ -318,13 +336,9 @@ export default function ProductForm({
     // Include all dependencies that are used in the effect
   }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchBrands, fetchCategories]);
 
+  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    
-    if (type === 'file') {
-      // Handle file uploads separately
-      return;
-    }
+    const { name, value, type } = e.target as HTMLInputElement;
     
     if (type === 'checkbox') {
       const target = e.target as HTMLInputElement;
@@ -336,6 +350,20 @@ export default function ProductForm({
       setFormData(prev => ({
         ...prev,
         [name]: type === 'number' ? (value === '' ? '' : parseFloat(value)) : value,
+      }));
+    }
+  };
+
+  // Handle brand selection
+  const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const brandId = e.target.value;
+    setSelectedBrand(brandId);
+    
+    const brand = brands.find(b => b.id === brandId);
+    if (brand) {
+      setFormData(prev => ({
+        ...prev,
+        brand: brand.name
       }));
     }
   };
@@ -565,26 +593,26 @@ export default function ProductForm({
                   Brand
                 </label>
                 <div className="mt-1">
-                  <input
-                    type="text"
+                  <select
                     id="brand"
                     name="brand"
-                    value={formData.brand || ''}
-                    onChange={handleChange}
-                    list="brands-list"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm sm:text-base"
-                    placeholder="Enter brand name"
-                  />
-                  <datalist id="brands-list">
-                    {!isLoadingBrands && brands.map((brand, index) => (
-                      <option key={index} value={brand} />
+                    value={selectedBrand}
+                    onChange={handleBrandChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    disabled={isLoadingBrands}
+                  >
+                    <option value="">Select a brand</option>
+                    {brands.map((brand) => (
+                      <option key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </option>
                     ))}
-                  </datalist>
+                  </select>
                   {isLoadingBrands && (
                     <p className="mt-1 text-xs text-gray-500">Loading brands...</p>
                   )}
                   {!isLoadingBrands && brands.length === 0 && (
-                    <p className="mt-1 text-xs text-gray-500">No brands found. Start typing to add a new one.</p>
+                    <p className="mt-1 text-xs text-gray-500">No brands found. Please add brands first.</p>
                   )}
                 </div>
               </div>
