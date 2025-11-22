@@ -243,45 +243,26 @@ export default function ProductForm({
         // Handle images - support multiple image URLs (image_url_1 through image_url_5) and legacy imageUrl/fields
         let images: ProductImage[] = [];
         
-        // Get all image URLs from the product
+        // Get all image URLs from the product and filter out any null/undefined values
         const imageUrls = [
           product.image_url_1,
           product.image_url_2,
           product.image_url_3,
           product.image_url_4,
-          product.image_url_5
-        ].filter(Boolean) as string[];
-        
-        // If we have no image URLs but have a legacy imageUrl, use that
-        if (imageUrls.length === 0 && product.imageUrl) {
-          imageUrls.push(product.imageUrl);
-        }
-        
-        // Create image objects from the URLs
-        images = imageUrls.map((url, index) => ({
-          url,
-          isPrimary: index === 0, // First image is primary by default
-          order: index,
-          preview: url
-        }));
-        
-        // If we also have an images array, merge them (excluding duplicates)
-        if (Array.isArray(product.images) && product.images.length > 0) {
-          const existingUrls = new Set(images.map(img => img.url));
-          let order = images.length;
-          
-          product.images.forEach(img => {
-            if (img.url && !existingUrls.has(img.url)) {
-              images.push({
-                ...img,
-                preview: img.preview || img.url,
-                order: order++,
-                isPrimary: img.isPrimary || false
-              });
-            }
-          });
-        } else if (images.length === 0 && product.imageUrl) {
-          // If we still have no images, use the legacy imageUrl if it exists
+          product.image_url_5,
+        ].filter((url): url is string => Boolean(url));
+
+        // If we have image URLs, use them
+        if (imageUrls.length > 0) {
+          images = imageUrls.map((url, index) => ({
+            url: url, // url is guaranteed to be string here due to the filter
+            isPrimary: index === 0,
+            order: index,
+            preview: url
+          }));
+        } 
+        // Fall back to the legacy imageUrl field if no image_url_X fields
+        else if (product.imageUrl) {
           images = [{
             url: product.imageUrl,
             isPrimary: true,
@@ -290,13 +271,13 @@ export default function ProductForm({
           }];
         }
         
-        // Get the latest categories to ensure we have the most up-to-date list
+        // Get the latest categories in case they've been updated
         const { data: latestCategories } = await supabase
           .from('categories')
-          .select('*')
-          .order('name', { ascending: true });
-        
-        // Ensure the category is set to the name, not the ID
+          .select('id, name')
+          .eq('is_active', true);
+          
+        // Find the category name using either ID or name
         const categoryName = latestCategories?.find(cat => 
           cat.id === product.category || cat.name === product.category
         )?.name || product.category;
@@ -327,12 +308,30 @@ export default function ProductForm({
         
         // Set the selected brand if it exists
         if (product.brand_id) {
+          console.log('Setting selected brand from product.brand_id:', product.brand_id);
           setSelectedBrand(product.brand_id);
+          
+          // Also update the form data with the brand name if we have it
+          const brand = brands.find(b => b.id === product.brand_id);
+          if (brand) {
+            setFormData(prev => ({
+              ...prev,
+              brand: brand.name,
+              brand_id: brand.id
+            }));
+          }
         } else if (product.brand) {
           // If we have a brand name but no ID, try to find the ID
+          console.log('Looking up brand by name:', product.brand);
           const brand = brands.find(b => b.name === product.brand);
           if (brand) {
+            console.log('Found matching brand:', brand);
             setSelectedBrand(brand.id);
+            setFormData(prev => ({
+              ...prev,
+              brand: brand.name,
+              brand_id: brand.id
+            }));
           }
         }
       } catch (err) {
@@ -343,10 +342,46 @@ export default function ProductForm({
     };
     
     loadProduct();
-    fetchBrands();
     fetchCategories();
+    // We'll fetch brands separately to avoid dependency issues
+    fetchBrands();
     // Include all dependencies that are used in the effect
-  }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchBrands, fetchCategories]);
+  }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchCategories]);
+  
+  // Separate effect to handle brand selection after brands are loaded
+  useEffect(() => {
+    if (!isEditing || !productId || brands.length === 0) return;
+    
+    const product = getProductById(productId);
+    if (!product) return;
+    
+    // If we have a brand_id, try to find the corresponding brand
+    if (product.brand_id) {
+      const brand = brands.find(b => b.id === product.brand_id);
+      if (brand) {
+        console.log('Updating selected brand from effect:', brand.id);
+        setSelectedBrand(brand.id);
+        setFormData(prev => ({
+          ...prev,
+          brand: brand.name,
+          brand_id: brand.id
+        }));
+      }
+    }
+    // If we have a brand name but no ID, try to find the ID
+    else if (product.brand) {
+      const brand = brands.find(b => b.name === product.brand);
+      if (brand) {
+        console.log('Found brand by name in effect:', brand);
+        setSelectedBrand(brand.id);
+        setFormData(prev => ({
+          ...prev,
+          brand: brand.name,
+          brand_id: brand.id
+        }));
+      }
+    }
+  }, [brands, isEditing, productId, getProductById]);
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
