@@ -311,6 +311,7 @@ export default function ProductForm({
           offPercentage: product.offPercentage || 0,
           category: categoryName || '',
           brand: product.brand || '',
+          brand_id: product.brand_id || '',
           stock: product.stock || product.stock_quantity || 0,
           featured: product.featured || false
         };
@@ -323,6 +324,17 @@ export default function ProductForm({
         
         console.log('Formatted product data:', formattedData);
         setFormData(formattedData);
+        
+        // Set the selected brand if it exists
+        if (product.brand_id) {
+          setSelectedBrand(product.brand_id);
+        } else if (product.brand) {
+          // If we have a brand name but no ID, try to find the ID
+          const brand = brands.find(b => b.name === product.brand);
+          if (brand) {
+            setSelectedBrand(brand.id);
+          }
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load product data';
         console.error('Error loading product:', errorMessage, err);
@@ -363,7 +375,8 @@ export default function ProductForm({
     if (brand) {
       setFormData(prev => ({
         ...prev,
-        brand: brand.name
+        brand: brand.name,
+        brand_id: brand.id
       }));
     }
   };
@@ -381,9 +394,15 @@ export default function ProductForm({
       setIsSubmitting(true);
       setError('');
 
+      // Get the selected brand data
+      const selectedBrandData = brands.find(brand => brand.id === selectedBrand);
+      
       // Process the form data before submission
       const submissionData = {
         ...formData,
+        // Include both brand_id and brand for backward compatibility
+        brand_id: selectedBrand,
+        brand: selectedBrandData?.name || formData.brand,
         // Ensure images have proper order and primary flag
         images: formData.images?.map((img, index) => ({
           ...img,
