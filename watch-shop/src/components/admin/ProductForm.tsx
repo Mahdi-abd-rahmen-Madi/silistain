@@ -208,6 +208,17 @@ export default function ProductForm({
                 }]
               : initialData.images || []
           });
+          
+          // If we have initial data with a brand, set the selected brand
+          if (initialData.brand_id) {
+            setSelectedBrand(initialData.brand_id);
+          } else if (initialData.brand) {
+            // If we only have the brand name, try to find the ID
+            const brand = brands.find(b => b.name === initialData.brand);
+            if (brand) {
+              setSelectedBrand(brand.id);
+            }
+          }
         }
         return;
       }
@@ -348,25 +359,18 @@ export default function ProductForm({
     // Include all dependencies that are used in the effect
   }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchCategories]);
   
-  // Separate effect to handle brand selection after brands are loaded
+  // Effect to handle brand selection when brands or product changes
   useEffect(() => {
-    if (!isEditing || !productId || brands.length === 0) return;
+    if (brands.length === 0) return;
     
-    const product = getProductById(productId);
-    if (!product) return;
+    // If we're editing and have a product ID, get the product
+    const product = isEditing && productId ? getProductById(productId) : null;
     
-    console.log('Product brand data:', {
-      productBrandId: product.brand_id,
-      productBrandName: product.brand,
-      availableBrands: brands.map(b => ({ id: b.id, name: b.name }))
-    });
-    
-    // If we have a brand_id, try to find the corresponding brand
-    if (product.brand_id) {
+    // If we have a product with a brand_id, try to find the brand
+    if (product?.brand_id) {
       const brand = brands.find(b => b.id === product.brand_id);
       if (brand) {
-        console.log('Updating selected brand from effect by ID:', brand);
-        // Update both the selected brand and form data
+        console.log('Setting brand from product.brand_id:', brand);
         setSelectedBrand(brand.id);
         setFormData(prev => ({
           ...prev,
@@ -375,21 +379,26 @@ export default function ProductForm({
         }));
       } else {
         console.warn(`Brand with ID ${product.brand_id} not found in available brands`);
+        // If brand not found but we have a brand name, keep it
+        setSelectedBrand('');
+        setFormData(prev => ({
+          ...prev,
+          brand: product.brand || '',
+          brand_id: product.brand_id
+        }));
       }
-    }
-    // If we have a brand name but no ID, try to find the ID
-    else if (product.brand) {
+    } 
+    // If we don't have a brand_id but have a brand name, try to find it
+    else if (product?.brand) {
       const brand = brands.find(b => b.name.toLowerCase() === product.brand?.toLowerCase());
       if (brand) {
-        console.log('Found brand by name in effect:', brand);
+        console.log('Found brand by name:', brand);
         setSelectedBrand(brand.id);
         setFormData(prev => ({
           ...prev,
           brand: brand.name,
           brand_id: brand.id
         }));
-      } else {
-        console.warn(`Brand with name "${product.brand}" not found in available brands`);
       }
     }
   }, [brands, isEditing, productId, getProductById]);
@@ -435,6 +444,9 @@ export default function ProductForm({
         brand_id: ''
       }));
     }
+    
+    // Force a re-render to ensure the UI updates
+    setFormData(prev => ({ ...prev }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
