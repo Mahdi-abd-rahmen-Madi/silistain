@@ -605,6 +605,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         ...(updates.price !== undefined && { price: updates.price }),
         ...(updates.offPercentage !== undefined && { off_percentage: updates.offPercentage }),
         ...(originalPrice !== undefined && { original_price: originalPrice }),
+        // Include brand_id if it's in the updates
+        ...(updates.brand_id !== undefined && { brand_id: updates.brand_id }),
         ...(updates.price !== undefined && { 
           price: typeof updates.price === 'string' 
             ? (updates.price === '' ? 0 : parseFloat(updates.price) || 0)
