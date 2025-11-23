@@ -20,6 +20,7 @@ export interface Product
     | 'featured'     // Normalize naming
     | 'stock'        // Use stock_quantity consistently
   > {
+  brand?: string; // e.g., "SKMEI", "Curren", etc.
   // ✅ PRICING — clear separation
   price: number;                // ← current/sale price (what user pays)
   original_price?: number | null; // ← original/MSRP price (for strikethrough)

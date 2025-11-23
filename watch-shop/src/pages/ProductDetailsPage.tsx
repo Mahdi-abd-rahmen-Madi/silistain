@@ -170,6 +170,9 @@ const ProductDetailsPage: React.FC = () => {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h1 className="text-3xl font-bold">{currentProduct.name}</h1>
+                  {currentProduct.brand && (
+                    <p className="text-lg text-gray-600">{currentProduct.brand}</p>
+                  )}
 
                   {/* 🔹 Discount-aware price display */}
                   <div className="mt-2">
@@ -239,7 +242,11 @@ const ProductDetailsPage: React.FC = () => {
                     <tbody>
                       <tr className="border-b hover:bg-gray-50">
                         <td className="px-3 py-2 text-gray-600 w-1/3">{t('product.specifications.brand')}</td>
-                        <td className="px-3 py-2 font-medium">{currentProduct.brand || t('product.unknown_brand')}</td>
+                        <td className="px-3 py-2 font-medium">
+                          {currentProduct.brand && currentProduct.brand.trim() !== ''
+                            ? currentProduct.brand
+                            : t('product.unknown_brand')}
+                        </td>
                       </tr>
                       <tr className="border-b hover:bg-gray-50">
                         <td className="px-3 py-2 text-gray-600">{t('product.specifications.model')}</td>

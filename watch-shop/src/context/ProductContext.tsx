@@ -102,6 +102,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
           imageUrl: item.image_url || '',
           images: allImageUrls,
           category: item.category || 'other',
+          brand: item.brand || undefined,        // ← This is critical!
+          brand_id: item.brand_id || undefined,  // ← Optional, but good for completeness
           // Required properties from Product interface
           stock_quantity: item.stock_quantity || 0,
           is_featured: Boolean(item.is_featured),
@@ -239,6 +241,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
             imageUrl: item.image_url || '',
             images: allImageUrls,
             category: item.category || 'other',
+            brand: item.brand || undefined,        // ← This is critical!
+            brand_id: item.brand_id || undefined,  // ← Optional, but good for completeness
             // Required properties from Product interface
             stock_quantity: item.stock_quantity || 0,
             is_featured: Boolean(item.is_featured),
