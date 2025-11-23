@@ -5,6 +5,7 @@ import { Button } from './ui/Button';
 import { toast } from '../hooks/use-toast';
 import { Product } from '../types/product';
 import { formatPrice } from '../lib/utils';
+import { CachedImage } from './ui/CachedImage';
 
 interface QuickViewProps {
   product: Product & {
@@ -73,7 +74,7 @@ export function QuickView({ product, onAddToCart }: QuickViewProps) {
             {/* Product Images */}
             <div className="relative p-6">
               <div className="aspect-square overflow-hidden rounded-lg bg-gray-50">
-                <img
+                <CachedImage
                   src={mainImageUrl}
                   alt={product.name}
                   className="h-full w-full object-cover object-center"
@@ -90,8 +91,8 @@ export function QuickView({ product, onAddToCart }: QuickViewProps) {
                       }`}
                       onClick={() => setSelectedImage(index)}
                     >
-                      <img
-                        src={img.url}
+                      <CachedImage
+                        src={img}
                         alt={`${product.name} - ${index + 1}`}
                         className="h-full w-full object-cover object-center"
                       />

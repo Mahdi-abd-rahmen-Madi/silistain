@@ -8,6 +8,7 @@ import { useToast } from '../hooks/use-toast';
 import FavoriteButton from './FavoriteButton';
 import { Product } from '../types/product';
 import { useTranslation } from 'react-i18next';
+import { CachedImage } from './ui/CachedImage';
 
 interface ProductCardProps {
   product: Product;
@@ -139,8 +140,8 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             pointerEvents: 'none'
           }}
         />
-        <img
-          src={product.images?.[0]?.url || product.imageUrl || '/placeholder-watch.jpg'}
+        <CachedImage
+          src={product.images?.[0] || product.imageUrl}
           alt={product.name}
           className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105 select-none"
           draggable="false"

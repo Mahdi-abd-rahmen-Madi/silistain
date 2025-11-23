@@ -6,6 +6,7 @@ import { useState, useMemo } from 'react';
 import { ProductImage } from '../types/product';
 import { useTranslation } from 'react-i18next';
 import { formatPrice } from '../lib/utils';
+import { CachedImage } from './ui/CachedImage';
 
 interface OrderCardProps {
   order: Order;
@@ -115,16 +116,10 @@ export function OrderCard({ order }: OrderCardProps) {
                   const imageUrl = getImageUrl();
                   
                   return (
-                    <img 
+                    <CachedImage 
                       src={imageUrl}
                       alt={item.name || 'Product image'}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (target.src !== '/placeholder-watch.jpg') {
-                          target.src = '/placeholder-watch.jpg';
-                        }
-                      }}
                     />
                   );
                 })()}
