@@ -13,6 +13,11 @@ interface Category {
   created_at: string;
 }
 
+interface BrandOption {
+  id: string;
+  name: string;
+}
+
 type ProductFormData = Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & {
   images?: (ProductImage & { file?: File; preview?: string })[];
 };
@@ -26,6 +31,7 @@ const initialFormData: ProductFormData = {
   offPercentage: 0,
   category: '',
   brand: '',
+  brand_id: '',
   stock: 0,
   featured: false,
   images: [],
@@ -42,15 +48,10 @@ export default function ProductForm({
   initialData,
   productId: propProductId,
 }: ProductFormProps) {
-  // Destructure productId from props and rename to avoid naming conflicts
   const effectiveProductId = propProductId;
   const [formData, setFormData] = useState<ProductFormData>(initialData || initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  interface BrandOption {
-    id: string;
-    name: string;
-  }
   const [brands, setBrands] = useState<BrandOption[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState('');
@@ -67,78 +68,9 @@ export default function ProductForm({
   
   const navigate = useNavigate();
   const { id: paramId } = useParams<{ id: string }>();
-  
-  // Use the effectiveProductId from props or params, with props taking precedence
   const productId = effectiveProductId || paramId || '';
 
-  // Ensure brand is included in form data
-  useEffect(() => {
-    if (initialData && !formData.brand) {
-      setFormData(prev => ({
-        ...prev,
-        brand: initialData.brand || ''
-      }));
-    }
-  }, [initialData, formData.brand]);
-
-  // Handle file selection
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    
-    // Filter out any non-image files and limit to max images
-    const newImages = files
-      .filter(file => file.type.startsWith('image/'))
-      .slice(0, MAX_IMAGES - (formData.images?.length || 0));
-
-    const newImagePreviews = newImages.map((file, index) => ({
-      url: '',
-      file,
-      preview: URL.createObjectURL(file),
-      isPrimary: (formData.images?.length || 0) === 0 && index === 0, // First image is primary by default
-      order: (formData.images?.length || 0) + index
-    }));
-
-    setFormData(prev => ({
-      ...prev,
-      images: [...(prev.images || []), ...newImagePreviews].map((img, idx) => ({
-        ...img,
-        order: idx // Ensure order is sequential
-      }))
-    }));
-
-  };
-
-  // Remove an image
-  const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images?.filter((_, i) => i !== index) || []
-    }));
-  };
-
-  // Set an image as primary
-  const setPrimaryImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images?.map((img, i) => ({
-        ...img,
-        isPrimary: i === index
-      })) || []
-    }));
-  };
-
-  // Clean up object URLs on unmount
-  useEffect(() => {
-    return () => {
-      formData.images?.forEach(img => {
-        if (img.preview) {
-          URL.revokeObjectURL(img.preview);
-        }
-      });
-    };
-  }, []);
-
-  // Fetch categories from database
+  // Fetch categories
   const fetchCategories = useCallback(async () => {
     try {
       setIsLoadingCategories(true);
@@ -157,7 +89,7 @@ export default function ProductForm({
     }
   }, []);
 
-  // Fetch brands from brands table
+  // Fetch brands
   const fetchBrands = useCallback(async () => {
     try {
       setIsLoadingBrands(true);
@@ -169,21 +101,12 @@ export default function ProductForm({
       
       if (error) throw error;
       
-      // Map to array of brand objects
       const brandOptions = data.map(brand => ({
         id: brand.id,
         name: brand.name
       }));
       
       setBrands(brandOptions);
-      
-      // If we're editing and have a product with a brand, set it as selected
-      if (isEditing && initialData?.brand) {
-        const brand = brandOptions.find(b => b.name === initialData.brand || b.id === initialData.brand);
-        if (brand) {
-          setSelectedBrand(brand.id);
-        }
-      }
     } catch (err) {
       console.error('Error fetching brands:', err);
       setError('Failed to load brands');
@@ -208,53 +131,25 @@ export default function ProductForm({
                 }]
               : initialData.images || []
           });
-          
-          // If we have initial data with a brand, set the selected brand
-          if (initialData.brand_id) {
-            setSelectedBrand(initialData.brand_id);
-          } else if (initialData.brand) {
-            // If we only have the brand name, try to find the ID
-            const brand = brands.find(b => b.name === initialData.brand);
-            if (brand) {
-              setSelectedBrand(brand.id);
-            }
-          }
         }
         return;
       }
 
       try {
-        console.log('Loading product with ID:', productId);
-        console.log('Current products in context:', products.length);
-        
-        // First try to get from context
         let product = getProductById(productId);
-        console.log('Product from context:', product ? 'Found' : 'Not found');
         
-        // If not found in context, try to refresh
         if (!product) {
-          console.log('Product not found in context, refreshing products...');
-          try {
-            const refreshedProducts = await refreshProducts();
-            console.log('Refreshed products count:', refreshedProducts.length);
-            product = getProductById(productId);
-            console.log('Product after refresh:', product ? 'Found' : 'Still not found');
-          } catch (refreshError) {
-            console.error('Failed to refresh products:', refreshError);
-            throw new Error(`Failed to load product data: ${refreshError instanceof Error ? refreshError.message : 'Unknown error'}`);
-          }
+          const refreshedProducts = await refreshProducts();
+          product = getProductById(productId);
         }
         
-        // If still not found, show detailed error
         if (!product) {
           const availableIds = products?.map((p: Product) => p.id) || [];
           throw new Error(`Product with ID ${productId} not found. Available IDs: ${availableIds.join(', ') || 'None'}`);
         }
         
-        // Handle images - support multiple image URLs (image_url_1 through image_url_5) and legacy imageUrl/fields
+        // Handle images
         let images: ProductImage[] = [];
-        
-        // Get all image URLs from the product and filter out any null/undefined values
         const imageUrls = [
           product.image_url_1,
           product.image_url_2,
@@ -263,17 +158,14 @@ export default function ProductForm({
           product.image_url_5,
         ].filter((url): url is string => Boolean(url));
 
-        // If we have image URLs, use them
         if (imageUrls.length > 0) {
           images = imageUrls.map((url, index) => ({
-            url: url, // url is guaranteed to be string here due to the filter
+            url,
             isPrimary: index === 0,
             order: index,
             preview: url
           }));
-        } 
-        // Fall back to the legacy imageUrl field if no image_url_X fields
-        else if (product.imageUrl) {
+        } else if (product.imageUrl) {
           images = [{
             url: product.imageUrl,
             isPrimary: true,
@@ -282,13 +174,12 @@ export default function ProductForm({
           }];
         }
         
-        // Get the latest categories in case they've been updated
+        // Get category name
         const { data: latestCategories } = await supabase
           .from('categories')
           .select('id, name')
           .eq('is_active', true);
           
-        // Find the category name using either ID or name
         const categoryName = latestCategories?.find(cat => 
           cat.id === product.category || cat.name === product.category
         )?.name || product.category;
@@ -296,7 +187,6 @@ export default function ProductForm({
         const formattedData: ProductFormData = {
           ...product,
           images,
-          // Ensure all required fields have default values
           name: product.name || '',
           description: product.description || '',
           price: product.price || 0,
@@ -308,43 +198,7 @@ export default function ProductForm({
           featured: product.featured || false
         };
         
-        console.log('Setting category:', { 
-          original: product.category, 
-          resolved: categoryName,
-          availableCategories: latestCategories?.map(c => ({ id: c.id, name: c.name })) || []
-        });
-        
-        console.log('Formatted product data:', formattedData);
         setFormData(formattedData);
-        
-        // Set the selected brand if it exists
-        if (product.brand_id) {
-          console.log('Setting selected brand from product.brand_id:', product.brand_id);
-          setSelectedBrand(product.brand_id);
-          
-          // Also update the form data with the brand name if we have it
-          const brand = brands.find(b => b.id === product.brand_id);
-          if (brand) {
-            setFormData(prev => ({
-              ...prev,
-              brand: brand.name,
-              brand_id: brand.id
-            }));
-          }
-        } else if (product.brand) {
-          // If we have a brand name but no ID, try to find the ID
-          console.log('Looking up brand by name:', product.brand);
-          const brand = brands.find(b => b.name === product.brand);
-          if (brand) {
-            console.log('Found matching brand:', brand);
-            setSelectedBrand(brand.id);
-            setFormData(prev => ({
-              ...prev,
-              brand: brand.name,
-              brand_id: brand.id
-            }));
-          }
-        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load product data';
         console.error('Error loading product:', errorMessage, err);
@@ -354,54 +208,91 @@ export default function ProductForm({
     
     loadProduct();
     fetchCategories();
-    // We'll fetch brands separately to avoid dependency issues
     fetchBrands();
-    // Include all dependencies that are used in the effect
-  }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchCategories]);
-  
-  // Effect to handle brand selection when brands or product changes
+  }, [isEditing, productId, initialData, getProductById, refreshProducts, products, fetchCategories, fetchBrands]);
+
+  // ✅ NEW: Sync selectedBrand whenever formData or brands change
   useEffect(() => {
-    if (brands.length === 0) return;
-    
-    // If we're editing and have a product ID, get the product
-    const product = isEditing && productId ? getProductById(productId) : null;
-    
-    // If we have a product with a brand_id, try to find the brand
-    if (product?.brand_id) {
-      const brand = brands.find(b => b.id === product.brand_id);
-      if (brand) {
-        console.log('Setting brand from product.brand_id:', brand);
-        setSelectedBrand(brand.id);
-        setFormData(prev => ({
-          ...prev,
-          brand: brand.name,
-          brand_id: brand.id
-        }));
-      } else {
-        console.warn(`Brand with ID ${product.brand_id} not found in available brands`);
-        // If brand not found but we have a brand name, keep it
-        setSelectedBrand('');
-        setFormData(prev => ({
-          ...prev,
-          brand: product.brand || '',
-          brand_id: product.brand_id
-        }));
+    if (!isEditing || brands.length === 0) {
+      // For new products, reset when brands load
+      if (!isEditing && initialData?.brand_id && brands.some(b => b.id === initialData.brand_id)) {
+        setSelectedBrand(initialData.brand_id);
       }
-    } 
-    // If we don't have a brand_id but have a brand name, try to find it
-    else if (product?.brand) {
-      const brand = brands.find(b => b.name.toLowerCase() === product.brand?.toLowerCase());
-      if (brand) {
-        console.log('Found brand by name:', brand);
-        setSelectedBrand(brand.id);
-        setFormData(prev => ({
-          ...prev,
-          brand: brand.name,
-          brand_id: brand.id
-        }));
+      return;
+    }
+
+    // Priority 1: Use brand_id if available and valid
+    if (formData.brand_id && brands.some(b => b.id === formData.brand_id)) {
+      setSelectedBrand(formData.brand_id);
+      return;
+    }
+
+    // Priority 2: Match by brand name
+    if (formData.brand) {
+      const found = brands.find(b => b.name === formData.brand);
+      if (found) {
+        setSelectedBrand(found.id);
+        return;
       }
     }
-  }, [brands, isEditing, productId, getProductById]);
+
+    // Clear selection if no match
+    setSelectedBrand('');
+  }, [formData.brand, formData.brand_id, brands, isEditing, initialData]);
+
+  // Handle image changes
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const newImages = files
+      .filter(file => file.type.startsWith('image/'))
+      .slice(0, MAX_IMAGES - (formData.images?.length || 0));
+
+    const newImagePreviews = newImages.map((file, index) => ({
+      url: '',
+      file,
+      preview: URL.createObjectURL(file),
+      isPrimary: (formData.images?.length || 0) === 0 && index === 0,
+      order: (formData.images?.length || 0) + index
+    }));
+
+    setFormData(prev => ({
+      ...prev,
+      images: [...(prev.images || []), ...newImagePreviews].map((img, idx) => ({
+        ...img,
+        order: idx
+      }))
+    }));
+  };
+
+  // Remove image
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  // Set primary image
+  const setPrimaryImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images?.map((img, i) => ({
+        ...img,
+        isPrimary: i === index
+      })) || []
+    }));
+  };
+
+  // Cleanup previews
+  useEffect(() => {
+    return () => {
+      formData.images?.forEach(img => {
+        if (img.preview) {
+          URL.revokeObjectURL(img.preview);
+        }
+      });
+    };
+  }, [formData.images]);
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -424,11 +315,9 @@ export default function ProductForm({
   // Handle brand selection
   const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const brandId = e.target.value;
-    console.log('Brand changed to ID:', brandId);
-    
     const brand = brands.find(b => b.id === brandId);
+    
     if (brand) {
-      console.log('Updating form with brand:', brand);
       setSelectedBrand(brand.id);
       setFormData(prev => ({
         ...prev,
@@ -436,7 +325,6 @@ export default function ProductForm({
         brand_id: brand.id
       }));
     } else {
-      console.log('Clearing brand selection');
       setSelectedBrand('');
       setFormData(prev => ({
         ...prev,
@@ -444,9 +332,6 @@ export default function ProductForm({
         brand_id: ''
       }));
     }
-    
-    // Force a re-render to ensure the UI updates
-    setFormData(prev => ({ ...prev }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -458,20 +343,15 @@ export default function ProductForm({
     }
 
     try {
-      console.log('[ProductForm] Starting form submission...');
       setIsSubmitting(true);
       setError('');
 
-      // Get the selected brand data
       const selectedBrandData = brands.find(brand => brand.id === selectedBrand);
       
-      // Process the form data before submission
       const submissionData = {
         ...formData,
-        // Include both brand_id and brand for backward compatibility
         brand_id: selectedBrand,
         brand: selectedBrandData?.name || formData.brand,
-        // Ensure images have proper order and primary flag
         images: formData.images?.map((img, index) => ({
           ...img,
           isPrimary: img.isPrimary || index === 0,
@@ -479,53 +359,25 @@ export default function ProductForm({
         }))
       };
 
-      console.log('[ProductForm] Prepared submission data:', {
-        ...submissionData,
-        images: submissionData.images?.map(img => ({
-          ...img,
-          file: img.file ? `[File: ${img.file.name}]` : undefined,
-          preview: img.preview ? '[Preview URL]' : undefined
-        }))
-      });
-
-      // Get all image files to upload
       const imageFiles = submissionData.images
         ?.filter(img => img.file)
         .map(img => img.file) as File[] || [];
 
       if (isEditing && productId) {
-        console.log(`[ProductForm] Updating product with ID: ${productId}`);
-        console.log(`[ProductForm] Found ${imageFiles.length} new image files for update`);
-        
-        try {
-          console.log('[ProductForm] Calling updateProduct...');
-          await updateProduct(productId, submissionData, imageFiles);
-          console.log('[ProductForm] updateProduct completed successfully');
-        } catch (updateError) {
-          console.error('[ProductForm] Error in updateProduct:', updateError);
-          throw updateError;
-        }
+        await updateProduct(productId, submissionData, imageFiles);
       } else {
-        console.log('[ProductForm] Creating new product');
-        
         if (imageFiles.length === 0) {
-          const errorMsg = 'At least one image is required';
-          console.error('[ProductForm]', errorMsg);
-          throw new Error(errorMsg);
+          throw new Error('At least one image is required');
         }
-        
-        console.log(`[ProductForm] Calling addProduct with ${imageFiles.length} images`);
         await addProduct(submissionData, imageFiles);
       }
       
-      console.log('[ProductForm] Navigation to /admin');
       navigate('/admin');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('[ProductForm] Error saving product:', errorMessage, err);
       setError(`Failed to save product: ${errorMessage}`);
     } finally {
-      console.log('[ProductForm] Setting isSubmitting to false');
       setIsSubmitting(false);
     }
   };
@@ -846,4 +698,4 @@ export default function ProductForm({
       </form>
     </div>
   );
-};
+}
