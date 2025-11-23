@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import ReactGA from 'react-ga4';
+import { useEffect } from 'react';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { ProductProvider } from './context/ProductContext';
@@ -32,9 +34,36 @@ import VerifyEmail from './pages/auth/VerifyEmail';
 import { CategoryProvider } from './context/CategoryContext';
 import CategoryPage from './pages/category/[slug]';
 
+// Track page views on route change
+const usePageViews = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Initialize GA4 with your Measurement ID
+    ReactGA.initialize('G-J50LLZ06HG');
+    
+    // Track initial pageview
+    ReactGA.send({ 
+      hitType: 'pageview', 
+      page: location.pathname + location.search 
+    });
+  }, []);
+
+  useEffect(() => {
+    // Track subsequent pageviews on route change
+    ReactGA.send({ 
+      hitType: 'pageview', 
+      page: location.pathname + location.search 
+    });
+  }, [location]);
+};
+
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  
+  // Initialize page view tracking
+  usePageViews();
 
   return (
     <div className="flex flex-col min-h-screen">
