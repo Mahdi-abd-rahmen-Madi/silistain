@@ -16,7 +16,6 @@ import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext';
 import FavoriteButton from '../components/FavoriteButton';
 import { formatPrice } from '../lib/utils';
-import ProductCard from '../components/ProductCard';
 import RecommendedProducts from '../components/RecommendedProducts';
 import { useTranslation } from 'react-i18next';
 import Checkout from './Checkout'; // Adjust path if needed
@@ -30,7 +29,7 @@ const ProductDetailsPage: React.FC = () => {
   const { products, loading, getProductById } = useProducts();
   const [selectedImage, setSelectedImage] = useState(0);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
-  const [isCheckoutExpanded, setIsCheckoutExpanded] = useState(false);
+  const [isCheckoutExpanded, setIsCheckoutExpanded] = useState(true); // Changed to true to show full form on mobile
 
   const currentProduct = id ? getProductById(id) : null;
 
@@ -213,25 +212,40 @@ const ProductDetailsPage: React.FC = () => {
                 />
               </div>
 
-              <p className="text-gray-700 mb-6">{currentProduct.description}</p>
-
-              {/* Trust Badges */}
-              <div className="space-y-4 mb-8">
-                <div className="bg-green-50 border border-green-100 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-green-700 mb-2">
-                    <Truck className="w-5 h-5" />
-                    <span className="font-medium">{t('product.details.free_shipping')}</span>
-                  </div>
-                  <p className="text-sm text-green-700">{t('product.details.free_shipping_desc')}</p>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-blue-700">
-                    <ShieldCheck className="w-5 h-5" />
-                    <span className="font-medium">{t('product.details.warranty')}</span>
+              {/* Embedded Checkout Form */}
+              <div className="bg-gray-50 p-6 rounded-xl border mb-6">
+                {/* Mobile optimized checkout section */}
+                <div className="md:hidden mb-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold">{t('checkout.title')}</h2>
+                    <CreditCard className="w-5 h-5" />
                   </div>
                 </div>
+                
+                <div className="md:block">
+                  {/* Checkout form is always visible on mobile */}
+                  <Checkout
+                    embedded={true}
+                    product={currentProduct}
+                    onOrderSuccess={() => {
+                      // Optional: handle post-order logic
+                    }}
+                  />
+                </div>
+              </div>
 
+              {/* WhatsApp CTA Button */}
+              <div className="space-y-3 mb-8">
+                <Button
+                  onClick={handleWhatsAppClick}
+                  className="w-full py-4 text-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  {t('product.details.whatsapp_cta')}
+                </Button>
+                <p className="text-center text-sm text-gray-600">
+                  {t('product.details.whatsapp_description')}
+                </p>
               </div>
 
               {/* Specifications Table */}
@@ -273,54 +287,31 @@ const ProductDetailsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* WhatsApp CTA Button */}
-              <div className="space-y-3 mb-8">
-                <Button
-                  onClick={handleWhatsAppClick}
-                  className="w-full py-4 text-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  {t('product.details.whatsapp_cta')}
-                </Button>
-                <p className="text-center text-sm text-gray-600">
-                  {t('product.details.whatsapp_description')}
-                </p>
+              <p className="text-gray-700 mb-6">{currentProduct.description}</p>
+
+              {/* Trust Badges */}
+              <div className="space-y-4 mb-8">
+                <div className="bg-green-50 border border-green-100 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-green-700 mb-2">
+                    <Truck className="w-5 h-5" />
+                    <span className="font-medium">{t('product.details.free_shipping')}</span>
+                  </div>
+                  <p className="text-sm text-green-700">{t('product.details.free_shipping_desc')}</p>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <ShieldCheck className="w-5 h-5" />
+                    <span className="font-medium">{t('product.details.warranty')}</span>
+                  </div>
+                </div>
+
               </div>
+
             </div>
 
-            {/* Embedded Checkout Form */}
-            <div className="bg-gray-50 p-6 rounded-xl border">
-              <div className="md:hidden mb-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCheckoutExpanded(!isCheckoutExpanded)}
-                  className="w-full"
-                >
-                  <CreditCard className="w-5 h-5 mr-2" />
-                  {isCheckoutExpanded 
-                    ? t('checkout.hide_form') 
-                    : t('checkout.show_form', { price: formatPrice(currentProduct.price) })
-                  }
-                </Button>
-              </div>
-              
-              <div className={`${isCheckoutExpanded ? 'block' : 'hidden'} md:block`}>
-                <div className="mb-4">
-                  <h2 className="text-xl font-bold">{t('checkout.title')}</h2>
-                  <p className="text-gray-600 text-sm">
-                    {t('checkout.description', { productName: currentProduct.name })}
-                  </p>
-                </div>
-                
-                <Checkout
-                  embedded={true}
-                  product={currentProduct}
-                  onOrderSuccess={() => {
-                    // Optional: handle post-order logic
-                  }}
-                />
-              </div>
-            </div>
+            {/* Empty space for layout consistency */}
+            <div></div>
           </div>
 
           {/* Full-Size Images Stacked */}

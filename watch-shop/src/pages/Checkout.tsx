@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, ChangeEvent, FormEvent, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, ChangeEvent, FormEvent, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { submitOrderToSheets, formatOrderData } from '../utils/api';
@@ -366,8 +366,8 @@ const Checkout: React.FC<CheckoutProps> = ({
 
   // Show login/signup suggestion for unauthenticated users
   const authPrompt = !currentUser && (
-    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
-      <p className="text-blue-800 dark:text-blue-200">
+    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2 mb-4">
+      <p className="text-blue-800 dark:text-blue-200 text-xs">
         {t('checkout.guest_checkout_notice')} 
         <button 
           onClick={() => navigate('/login', { state: { from: '/checkout' } })}
@@ -387,14 +387,14 @@ const Checkout: React.FC<CheckoutProps> = ({
 
   if (isSuccess) {
     return (
-      <div className="pt-24 pb-16 bg-gray-50 dark:bg-gray-900 min-h-screen">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden p-8 text-center">
-            <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-6" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+      <div className="pt-18 pb-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
+        <div className="container mx-auto px-2">
+          <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden p-4 text-center">
+            <CheckCircleIcon className="h-12 w-12 text-green-500 mx-auto mb-4" />
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               {t('checkout.order_confirmed')}
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-8">
+            <p className="text-gray-500 dark:text-gray-300 mb-4 text-xs">
               {t('checkout.thank_you')}
               {orderDetails && (
                 <>
@@ -405,39 +405,39 @@ const Checkout: React.FC<CheckoutProps> = ({
             </p>
 
             {orderDetails && (
-              <div className="bg-gray-50 rounded-lg p-6 mb-8">
-                <h3 className="text-lg font-medium text-black mb-4">
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <h3 className="text-sm font-medium text-black mb-2 text-xs">
                   {t('checkout.order_details')}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-left">
                   <div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs text-gray-600">
                       {t('checkout.order_number')}
                     </p>
-                    <p className="font-medium">#{orderDetails.orderId}</p>
+                    <p className="font-medium text-xs">#{orderDetails.orderId}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs text-gray-600">
                       {t('checkout.date')}
                     </p>
-                    <p className="font-medium">{new Date().toLocaleDateString()}</p>
+                    <p className="font-medium text-xs">{new Date().toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs text-gray-600">
                       {t('checkout.total')}
                     </p>
-                    <p className="font-medium">{formatPrice(orderDetails.total)}</p>
+                    <p className="font-medium text-xs">{formatPrice(orderDetails.total)}</p>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="text-md font-medium text-black mb-3">
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <h4 className="text-xs font-medium text-black mb-1">
                     {t('checkout.whats_next')}
                   </h4>
-                  <div className="space-y-3 text-sm text-gray-700 text-left">
+                  <div className="space-y-1 text-xs text-gray-700 text-left">
                     <p className="flex items-start">
-                      <span className="flex-shrink-0 h-5 w-5 text-green-500 mr-2">
-                        <CheckCircleIcon className="h-5 w-5" />
+                      <span className="flex-shrink-0 h-3 w-3 text-green-500 mr-1">
+                        <CheckCircleIcon className="h-3 w-3" />
                       </span>
                       {t('checkout.order_processing')}
                     </p>
@@ -446,17 +446,17 @@ const Checkout: React.FC<CheckoutProps> = ({
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
               <button
                 onClick={() => navigate('/')}
-                className="px-6 py-3 bg-accent text-white font-medium rounded-lg hover:bg-accent/90 transition-colors flex-1 sm:flex-none"
+                className="px-4 py-2 bg-accent text-white font-medium rounded-lg hover:bg-accent/90 transition-colors flex-1 sm:flex-none text-xs"
               >
                 {t('checkout.continue_shopping')}
               </button>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-xs text-gray-600">
                 {t('checkout.need_help')} <a href="/contact" className="text-accent hover:underline">{t('checkout.contact_support')}</a>
               </p>
             </div>
@@ -467,41 +467,47 @@ const Checkout: React.FC<CheckoutProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white py-8 px-2 sm:px-4 lg:px-5">
       <div className="max-w-7xl mx-auto">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-gray-700 hover:text-accent mb-6 transition-colors"
-        >
-          <ArrowLeftIcon className="h-5 w-5 mr-2" />
-          {t('checkout.back_to_cart')}
-        </button>
+        {/* Hide back to cart button on mobile when embedded */}
+        {!embedded && (
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-gray-700 hover:text-accent mb-3 transition-colors"
+          >
+            <ArrowLeftIcon className="h-3 w-3 mr-1" />
+            {t('checkout.back_to_cart')}
+          </button>
+        )}
 
-        <h1 className="text-3xl font-bold text-black mb-8">{t('checkout.title')}</h1>
+        {/* Only show the main title if not embedded */}
+        {!embedded && (
+          <h1 className="text-xl font-bold text-black mb-4">{t('checkout.title')}</h1>
+        )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex">
               <div className="flex-shrink-0">
-                <XCircleIcon className="h-5 w-5 text-red-400" />
+                <XCircleIcon className="h-3 w-3 text-red-400" />
               </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="ml-1.5">
+                <p className="text-xs text-red-700">{error}</p>
               </div>
             </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Billing Details */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-4">
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-medium text-black">{t('checkout.billing_details')}</h2>
+              <div className="p-3 border-b border-gray-200">
+                <h2 className="text-sm font-medium text-black text-xs">{t('checkout.billing_details')}</h2>
               </div>
-              <div className="p-6 space-y-6">
+              <div className="p-3 space-y-3">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-800 mb-1">
+                  <label htmlFor="name" className="block text-xs font-medium text-gray-800 mb-0.5">
                     {t('checkout.form.name')} <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -511,12 +517,12 @@ const Checkout: React.FC<CheckoutProps> = ({
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
+                    className="w-full px-1.5 py-0.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-xs"
                   />
                 </div>
 
-<div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-800 mb-1">
+                <div>
+                  <label htmlFor="phone" className="block text-xs font-medium text-gray-800 mb-0.5">
                     {t('checkout.form.phone')} <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -526,12 +532,12 @@ const Checkout: React.FC<CheckoutProps> = ({
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
+                    className="w-full px-1.5 py-0.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-xs"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-800 mb-1">
+                  <label htmlFor="address" className="block text-xs font-medium text-gray-800 mb-0.5">
                     {t('checkout.form.address')} <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -541,12 +547,12 @@ const Checkout: React.FC<CheckoutProps> = ({
                     required
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
+                    className="w-full px-1.5 py-0.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent text-xs"
                   />
                 </div>
 
-                <div className="mb-4">
-                  <label htmlFor="governorate" className="block text-sm font-medium text-gray-800">
+                <div className="mb-2">
+                  <label htmlFor="governorate" className="block text-xs font-medium text-gray-800">
                     {t('checkout.form.governorate')} <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -555,7 +561,7 @@ const Checkout: React.FC<CheckoutProps> = ({
                     value={formData.governorate}
                     onChange={handleGovernorateChange}
                     required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xs p-0.5 border text-xs"
                   >
                     <option value="">{t('checkout.form.select_governorate')}</option>
                     {governorates.map((gov) => (
@@ -566,8 +572,8 @@ const Checkout: React.FC<CheckoutProps> = ({
                   </select>
                 </div>
 
-                <div className="mb-4">
-                  <label htmlFor="delegation" className="block text-sm font-medium text-gray-700">
+                <div className="mb-2">
+                  <label htmlFor="delegation" className="block text-xs font-medium text-gray-700">
                     {t('checkout.form.delegation')} <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -577,7 +583,7 @@ const Checkout: React.FC<CheckoutProps> = ({
                     onChange={handleDelegationChange}
                     required
                     disabled={!formData.governorate || delegations.length === 0}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xs p-0.5 border disabled:bg-gray-100 disabled:cursor-not-allowed text-xs"
                   >
                     <option value="">{t('checkout.form.select_delegation')}</option>
                     {delegations.map((del, index) => (
@@ -595,9 +601,9 @@ const Checkout: React.FC<CheckoutProps> = ({
                     name="saveInfo"
                     checked={formData.saveInfo}
                     onChange={handleChange}
-                    className="h-4 w-4 text-accent focus:ring-accent border-gray-300 dark:border-gray-600 rounded"
+                    className="h-2 w-2 text-accent focus:ring-accent border-gray-300 dark:border-gray-600 rounded"
                   />
-                  <label htmlFor="saveInfo" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                  <label htmlFor="saveInfo" className="ml-1 block text-xs text-gray-700 dark:text-gray-300">
                     {t('checkout.form.save_info')}
                   </label>
                 </div>
@@ -618,7 +624,7 @@ const Checkout: React.FC<CheckoutProps> = ({
               error={error}
               onSubmit={handleSubmit}
             />
-            <div className="space-y-4">
+            <div className="space-y-2 mt-2">
               <CouponInput 
                 onApplyCoupon={(coupon) => {
                   setAppliedCoupon(coupon);
@@ -648,7 +654,7 @@ const Checkout: React.FC<CheckoutProps> = ({
               )}
               
               {couponError && (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                <p className="text-xs text-yellow-600 dark:text-yellow-400">
                   {couponError}
                 </p>
               )}
@@ -656,7 +662,7 @@ const Checkout: React.FC<CheckoutProps> = ({
           </div>
 
           {/* Confirmation Button */}
-          <div className="lg:col-span-3 mt-6">
+          <div className="lg:col-span-3 mt-3">
             <button
               type="submit"
               disabled={isSubmitting || !(
@@ -666,7 +672,7 @@ const Checkout: React.FC<CheckoutProps> = ({
                 formData.governorate &&
                 formData.delegation
               )}
-              className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-colors ${
+              className={`w-full py-1.5 px-4 rounded-lg font-medium text-white transition-colors text-xs ${
                 (!formData.name || !formData.phone || !formData.address || !formData.governorate || !formData.delegation || isSubmitting)
                   ? 'bg-gray-300 cursor-not-allowed dark:bg-gray-700'
                   : 'bg-green-600 hover:bg-green-700'
@@ -674,7 +680,7 @@ const Checkout: React.FC<CheckoutProps> = ({
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ml-1 mr-1.5 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
