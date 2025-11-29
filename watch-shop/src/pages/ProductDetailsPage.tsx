@@ -141,6 +141,8 @@ const ProductDetailsPage: React.FC = () => {
                 src={displayImages[selectedImage]?.url || '/placeholder-watch.jpg'}
                 alt={currentProduct.name}
                 className="w-full h-96 object-contain p-8"
+                onContextMenu={(e) => e.preventDefault()} // Disable right-click
+
               />
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2">
@@ -156,6 +158,8 @@ const ProductDetailsPage: React.FC = () => {
                     src={img.url}
                     alt={`${currentProduct.name} view ${index + 1}`}
                     className="w-full h-full object-cover"
+                    onContextMenu={(e) => e.preventDefault()} // Disable right-click
+
                   />
                 </button>
               ))}
@@ -324,6 +328,8 @@ const ProductDetailsPage: React.FC = () => {
                     src={img.url}
                     alt={`${currentProduct.name} full ${index + 1}`}
                     className="w-full object-contain h-auto max-h-[600px]"
+                    onContextMenu={(e) => e.preventDefault()} // Disable right-click
+
                   />
                 </div>
               ))}
